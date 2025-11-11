@@ -199,13 +199,22 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
       .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
 
   const draft: OnboardingDraftPayload = {
-    fullName: values.fullName,
-    company: values.company,
-    phone: values.phone,
     goals: [...values.goals],
     pages: [...values.pages],
     domainOwned: values.domainOwned
   };
+
+  if (values.fullName.trim().length > 0) {
+    draft.fullName = trimmed(values.fullName);
+  }
+
+  if (values.company.trim().length > 0) {
+    draft.company = trimmed(values.company);
+  }
+
+  if (values.phone.trim().length > 0) {
+    draft.phone = trimmed(values.phone);
+  }
 
   if (values.website.trim().length > 0) {
     draft.website = trimmed(values.website);

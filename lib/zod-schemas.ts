@@ -37,19 +37,25 @@ export const profileSchema = z.object({
 });
 
 export const OnboardingStep1Schema = z.object({
-  fullName: z
-    .string({ required_error: "Le nom complet est requis." })
-    .min(2, { message: "Le nom doit contenir au moins 2 caractères." })
-    .max(120, { message: "Le nom dépasse 120 caractères." }),
-  company: z
-    .string({ required_error: "Merci d’indiquer votre entreprise." })
-    .min(2, { message: "Merci d’indiquer un nom d’entreprise valide." })
-    .max(150, { message: "La raison sociale dépasse 150 caractères." }),
-  phone: z
-    .string({ required_error: "Merci d’indiquer un numéro de téléphone." })
-    .regex(/^[0-9\s+().-]{8,30}$/, {
-      message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
-    }),
+  fullName: emptyToUndefined(
+    z
+      .string()
+      .min(2, { message: "Le nom doit contenir au moins 2 caractères." })
+      .max(120, { message: "Le nom dépasse 120 caractères." })
+  ),
+  company: emptyToUndefined(
+    z
+      .string()
+      .min(2, { message: "Merci d’indiquer un nom d’entreprise valide." })
+      .max(150, { message: "La raison sociale dépasse 150 caractères." })
+  ),
+  phone: emptyToUndefined(
+    z
+      .string()
+      .regex(/^[0-9\s+().-]{8,30}$/, {
+        message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
+      })
+  ),
   website: emptyToUndefined(z.string().url({ message: "Merci de fournir une URL valide." }))
 });
 
