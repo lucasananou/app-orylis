@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
@@ -75,7 +76,7 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
   const isOwner = projectRow.ownerId === user.id;
 
   if (!staff && !isOwner) {
-    redirect("/dashboard");
+    redirect("/dashboard" satisfies Route);
   }
 
   const canCreateRequest = staff || isOwner;
