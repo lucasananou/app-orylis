@@ -27,7 +27,9 @@ const CATEGORY_LABELS: Record<"request" | "feedback" | "issue" | "general", stri
 };
 
 interface TicketPageProps {
-  params: {
+  params: Promise<{
+    id: string;
+  }> | {
     id: string;
   };
 }
@@ -37,6 +39,7 @@ export default function TicketDetailPage(props: TicketPageProps): JSX.Element {
 }
 
 async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX.Element> {
+  console.log("[TicketDetail] params", params);
   const session = await auth();
 
   if (!session?.user) {
@@ -44,6 +47,8 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
   }
 
   const user = session.user!;
+
+  const routeParams = "then" in params ? await params : params;
 
   const ticket = await db
     .select({
@@ -60,7 +65,7 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
     })
     .from(tickets)
     .innerJoin(projects, eq(tickets.projectId, projects.id))
-    .where(eq(tickets.id, params.id))
+    .where(eq(tickets.id, routeParams.id))
     .then((rows) => rows.at(0));
 
   if (!ticket) {

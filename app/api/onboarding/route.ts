@@ -80,14 +80,8 @@ export async function POST(req: NextRequest) {
     ? (validation.data as OnboardingFinalPayload)
     : (validation.data as OnboardingPayload);
 
-  const serializedPayload = JSON.parse(
-    JSON.stringify(safePayload, (_key, value) => {
-      if (value && typeof value === "object" && typeof (value as Date).toISOString === "function") {
-        return (value as Date).toISOString();
-      }
-      return value;
-    })
-  ) as Record<string, unknown>;
+  const serializedPayload = JSON.stringify(safePayload);
+  const parsedPayload = JSON.parse(serializedPayload) as Record<string, unknown>;
 
   const existing = await db
     .select({
@@ -103,14 +97,14 @@ export async function POST(req: NextRequest) {
       await db
         .update(onboardingResponses)
         .set({
-          payload: serializedPayload,
+          payload: parsedPayload,
           completed: completed ? true : existing.completed
         })
         .where(eq(onboardingResponses.id, existing.id));
     } else {
       await db.insert(onboardingResponses).values({
         projectId,
-        payload: serializedPayload,
+        payload: parsedPayload,
         completed
       });
     }
@@ -126,7 +120,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const summary = summarizeOnboardingPayload(serializedPayload);
+  const summary = summarizeOnboardingPayload(parsedPayload);
   const computedProgress = Math.max(10, Math.round(summary.completionRatio * 100));
   const progressToStore = completed ? 100 : Math.max(project.progress ?? 10, computedProgress);
 
