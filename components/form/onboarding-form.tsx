@@ -376,8 +376,8 @@ const customPagesArray = useFieldArray({
     return {
       ...defaultValues,
       ...values,
-      goals: [...values.goals],
-      pages: [...values.pages],
+      goals: Array.isArray(values.goals) ? [...values.goals] : [],
+      pages: Array.isArray(values.pages) ? [...values.pages] : [],
       customPages: (values.customPages ?? []).map((page) => ({
         title: page.title ?? "",
         description: page.description ?? ""
