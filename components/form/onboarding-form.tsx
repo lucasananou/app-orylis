@@ -382,8 +382,8 @@ const customPagesArray = useFieldArray({
         title: page.title ?? "",
         description: page.description ?? ""
       })),
-      inspirations: values.inspirations ?? [],
-      competitors: values.competitors ?? []
+      inspirations: (values.inspirations ?? []).map((entry) => ({ value: entry.value ?? "" })),
+      competitors: (values.competitors ?? []).map((entry) => ({ value: entry.value ?? "" }))
     };
   }, [watchedValues, defaultValues]);
 
