@@ -17,7 +17,11 @@ import {
 const createTable = pgTableCreator((name) => `orylis_${name}`);
 
 export const authUsers = pgTable("user", {
-  id: text("id").primaryKey()
+  id: text("id").primaryKey(),
+  name: text("name"),
+  email: text("email"),
+  emailVerified: timestamp("emailVerified", { withTimezone: true }),
+  image: text("image")
 });
 
 export const profileRoleEnum = pgEnum("profile_role", ["client", "staff"]);

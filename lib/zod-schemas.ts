@@ -204,6 +204,35 @@ export type TicketCreateFormValues = z.infer<typeof ticketCreateSchema>;
 export type TicketUpdatePayload = z.infer<typeof ticketUpdateSchema>;
 export type BillingLinkFormValues = z.infer<typeof billingLinkSchema>;
 
+export const clientCreateSchema = z.object({
+  fullName: emptyToUndefined(
+    z
+      .string()
+      .min(2, { message: "Le nom doit contenir au moins 2 caractères." })
+      .max(120, { message: "Le nom dépasse 120 caractères." })
+  ),
+  email: z.string().email({ message: "Merci d’entrer un email valide." }),
+  password: z
+    .string()
+    .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères." })
+    .max(128, { message: "Le mot de passe est trop long." })
+});
+
+export const clientCreateFormSchema = clientCreateSchema
+  .extend({
+    passwordConfirm: z
+      .string()
+      .min(8, { message: "La confirmation doit contenir au moins 8 caractères." })
+      .max(128, { message: "La confirmation est trop longue." })
+  })
+  .refine((values) => values.password === values.passwordConfirm, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["passwordConfirm"]
+  });
+
+export type ClientCreateFormValues = z.infer<typeof clientCreateFormSchema>;
+export type ClientCreatePayload = z.infer<typeof clientCreateSchema>;
+
 const allowedFileTypes = [
   "image/png",
   "image/jpeg",

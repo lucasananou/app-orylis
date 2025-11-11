@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { projects } from "@/lib/schema";
+import { onboardingResponses, projects } from "@/lib/schema";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { ClipboardList } from "lucide-react";
@@ -21,47 +21,71 @@ async function loadOnboardingData() {
   const user = session.user!;
   const staff = isStaff(user.role);
 
-  const onboardingProjects = await db.query.projects.findMany({
-    where: (project, { eq: eqFn }) => {
-      const statusCondition = eqFn(project.status, "onboarding");
-      if (staff) {
-        return statusCondition;
-      }
-      return and(statusCondition, eqFn(project.ownerId, user.id));
-    },
-    columns: {
-      id: true,
-      name: true,
-      status: true,
-      progress: true
-    },
-    with: {
-      onboardingResponses: {
-        columns: {
-          id: true,
-          payload: true,
-          completed: true,
-          updatedAt: true
-        }
-      }
-    },
-    orderBy: (project, { asc: ascFn }) => ascFn(project.createdAt)
-  });
+  const projectRows = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      status: projects.status,
+      progress: projects.progress,
+      responseId: onboardingResponses.id,
+      responsePayload: onboardingResponses.payload,
+      responseCompleted: onboardingResponses.completed,
+      responseUpdatedAt: onboardingResponses.updatedAt
+    })
+    .from(projects)
+    .leftJoin(onboardingResponses, eq(onboardingResponses.projectId, projects.id))
+    .where(
+      staff
+        ? eq(projects.status, "onboarding")
+        : and(eq(projects.status, "onboarding"), eq(projects.ownerId, user.id))
+    )
+    .orderBy(asc(projects.createdAt));
 
-  const projectEntries = onboardingProjects.map((project) => {
-    const response = project.onboardingResponses.at(0);
-    return {
-      id: project.id,
-      name: project.name,
-      status: project.status,
-      progress: project.progress,
-      payload: (response?.payload as Record<string, unknown> | null) ?? null,
-      completed: response?.completed ?? false,
-      updatedAt: response?.updatedAt?.toISOString() ?? null
-    };
-  });
+  const onboardingProjectsMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      status: string;
+      progress: number;
+      responseId: string | null;
+      responsePayload: unknown;
+      responseCompleted: boolean;
+      responseUpdatedAt: Date | null;
+    }
+  >();
 
-  return { staff, role: user.role, onboardingProjects, projectEntries };
+  for (const row of projectRows) {
+    const existing = onboardingProjectsMap.get(row.id);
+    if (existing) {
+      // Already have best response; keep earliest (first) entry
+      continue;
+    }
+    onboardingProjectsMap.set(row.id, {
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      progress: row.progress,
+      responseId: row.responseId ?? null,
+      responsePayload: row.responsePayload ?? null,
+      responseCompleted: row.responseCompleted ?? false,
+      responseUpdatedAt: row.responseUpdatedAt ?? null
+    });
+  }
+
+  const onboardingProjectsArray = Array.from(onboardingProjectsMap.values());
+
+  const projectEntries = onboardingProjectsArray.map((project) => ({
+    id: project.id,
+    name: project.name,
+    status: project.status,
+    progress: project.progress,
+    payload: (project.responsePayload as Record<string, unknown> | null) ?? null,
+    completed: project.responseCompleted,
+    updatedAt: project.responseUpdatedAt ? project.responseUpdatedAt.toISOString() : null
+  }));
+
+  return { staff, role: user.role, onboardingProjects: onboardingProjectsArray, projectEntries };
 }
 
 export default async function OnboardingPage(): Promise<JSX.Element> {

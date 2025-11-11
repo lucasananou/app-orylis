@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/page-header";
 import { ProgressSteps } from "@/components/progress-steps";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 import { DashboardProjects } from "@/components/dashboard/dashboard-projects";
+import { ClientCreateDialog } from "@/components/admin/client-create-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -114,6 +115,15 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
         description="Suivez en un coup d’œil l’avancement de vos projets Orylis."
         actions={
           <div className="flex items-center gap-3">
+                {staff && (
+                  <ClientCreateDialog
+                    trigger={
+                      <Button variant="outline" size="lg" className="rounded-full">
+                        Nouveau client
+                      </Button>
+                    }
+                  />
+                )}
             {staff && (
               <ProjectEditorDialog
                 mode="create"
