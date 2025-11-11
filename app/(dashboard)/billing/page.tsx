@@ -14,7 +14,8 @@ if (!session?.user) {
   redirect("/login");
 }
 
-const staff = isStaff(session.user.role);
+const user = session.user!;
+const staff = isStaff(user.role);
 
 const accessibleProjects = staff
   ? await db
@@ -25,7 +26,7 @@ const accessibleProjects = staff
       .from(projects)
       .orderBy(projects.name)
   : await db.query.projects.findMany({
-      where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
+      where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
       columns: {
         id: true,
         name: true
@@ -49,7 +50,7 @@ const baseQuery = db
 const links = staff
   ? await baseQuery.orderBy(desc(billingLinks.createdAt))
   : await baseQuery
-      .where(eq(projects.ownerId, session.user.id))
+      .where(eq(projects.ownerId, user.id))
       .orderBy(desc(billingLinks.createdAt));
 
 export default function BillingPage(): JSX.Element {
@@ -76,7 +77,7 @@ export default function BillingPage(): JSX.Element {
               createdAt: link.createdAt.toISOString()
             }))}
             projects={accessibleProjects}
-            role={session.user.role}
+            role={user.role}
             canManage={accessibleProjects.length > 0}
           />
         </CardContent>

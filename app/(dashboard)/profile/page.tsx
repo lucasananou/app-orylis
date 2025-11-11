@@ -13,8 +13,10 @@ if (!session?.user) {
   redirect("/login");
 }
 
+const user = session.user!;
+
 const profile = await db.query.profiles.findFirst({
-  where: eq(profiles.id, session.user.id),
+  where: eq(profiles.id, user.id),
   columns: {
     fullName: true,
     company: true,

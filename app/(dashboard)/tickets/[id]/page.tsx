@@ -34,6 +34,8 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
     redirect("/login");
   }
 
+  const user = session.user!;
+
   const ticket = await db
     .select({
       id: tickets.id,
@@ -55,8 +57,8 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
     notFound();
   }
 
-  const staff = isStaff(session.user.role);
-  const isOwner = ticket.ownerId === session.user.id;
+  const staff = isStaff(user.role);
+  const isOwner = ticket.ownerId === user.id;
   const canAccess = staff || isOwner;
 
   if (!canAccess) {

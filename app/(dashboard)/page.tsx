@@ -21,7 +21,8 @@ if (!session?.user) {
   redirect("/login");
 }
 
-const staff = isStaff(session.user.role);
+const user = session.user!;
+const staff = isStaff(user.role);
 
 const projectRows = staff
   ? await db
@@ -49,7 +50,7 @@ const projectRows = staff
       })
       .from(projects)
       .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-      .where(eq(projects.ownerId, session.user.id))
+      .where(eq(projects.ownerId, user.id))
       .orderBy(asc(projects.createdAt));
 
 const rawOwners = staff
@@ -131,7 +132,7 @@ export default function DashboardHomePage(): JSX.Element {
           <CardContent>
             <DashboardProjects
               projects={projectsData}
-              role={session.user.role}
+              role={user.role}
               ownerOptions={ownerOptions}
             />
           </CardContent>

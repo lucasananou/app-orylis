@@ -13,7 +13,8 @@ if (!session?.user) {
   redirect("/login");
 }
 
-const staff = isStaff(session.user.role);
+const user = session.user!;
+const staff = isStaff(user.role);
 
 const accessibleProjects = staff
   ? await db
@@ -25,7 +26,7 @@ const accessibleProjects = staff
       .from(projects)
       .orderBy(projects.name)
   : await db.query.projects.findMany({
-      where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
+        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
       columns: {
         id: true,
         name: true,
@@ -87,10 +88,10 @@ export default function FilesPage(): JSX.Element {
           path: file.path,
           projectId: file.projectId,
           projectName: file.projectName,
-          canDelete: staff || file.ownerId === session.user.id
+              canDelete: staff || file.ownerId === user.id
         }))}
-        role={session.user.role}
-        canManage={staff || accessibleProjects.some((project) => project.ownerId === session.user.id)}
+        role={user.role}
+        canManage={staff || accessibleProjects.some((project) => project.ownerId === user.id)}
       />
     </>
   );

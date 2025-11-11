@@ -15,7 +15,8 @@ if (!session?.user) {
   redirect("/login");
 }
 
-const staff = isStaff(session.user.role);
+const user = session.user!;
+const staff = isStaff(user.role);
 
 const onboardingProjects = await db.query.projects.findMany({
   where: (project, { eq: eqFn }) => {
@@ -23,7 +24,7 @@ const onboardingProjects = await db.query.projects.findMany({
     if (staff) {
       return statusCondition;
     }
-    return and(statusCondition, eqFn(project.ownerId, session.user.id));
+    return and(statusCondition, eqFn(project.ownerId, user.id));
   },
   columns: {
     id: true,
@@ -84,7 +85,7 @@ export default function OnboardingPage(): JSX.Element {
         title="Onboarding projet"
         description="Renseignez les informations clés pour lancer sereinement votre projet Orylis."
       />
-      <OnboardingForm projects={projectEntries} role={session.user.role} />
+      <OnboardingForm projects={projectEntries} role={user.role} />
     </>
   );
 }

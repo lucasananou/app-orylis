@@ -1,6 +1,8 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
+import type { NextAuthOptions } from "next-auth";
+import { getServerSession } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { Resend } from "resend";
 import { db, schema } from "./db";
@@ -35,7 +37,7 @@ async function fetchUserRole(userId: string) {
   return record?.role ?? "client";
 }
 
-const authConfig: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db, schema as any),
   session: { strategy: "jwt" },
   providers: [
@@ -112,7 +114,13 @@ const authConfig: NextAuthOptions = {
   }
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+const authHandler = NextAuth(authOptions);
+
+export async function auth() {
+  return getServerSession(authOptions);
+}
+
+export { authHandler };
 
 export async function getSessionUser() {
   const session = await auth();

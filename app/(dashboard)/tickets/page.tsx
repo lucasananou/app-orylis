@@ -60,7 +60,8 @@ async function TicketsPageContent({
     redirect("/login");
   }
 
-  const staff = isStaff(session.user.role);
+  const user = session.user!;
+  const staff = isStaff(user.role);
   const requestedStatus = searchParams.status;
   const statusFilter = STATUS_OPTIONS.some((option) => option.value === requestedStatus)
     ? (requestedStatus as TicketStatusValue | "all")
@@ -75,7 +76,7 @@ async function TicketsPageContent({
         .from(projects)
         .orderBy(projects.name)
     : await db.query.projects.findMany({
-        where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
+        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
         columns: {
           id: true,
           name: true
@@ -86,7 +87,7 @@ async function TicketsPageContent({
   const conditions: Array<SQL<unknown>> = [];
 
   if (!staff) {
-    conditions.push(eq(projects.ownerId, session.user.id));
+    conditions.push(eq(projects.ownerId, user.id));
   }
 
   if (statusFilter !== "all") {
@@ -140,7 +141,7 @@ async function TicketsPageContent({
         statusFilter={statusFilter}
         projects={accessibleProjects}
         tickets={ticketsData}
-        role={session.user.role}
+        role={user.role}
       />
     </>
   );

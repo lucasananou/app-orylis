@@ -18,7 +18,8 @@ if (!session?.user) {
   redirect("/login");
 }
 
-const staff = isStaff(session.user.role);
+const user = session.user!;
+const staff = isStaff(user.role);
 
 const accessibleProjects = staff
   ? await db
@@ -29,7 +30,7 @@ const accessibleProjects = staff
       .from(projects)
       .orderBy(projects.name)
   : await db.query.projects.findMany({
-      where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
+      where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
       columns: {
         id: true,
         name: true
