@@ -90,20 +90,32 @@ export async function POST(req: NextRequest) {
     .where(eq(onboardingResponses.projectId, projectId))
     .then((rows) => rows.at(0) ?? null);
 
-  if (existing) {
-    await db
-      .update(onboardingResponses)
-      .set({
+  try {
+    if (existing) {
+      await db
+        .update(onboardingResponses)
+        .set({
+          payload: serializedPayload,
+          completed: completed ? true : existing.completed
+        })
+        .where(eq(onboardingResponses.id, existing.id));
+    } else {
+      await db.insert(onboardingResponses).values({
+        projectId,
         payload: serializedPayload,
-        completed: completed ? true : existing.completed
-      })
-      .where(eq(onboardingResponses.id, existing.id));
-  } else {
-    await db.insert(onboardingResponses).values({
+        completed
+      });
+    }
+  } catch (error) {
+    console.error("[Onboarding] Failed to upsert payload", {
       projectId,
-      payload: serializedPayload,
-      completed
+      completed,
+      error
     });
+    return NextResponse.json(
+      { error: "Échec de l’enregistrement de l’onboarding." },
+      { status: 500 }
+    );
   }
 
   const summary = summarizeOnboardingPayload(serializedPayload);
