@@ -67,6 +67,13 @@ async function ensureTestUser() {
     }
 
     await ensureProfile(userId);
+await db
+  .update(profiles)
+  .set({
+    role: "staff",
+    fullName: "Compte démo"
+  })
+  .where(eq(profiles.id, userId));
 
     const passwordHash = await hash(TEST_USER_PASSWORD, 12);
 
