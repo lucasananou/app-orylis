@@ -226,7 +226,7 @@ export function TicketDetailForm({
               <FormMessage />
             </FormItem>
           )}
-        </FormField>
+        />
       )}
 
       <div className="flex items-center justify-end gap-3">
