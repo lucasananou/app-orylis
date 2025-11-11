@@ -2,7 +2,6 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
-import { getServerSession } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { Resend } from "resend";
 import { db, schema } from "./db";
@@ -114,13 +113,7 @@ export const authOptions: NextAuthOptions = {
   }
 };
 
-const authHandler = NextAuth(authOptions);
-
-export async function auth() {
-  return getServerSession(authOptions);
-}
-
-export { authHandler };
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
 
 export async function getSessionUser() {
   const session = await auth();
