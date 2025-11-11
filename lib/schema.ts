@@ -142,6 +142,27 @@ export const tickets = createTable(
   })
 );
 
+export const ticketMessages = createTable(
+  "ticket_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ticketId: uuid("ticket_id")
+      .notNull()
+      .references(() => tickets.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+  },
+  (message) => ({
+    ticketIdx: index("ticket_messages_ticket_id_idx").on(message.ticketId),
+    authorIdx: index("ticket_messages_author_id_idx").on(message.authorId)
+  })
+);
+
 export const files = createTable(
   "files",
   {
@@ -257,6 +278,7 @@ export const userCredentials = createTable(
 export const profilesRelations = relations(profiles, ({ many, one }) => ({
   projects: many(projects),
   tickets: many(tickets),
+  ticketMessages: many(ticketMessages),
   files: many(files),
   notifications: many(notifications),
   notificationPreferences: one(notificationPreferences, {
@@ -272,9 +294,33 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   onboardingResponses: many(onboardingResponses),
   tickets: many(tickets),
+  ticketMessages: many(ticketMessages),
   files: many(files),
   billingLinks: many(billingLinks),
   notifications: many(notifications)
+}));
+
+export const ticketsRelations = relations(tickets, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [tickets.projectId],
+    references: [projects.id]
+  }),
+  author: one(profiles, {
+    fields: [tickets.authorId],
+    references: [profiles.id]
+  }),
+  messages: many(ticketMessages)
+}));
+
+export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketMessages.ticketId],
+    references: [tickets.id]
+  }),
+  author: one(profiles, {
+    fields: [ticketMessages.authorId],
+    references: [profiles.id]
+  })
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({

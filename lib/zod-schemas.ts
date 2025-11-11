@@ -229,6 +229,15 @@ export const ticketUpdateSchema = z
     }
   );
 
+export const ticketMessageSchema = z.object({
+  body: z
+    .string()
+    .min(2, { message: "Merci de saisir un message (2 caractères minimum)." })
+    .max(4000, { message: "Merci de rester synthétique (4000 caractères maximum)." })
+});
+
+export type TicketMessagePayload = z.infer<typeof ticketMessageSchema>;
+
 export const billingLinkSchema = z.object({
   projectId: z.string().uuid({ message: "Projet invalide." }),
   label: z

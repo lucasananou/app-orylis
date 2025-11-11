@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
+import { listTicketMessages } from "@/lib/ticket-messages";
 import { TicketDetailForm } from "./ticket-detail-form";
+import { TicketConversation } from "./ticket-conversation";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +63,8 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
       createdAt: tickets.createdAt,
       updatedAt: tickets.updatedAt,
       ownerId: projects.ownerId,
-      projectName: projects.name
+      projectName: projects.name,
+      authorId: tickets.authorId
     })
     .from(tickets)
     .innerJoin(projects, eq(tickets.projectId, projects.id))
@@ -81,7 +84,8 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
   }
 
   const allowStatusChange = staff;
-  const allowContentEdit = staff || ticket.status !== "done";
+  const allowContentEdit = staff;
+  const messages = await listTicketMessages(ticket.id);
 
   return (
     <>
@@ -157,6 +161,13 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
           </CardContent>
         </Card>
       </div>
+
+      <TicketConversation
+        ticketId={ticket.id}
+        currentUserId={user.id}
+        messages={messages}
+        projectName={ticket.projectName}
+      />
     </>
   );
 }

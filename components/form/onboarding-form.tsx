@@ -371,6 +371,8 @@ const customPagesArray = useFieldArray({
     control
   });
 
+  const summaryValues = watchedValues ?? defaultValues;
+
   const draftSignatureRef = useRef<string>(
     JSON.stringify(normalizeDraftPayload(defaultValues))
   );
@@ -451,7 +453,7 @@ const customPagesArray = useFieldArray({
     };
   }, [watchedValues, projectId, isCompleted, isStaffRole]);
 
-  const summaryValues = form.getValues();
+  const summaryValues = watchedValues ?? defaultValues;
 
   if (!showEditor) {
     return (
