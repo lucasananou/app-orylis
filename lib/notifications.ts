@@ -43,20 +43,43 @@ const preferenceFieldByType: Record<NotificationType, keyof NotificationPreferen
   system: null
 };
 
-async function ensurePreferences(userId: string) {
-  const existing = await db.query.notificationPreferences.findFirst({
-    where: (prefs, { eq }) => eq(prefs.userId, userId)
-  });
+function isMissingNotificationsTable(error: unknown): boolean {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code?: string }).code === "42P01"
+  );
+}
 
-  if (existing) {
-    return existing;
+async function runSafeNotificationOperation<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (isMissingNotificationsTable(error)) {
+      console.warn("[Notifications] Table missing, skipping operation.");
+      return fallback;
+    }
+    throw error;
   }
+}
 
-  await db.insert(notificationPreferences).values({ userId }).onConflictDoNothing();
+async function ensurePreferences(userId: string) {
+  return runSafeNotificationOperation(async () => {
+    const existing = await db.query.notificationPreferences.findFirst({
+      where: (prefs, { eq }) => eq(prefs.userId, userId)
+    });
 
-  return db.query.notificationPreferences.findFirst({
-    where: (prefs, { eq }) => eq(prefs.userId, userId)
-  });
+    if (existing) {
+      return existing;
+    }
+
+    await db.insert(notificationPreferences).values({ userId }).onConflictDoNothing();
+
+    return db.query.notificationPreferences.findFirst({
+      where: (prefs, { eq }) => eq(prefs.userId, userId)
+    });
+  }, null);
 }
 
 async function shouldDeliverNotification(userId: string, type: NotificationType): Promise<boolean> {
@@ -155,14 +178,16 @@ export async function markNotifications(params: MarkNotificationsParams) {
 }
 
 export async function countUnreadNotifications(userId: string) {
-  const result = await db
-    .select({
-      value: sql<number>`count(*)`
-    })
-    .from(notifications)
-    .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+  return runSafeNotificationOperation(async () => {
+    const result = await db
+      .select({
+        value: sql<number>`count(*)`
+      })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
 
-  return result.at(0)?.value ?? 0;
+    return result.at(0)?.value ?? 0;
+  }, 0);
 }
 
 export async function notifyProjectOwner(
@@ -289,25 +314,27 @@ export async function notifyProjectParticipants(params: {
 }
 
 export async function ensureNotificationDefaults(userId: string, role: UserRole) {
-  const existing = await db.query.notificationPreferences.findFirst({
-    where: (prefs, { eq }) => eq(prefs.userId, userId)
-  });
+  return runSafeNotificationOperation(async () => {
+    const existing = await db.query.notificationPreferences.findFirst({
+      where: (prefs, { eq }) => eq(prefs.userId, userId)
+    });
 
-  if (existing) {
-    return existing;
-  }
+    if (existing) {
+      return existing;
+    }
 
-  const defaults = {
-    userId,
-    emailNotifications: role === "client",
-    ticketUpdates: true,
-    fileUpdates: true,
-    billingUpdates: true,
-    onboardingUpdates: true,
-    marketing: false
-  } satisfies typeof notificationPreferences.$inferInsert;
+    const defaults = {
+      userId,
+      emailNotifications: role === "client",
+      ticketUpdates: true,
+      fileUpdates: true,
+      billingUpdates: true,
+      onboardingUpdates: true,
+      marketing: false
+    } satisfies typeof notificationPreferences.$inferInsert;
 
-  await db.insert(notificationPreferences).values(defaults).onConflictDoNothing();
+    await db.insert(notificationPreferences).values(defaults).onConflictDoNothing();
 
-  return defaults;
+    return defaults;
+  }, null);
 }

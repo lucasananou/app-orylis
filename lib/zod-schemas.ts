@@ -267,7 +267,7 @@ export const projectSummarySchema = z.object({
   status: z.enum(["onboarding", "design", "build", "review", "delivered"]),
   progress: z.number().int().min(0).max(100),
   dueDate: z.string().nullable(),
-  ownerId: z.string().uuid()
+  ownerId: z.string().min(1)
 });
 
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
@@ -299,7 +299,9 @@ export const profileUpdateSchema = z
   );
 
 export const projectCreateSchema = z.object({
-  ownerId: z.string().uuid({ message: "Client invalide." }),
+  ownerId: z
+    .string()
+    .min(1, { message: "Client invalide." }),
   name: z
     .string()
     .min(3, { message: "Le nom doit contenir au moins 3 caractères." })
