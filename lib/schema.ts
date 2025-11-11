@@ -54,7 +54,7 @@ export const projects = createTable(
   "projects",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    ownerId: uuid("owner_id")
+    ownerId: text("owner_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
@@ -99,7 +99,7 @@ export const tickets = createTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    authorId: uuid("author_id")
+    authorId: text("author_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
@@ -126,7 +126,7 @@ export const files = createTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    uploaderId: uuid("uploader_id")
+    uploaderId: text("uploader_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
     storageProvider: storageProviderEnum("storage_provider").notNull().default("blob"),
