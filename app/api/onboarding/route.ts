@@ -83,6 +83,14 @@ export async function POST(req: NextRequest) {
   const serializedPayload = JSON.stringify(safePayload);
   const parsedPayload = JSON.parse(serializedPayload) as Record<string, unknown>;
 
+  console.log("[Onboarding] payload snapshot", {
+    projectId,
+    completed,
+    payloadPreview: Object.fromEntries(
+      Object.entries(parsedPayload ?? {}).map(([key, value]) => [key, typeof value])
+    )
+  });
+
   const existing = await db
     .select({
       id: onboardingResponses.id,
