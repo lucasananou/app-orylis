@@ -76,7 +76,7 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
   const isOwner = projectRow.ownerId === user.id;
 
   if (!staff && !isOwner) {
-    redirect("/dashboard" as Route);
+    redirect("/" as Route);
   }
 
   const canCreateRequest = staff || isOwner;
@@ -125,7 +125,7 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
         description={`Vue d’ensemble du projet — ${statusLabel}`}
         actions={
           <Button asChild variant="ghost">
-            <Link href="/dashboard">Retour au dashboard</Link>
+            <Link href={"/" as Route}>Retour au dashboard</Link>
           </Button>
         }
       />
