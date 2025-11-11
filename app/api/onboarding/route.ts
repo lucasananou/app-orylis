@@ -79,7 +79,15 @@ export async function POST(req: NextRequest) {
   const safePayload: OnboardingPayload | OnboardingFinalPayload = completed
     ? (validation.data as OnboardingFinalPayload)
     : (validation.data as OnboardingPayload);
-  const serializedPayload = JSON.parse(JSON.stringify(safePayload)) as Record<string, unknown>;
+
+  const serializedPayload = JSON.parse(
+    JSON.stringify(safePayload, (_key, value) => {
+      if (value && typeof value === "object" && typeof (value as Date).toISOString === "function") {
+        return (value as Date).toISOString();
+      }
+      return value;
+    })
+  ) as Record<string, unknown>;
 
   const existing = await db
     .select({
