@@ -1,0 +1,1122 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import {
+  OnboardingFinalSchema,
+  OnboardingStep1Schema,
+  OnboardingStep2Schema,
+  OnboardingStep3Schema,
+  OnboardingStep4Schema,
+  OnboardingStep5Schema,
+  type OnboardingPayload
+} from "@/lib/zod-schemas";
+import { useProjectSelection } from "@/lib/project-selection";
+import { cn, formatDate, formatProgress, isStaff, type UserRole } from "@/lib/utils";
+import { ProgressSteps } from "@/components/progress-steps";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
+
+const AUTOSAVE_DEBOUNCE_MS = 600;
+const MAX_INSPIRATIONS = 8;
+const MAX_COMPETITORS = 8;
+
+const GOAL_OPTIONS = [
+  { value: "visibilite", label: "Visibilité & notoriété" },
+  { value: "leads", label: "Acquisition de leads" },
+  { value: "ecommerce", label: "Ventes en ligne" },
+  { value: "autre", label: "Autre objectif principal" }
+] as const;
+
+const PAGE_OPTIONS = [
+  { value: "home", label: "Accueil" },
+  { value: "about", label: "À propos" },
+  { value: "services", label: "Services" },
+  { value: "pricing", label: "Tarifs" },
+  { value: "blog", label: "Blog / Articles" },
+  { value: "contact", label: "Contact" },
+  { value: "faq", label: "FAQ" },
+  { value: "careers", label: "Carrières" },
+  { value: "custom", label: "Autres (à préciser)" }
+] as const;
+
+type GoalOption = (typeof GOAL_OPTIONS)[number]["value"];
+
+type UrlEntry = {
+  value: string;
+};
+
+type PrimaryGoalOption = GoalOption | "";
+
+type OnboardingFormState = {
+  fullName: string;
+  company: string;
+  phone: string;
+  website: string;
+  goals: string[];
+  primaryGoal: PrimaryGoalOption;
+  description: string;
+  pages: string[];
+  contentsNote: string;
+  inspirations: UrlEntry[];
+  competitors: UrlEntry[];
+  domainOwned: boolean;
+  domainName: string;
+  hostingNotes: string;
+  confirm: boolean;
+};
+
+type OnboardingDraftPayload = Partial<OnboardingPayload>;
+
+interface OnboardingProjectEntry {
+  id: string;
+  name: string;
+  status: string;
+  progress: number;
+  payload: Record<string, unknown> | null;
+  completed: boolean;
+  updatedAt: string | null;
+}
+
+interface OnboardingFormProps {
+  projects: OnboardingProjectEntry[];
+  role: UserRole;
+}
+
+const stepDefinitions = [
+  {
+    id: "identity",
+    label: "Identité",
+    description: "Contact principal et informations générales.",
+    schema: OnboardingStep1Schema,
+    fields: ["fullName", "company", "phone", "website"]
+  },
+  {
+    id: "objectives",
+    label: "Objectifs",
+    description: "Vision stratégique et attentes prioritaires.",
+    schema: OnboardingStep2Schema,
+    fields: ["goals", "primaryGoal", "description"]
+  },
+  {
+    id: "pages",
+    label: "Structure",
+    description: "Pages clés et contenu attendu.",
+    schema: OnboardingStep3Schema,
+    fields: ["pages", "contentsNote"]
+  },
+  {
+    id: "inspirations",
+    label: "Inspirations",
+    description: "Références esthétiques ou concurrentielles.",
+    schema: OnboardingStep4Schema,
+    fields: ["inspirations", "competitors"]
+  },
+  {
+    id: "technical",
+    label: "Technique",
+    description: "Domaine, hébergement et aspects techniques.",
+    schema: OnboardingStep5Schema,
+    fields: ["domainOwned", "domainName", "hostingNotes"]
+  },
+  {
+    id: "review",
+    label: "Validation",
+    description: "Vérification finale avant envoi.",
+    schema: OnboardingFinalSchema,
+    fields: ["confirm"]
+  }
+] as const;
+
+const ensureString = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+
+const ensureBoolean = (value: unknown, fallback = false): boolean =>
+  typeof value === "boolean" ? value : fallback;
+
+const ensureStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+
+const ensurePrimaryGoal = (value: unknown): PrimaryGoalOption =>
+  GOAL_OPTIONS.some((option) => option.value === value) ? (value as GoalOption) : "";
+
+const toUrlEntries = (values: string[], fallbackLength = 1): UrlEntry[] => {
+  if (values.length === 0) {
+    return Array.from({ length: fallbackLength }, () => ({ value: "" }));
+  }
+
+  return values.map((value) => ({ value }));
+};
+
+const buildDefaultValues = (
+  initialValues: Record<string, unknown> | null,
+  completed: boolean
+): OnboardingFormState => {
+  const payload = initialValues ?? {};
+  const inspirations = ensureStringArray(payload.inspirations);
+  const competitors = ensureStringArray(payload.competitors);
+
+  return {
+    fullName: ensureString(payload.fullName),
+    company: ensureString(payload.company),
+    phone: ensureString(payload.phone),
+    website: ensureString(payload.website),
+    goals: ensureStringArray(payload.goals),
+    primaryGoal: ensurePrimaryGoal(payload.primaryGoal),
+    description: ensureString(payload.description),
+    pages: ensureStringArray(payload.pages),
+    contentsNote: ensureString(payload.contentsNote),
+    inspirations: toUrlEntries(inspirations, 1),
+    competitors: toUrlEntries(competitors, 0),
+    domainOwned: ensureBoolean(payload.domainOwned),
+    domainName: ensureString(payload.domainName),
+    hostingNotes: ensureString(payload.hostingNotes),
+    confirm: completed
+  };
+};
+
+const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayload => {
+  const trimmed = (input: string) => input.trim();
+
+  const normalizeUrls = (entries: UrlEntry[]) =>
+    entries
+      .map((entry) => trimmed(entry.value))
+      .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
+
+  const draft: OnboardingDraftPayload = {
+    fullName: values.fullName,
+    company: values.company,
+    phone: values.phone,
+    goals: [...values.goals],
+    pages: [...values.pages],
+    domainOwned: values.domainOwned
+  };
+
+  if (values.website.trim().length > 0) {
+    draft.website = trimmed(values.website);
+  }
+
+  if (values.primaryGoal) {
+    draft.primaryGoal = values.primaryGoal as OnboardingPayload["primaryGoal"];
+  }
+
+  if (values.description.trim().length > 0) {
+    draft.description = trimmed(values.description);
+  }
+
+  if (values.contentsNote.trim().length > 0) {
+    draft.contentsNote = trimmed(values.contentsNote);
+  }
+
+  const inspirations = normalizeUrls(values.inspirations);
+  if (inspirations.length > 0) {
+    draft.inspirations = inspirations;
+  } else {
+    draft.inspirations = [];
+  }
+
+  const competitors = normalizeUrls(values.competitors);
+  if (competitors.length > 0) {
+    draft.competitors = competitors;
+  }
+
+  if (values.domainOwned) {
+    draft.domainName = trimmed(values.domainName);
+  }
+
+  if (values.hostingNotes.trim().length > 0) {
+    draft.hostingNotes = trimmed(values.hostingNotes);
+  }
+
+  return draft;
+};
+
+const normalizeFinalPayload = (values: OnboardingFormState) => ({
+  ...normalizeDraftPayload(values),
+  confirm: values.confirm
+});
+
+export function OnboardingForm({ projects, role }: OnboardingFormProps) {
+  const router = useRouter();
+  const isStaffRole = isStaff(role);
+  const { projectId: selectedProjectId, setProjectId: setGlobalProjectId, ready } = useProjectSelection();
+
+  const fallbackProjectId = useMemo(() => projects[0]?.id ?? null, [projects]);
+
+  useEffect(() => {
+    if (!ready || !fallbackProjectId || isStaffRole) {
+      return;
+    }
+    if (!selectedProjectId) {
+      setGlobalProjectId(fallbackProjectId);
+    }
+  }, [fallbackProjectId, isStaffRole, ready, selectedProjectId, setGlobalProjectId]);
+
+  const activeProject =
+    projects.find((project) => project.id === (selectedProjectId ?? fallbackProjectId)) ??
+    projects[0];
+
+  const projectOptions = useMemo(
+    () =>
+      projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        completed: project.completed
+      })),
+    [projects]
+  );
+
+  const projectId = activeProject?.id ?? "";
+  const projectName = activeProject?.name ?? "Projet";
+  const projectStatus = activeProject?.status ?? "onboarding";
+  const projectProgress = activeProject?.progress ?? 0;
+  const normalizedProgress = formatProgress(projectProgress);
+  const initialValues = activeProject?.payload ?? null;
+  const completed = activeProject?.completed ?? false;
+  const lastUpdatedAt = activeProject?.updatedAt ?? null;
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(completed);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [savingError, setSavingError] = useState<string | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(
+    lastUpdatedAt ? new Date(lastUpdatedAt) : null
+  );
+  const [isSubmitting, startTransition] = useTransition();
+
+  const defaultValues = useMemo(
+    () => buildDefaultValues(initialValues, completed),
+    [initialValues, completed]
+  );
+
+  const form = useForm<OnboardingFormState>({
+    defaultValues,
+    mode: "onChange",
+    shouldUnregister: false
+  });
+
+  const { control } = form;
+
+  const inspirationsArray = useFieldArray({
+    control,
+    name: "inspirations"
+  });
+
+  const competitorsArray = useFieldArray({
+    control,
+    name: "competitors"
+  });
+
+  const watchedValues = useWatch<OnboardingFormState>({
+    control
+  });
+
+  const draftSignatureRef = useRef<string>(
+    JSON.stringify(normalizeDraftPayload(defaultValues))
+  );
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipNextAutoSaveRef = useRef(true);
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    form.reset(defaultValues, { keepErrors: false, keepDirtyValues: false });
+    draftSignatureRef.current = JSON.stringify(normalizeDraftPayload(defaultValues));
+    skipNextAutoSaveRef.current = true;
+    setCurrentStepIndex(0);
+    setSavingError(null);
+    setIsCompleted(completed);
+    setLastSavedAt(lastUpdatedAt ? new Date(lastUpdatedAt) : null);
+  }, [projectId, defaultValues, form, completed, lastUpdatedAt]);
+
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+
+    if (isCompleted && !isStaffRole) {
+      return;
+    }
+
+    if (skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false;
+      return;
+    }
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      const payload = normalizeDraftPayload(watchedValues as OnboardingFormState);
+      const signature = JSON.stringify(payload);
+
+      if (signature === draftSignatureRef.current) {
+        return;
+      }
+
+      try {
+        setIsSavingDraft(true);
+        setSavingError(null);
+        const response = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            payload
+          })
+        });
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error ?? "Impossible d’enregistrer le brouillon.");
+        }
+
+        draftSignatureRef.current = signature;
+        setLastSavedAt(new Date());
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur lors de l’autosauvegarde.";
+        setSavingError(message);
+      } finally {
+        setIsSavingDraft(false);
+      }
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [watchedValues, projectId, isCompleted, isStaffRole]);
+
+  const stepsProgress = stepDefinitions.map((step, index) => ({
+    id: step.id,
+    label: `${index + 1}. ${step.label}`,
+    description: step.description,
+    status:
+      index < currentStepIndex ? ("done" as const) : index === currentStepIndex ? ("current" as const) : ("upcoming" as const)
+  }));
+
+  const handleProjectChange = (value: string) => {
+    setGlobalProjectId(value);
+    setCurrentStepIndex(0);
+  };
+
+  const setSchemaErrors = (result: z.SafeParseReturnType<unknown, unknown>) => {
+    if (result.success) {
+      return;
+    }
+    const fieldErrors = result.error.flatten().fieldErrors;
+    Object.entries(fieldErrors).forEach(([field, messages]) => {
+      if (!messages || messages.length === 0) {
+        return;
+      }
+      form.setError(field as keyof OnboardingFormState, {
+        type: "manual",
+        message: messages[0]
+      });
+    });
+  };
+
+  const validateStep = (index: number) => {
+    const definition = stepDefinitions[index];
+    const payload =
+      definition.id === "review"
+        ? normalizeFinalPayload(form.getValues())
+        : normalizeDraftPayload(form.getValues());
+
+    const result = definition.schema.safeParse(payload);
+    if (!result.success) {
+      setSchemaErrors(result);
+      toast.error("Merci de compléter les informations requises avant de continuer.");
+      return false;
+    }
+
+    definition.fields.forEach((field) => form.clearErrors(field as keyof OnboardingFormState));
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (!validateStep(currentStepIndex)) {
+      return;
+    }
+    setCurrentStepIndex((prev) => Math.min(prev + 1, stepDefinitions.length - 1));
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStepIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleSubmit = () => {
+    const lastIndex = stepDefinitions.length - 1;
+    if (!validateStep(lastIndex)) {
+      return;
+    }
+
+    const finalPayload = normalizeFinalPayload(form.getValues());
+
+    startTransition(async () => {
+      try {
+        const response = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            payload: finalPayload,
+            completed: true,
+            confirm: true
+          })
+        });
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error ?? "Impossible de finaliser l’onboarding.");
+        }
+
+        draftSignatureRef.current = JSON.stringify(normalizeDraftPayload(form.getValues()));
+        setIsCompleted(true);
+        setLastSavedAt(new Date());
+        toast.success("Onboarding validé. L’équipe démarre la phase design.");
+        router.refresh();
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Une erreur est survenue lors de la validation.";
+        toast.error(message);
+      }
+    });
+  };
+
+  const inspirationFields = inspirationsArray.fields;
+  const competitorFields = competitorsArray.fields;
+
+  const isLocked = isCompleted && !isStaffRole;
+
+  return (
+    <div className="space-y-6">
+      <Card className="border border-border/80 bg-white/90">
+        <CardHeader className="gap-3 space-y-0 md:flex md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-semibold text-foreground">
+              {projectName}
+            </CardTitle>
+            <CardDescription>
+              Statut actuel&nbsp;:{" "}
+              <span className="capitalize text-foreground">{projectStatus}</span> · Progression{" "}
+              <span className="font-medium text-foreground">{normalizedProgress}%</span>
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-3">
+            {projectOptions.length > 1 && (
+              <Select value={projectId} onValueChange={handleProjectChange}>
+                <SelectTrigger className="w-60">
+                  <SelectValue placeholder="Sélectionner un projet" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.name} {option.completed ? "• complété" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <div className="text-sm text-muted-foreground">
+              {isSavingDraft && (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sauvegarde du brouillon…
+                </span>
+              )}
+              {!isSavingDraft && savingError && (
+                <span className="inline-flex items-center gap-2 text-destructive">
+                  {savingError}
+                </span>
+              )}
+              {!isSavingDraft && !savingError && (
+                <span>
+                  Dernier enregistrement&nbsp;:{" "}
+                  {lastSavedAt ? formatDate(lastSavedAt, { dateStyle: "medium", timeStyle: "short" }) : "à venir"}
+                </span>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ProgressSteps steps={stepsProgress} className="grid gap-4 md:grid-cols-3" />
+        </CardContent>
+      </Card>
+
+      {isLocked && (
+        <Card className="border border-emerald-200 bg-emerald-50/80 text-emerald-900">
+          <CardHeader className="flex-row items-center gap-3 space-y-0">
+            <ShieldCheck className="h-5 w-5" />
+            <CardTitle className="text-base font-semibold">Onboarding validé</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">
+              Les informations ont été transmises à l’équipe Orylis. Contactez-nous si vous devez
+              effectuer une modification.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <Form form={form} onSubmit={(event) => event.preventDefault()}>
+        <div className="space-y-6">
+          {/* Step 1 */}
+          {currentStepIndex === 0 && (
+            <Card className="border border-border/70 bg-white shadow-subtle">
+              <CardHeader>
+                <CardTitle>Identité & contact</CardTitle>
+                <CardDescription>
+                  Qui sera notre point de contact principal ? Ces éléments permettront de personnaliser
+                  nos échanges.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 md:grid-cols-2">
+                <FormField
+                  control={control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom complet</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Prénom Nom" disabled={isLocked} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Entreprise</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Orylis" disabled={isLocked} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+33 6 00 00 00 00" disabled={isLocked} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Site actuel (optionnel)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://votre-site.fr" disabled={isLocked} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 2 */}
+          {currentStepIndex === 1 && (
+            <Card className="border border-border/70 bg-white shadow-subtle">
+              <CardHeader>
+                <CardTitle>Objectifs & vision</CardTitle>
+                <CardDescription>
+                  Partagez vos priorités pour que nous alignions design, contenu et stratégie.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={control}
+                  name="goals"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quels sont vos objectifs ?</FormLabel>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {GOAL_OPTIONS.map((option) => (
+                          <label
+                            key={option.value}
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3 transition hover:border-accent",
+                              field.value.includes(option.value) && "border-accent bg-accent/10"
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border border-border"
+                              value={option.value}
+                              checked={field.value.includes(option.value)}
+                              onChange={(event) => {
+                                if (event.target.checked) {
+                                  field.onChange([...field.value, option.value]);
+                                } else {
+                                  field.onChange(field.value.filter((value) => value !== option.value));
+                                }
+                              }}
+                              disabled={isLocked}
+                            />
+                            <span className="text-sm text-foreground">{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="primaryGoal"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Objectif prioritaire</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={isLocked}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez l’objectif principal" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GOAL_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Précisions (optionnel)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Détaillez votre vision, vos KPIs, vos hypothèses..."
+                          className="min-h-[140px]"
+                          disabled={isLocked}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 3 */}
+          {currentStepIndex === 2 && (
+            <Card className="border border-border/70 bg-white shadow-subtle">
+              <CardHeader>
+                <CardTitle>Structure de contenu</CardTitle>
+                <CardDescription>
+                  Identifiez les pages à produire et les contenus disponibles ou à créer.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={control}
+                  name="pages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pages prévues</FormLabel>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {PAGE_OPTIONS.map((option) => (
+                          <label
+                            key={option.value}
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3 transition hover:border-accent",
+                              field.value.includes(option.value) && "border-accent bg-accent/10"
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border border-border"
+                              value={option.value}
+                              checked={field.value.includes(option.value)}
+                              onChange={(event) => {
+                                if (event.target.checked) {
+                                  field.onChange([...field.value, option.value]);
+                                } else {
+                                  field.onChange(field.value.filter((value) => value !== option.value));
+                                }
+                              }}
+                              disabled={isLocked}
+                            />
+                            <span className="text-sm text-foreground">{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="contentsNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes sur le contenu (optionnel)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Contenus disponibles, points de vigilance, personnes impliquées..."
+                          className="min-h-[140px]"
+                          disabled={isLocked}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 4 */}
+          {currentStepIndex === 3 && (
+            <Card className="border border-border/70 bg-white shadow-subtle">
+              <CardHeader>
+                <CardTitle>Inspirations & concurrents</CardTitle>
+                <CardDescription>
+                  Partagez des références (design, fonctionnalités, positionnement) et concurrents à
+                  surveiller.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                  <FormLabel>Inspirations (1 à {MAX_INSPIRATIONS})</FormLabel>
+                  <div className="space-y-3">
+                    {inspirationFields.map((field, index) => (
+                      <FormField
+                        key={field.id}
+                        control={control}
+                        name={`inspirations.${index}.value`}
+                        render={({ field: inspirationField }) => (
+                          <FormItem>
+                            <div className="flex gap-3">
+                              <FormControl>
+                                <Input
+                                  placeholder="https://exemple.com"
+                                  disabled={isLocked}
+                                  {...inspirationField}
+                                />
+                              </FormControl>
+                              {inspirationFields.length > 1 && !isLocked && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => inspirationsArray.remove(index)}
+                                >
+                                  Supprimer
+                                </Button>
+                              )}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                  {!isLocked && inspirationFields.length < MAX_INSPIRATIONS && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => inspirationsArray.append({ value: "" })}
+                    >
+                      Ajouter une inspiration
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <FormLabel>Concurrents (optionnel)</FormLabel>
+                  <div className="space-y-3">
+                    {competitorFields.map((field, index) => (
+                      <FormField
+                        key={field.id}
+                        control={control}
+                        name={`competitors.${index}.value`}
+                        render={({ field: competitorField }) => (
+                          <FormItem>
+                            <div className="flex gap-3">
+                              <FormControl>
+                                <Input
+                                  placeholder="https://concurrent.fr"
+                                  disabled={isLocked}
+                                  {...competitorField}
+                                />
+                              </FormControl>
+                              {!isLocked && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => competitorsArray.remove(index)}
+                                >
+                                  Supprimer
+                                </Button>
+                              )}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                  {!isLocked && competitorFields.length < MAX_COMPETITORS && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => competitorsArray.append({ value: "" })}
+                    >
+                      Ajouter un concurrent
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 5 */}
+          {currentStepIndex === 4 && (
+            <Card className="border border-border/70 bg-white shadow-subtle">
+              <CardHeader>
+                <CardTitle>Aspects techniques</CardTitle>
+                <CardDescription>
+                  Domaines, hébergement, contraintes techniques ou stack existante.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={control}
+                  name="domainOwned"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Disposez-vous déjà du nom de domaine ?</FormLabel>
+                      <div className="flex items-center gap-3">
+                        <input
+                          id="domain-owned"
+                          type="checkbox"
+                          className="h-4 w-4 rounded border border-border"
+                          checked={field.value}
+                          onChange={(event) => field.onChange(event.target.checked)}
+                          disabled={isLocked}
+                        />
+                        <label htmlFor="domain-owned" className="text-sm text-foreground">
+                          Oui, le domaine est déjà acheté et accessible.
+                        </label>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="domainName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom de domaine (si disponible)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="exemple.com"
+                          disabled={isLocked || !form.watch("domainOwned")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="hostingNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes d’hébergement & contraintes (optionnel)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Stack actuelle, accès serveurs, préférences techniques..."
+                          className="min-h-[140px]"
+                          disabled={isLocked}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 6 */}
+          {currentStepIndex === 5 && (
+            <Card className="border border-border/70 bg-white shadow-subtle">
+              <CardHeader>
+                <CardTitle>Validation finale</CardTitle>
+                <CardDescription>
+                  Vérifiez vos réponses puis validez l’onboarding pour lancer la phase Design.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground">Contact</p>
+                    <p className="text-base text-foreground">{form.getValues("fullName") || "—"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {form.getValues("company") || "—"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {form.getValues("phone") || "—"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {form.getValues("website") || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground">Objectifs</p>
+                    <ul className="mt-1 space-y-1 text-sm text-foreground">
+                      {form.getValues("goals").map((goal) => {
+                        const option = GOAL_OPTIONS.find((item) => item.value === goal);
+                        return (
+                          <li key={goal}>{option?.label ?? goal}</li>
+                        );
+                      })}
+                    </ul>
+                    <p className="mt-2 text-sm">
+                      Objectif prioritaire&nbsp;:{" "}
+                      <span className="font-medium">
+                        {
+                          GOAL_OPTIONS.find((option) => option.value === form.getValues("primaryGoal"))
+                            ?.label ?? "—"
+                        }
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <FormField
+                  control={control}
+                  name="confirm"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <label className="inline-flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3">
+                          <input
+                            type="checkbox"
+                            className="mt-1 h-4 w-4 rounded border border-border"
+                            checked={field.value}
+                            onChange={(event) => field.onChange(event.target.checked)}
+                            disabled={isLocked}
+                          />
+                          <span className="text-sm text-foreground">
+                            Je confirme que les informations fournies sont exactes et j’autorise Orylis à
+                            lancer la phase design.
+                          </span>
+                        </label>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-muted-foreground">
+              Étape {currentStepIndex + 1} sur {stepDefinitions.length}
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handlePreviousStep}
+                disabled={currentStepIndex === 0 || isSubmitting}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour
+              </Button>
+              {currentStepIndex < stepDefinitions.length - 1 && (
+                <Button
+                  type="button"
+                  onClick={handleNextStep}
+                  disabled={isSubmitting}
+                >
+                  Continuer
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+              {currentStepIndex === stepDefinitions.length - 1 && (
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isLocked || isSubmitting || !form.watch("confirm")}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Validation…
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Valider l’onboarding
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </Form>
+    </div>
+  );
+}
+

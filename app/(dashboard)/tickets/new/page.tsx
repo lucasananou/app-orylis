@@ -1,0 +1,86 @@
+import type { SVGProps } from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { projects } from "@/lib/schema";
+import { isStaff } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { NewTicketForm } from "./new-ticket-form";
+
+export default async function NewTicketPage() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const staff = isStaff(session.user.role);
+
+  const accessibleProjects = staff
+    ? await db
+        .select({
+          id: projects.id,
+          name: projects.name
+        })
+        .from(projects)
+        .orderBy(projects.name)
+    : await db.query.projects.findMany({
+        where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
+        columns: {
+          id: true,
+          name: true
+        },
+        orderBy: (project, { asc }) => asc(project.name)
+      });
+
+  return (
+    <>
+      <PageHeader
+        title="Nouveau ticket"
+        description="Exprimez clairement votre besoin pour une réponse rapide et précise."
+        actions={
+          <Button asChild variant="ghost">
+            <Link href="/tickets">Retour aux tickets</Link>
+          </Button>
+        }
+      />
+
+      <Card className="border border-border/70">
+        <CardHeader>
+          <CardTitle>Informations demande</CardTitle>
+          <CardDescription>
+            Toutes les sections sont obligatoires pour enclencher la prise en charge côté équipe.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {accessibleProjects.length === 0 ? (
+            <EmptyState
+              icon={InfoIcon}
+              title="Aucun projet disponible"
+              description={
+                staff
+                  ? "Aucun projet n’est actuellement assigné. Créez un projet ou attribuez-vous en un pour créer un ticket."
+                  : "Vous n’avez pas encore de projet actif. Contactez Orylis pour initialiser votre espace."
+              }
+            />
+          ) : (
+            <NewTicketForm projects={accessibleProjects} />
+          )}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+function InfoIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
