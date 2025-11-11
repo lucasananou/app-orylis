@@ -297,6 +297,11 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(
     lastUpdatedAt ? new Date(lastUpdatedAt) : null
   );
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
   const [isSubmitting, startTransition] = useTransition();
 
   const defaultValues = useMemo(
@@ -551,12 +556,15 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
                   {savingError}
                 </span>
               )}
-              {!isSavingDraft && !savingError && (
-                <span>
-                  Dernier enregistrement&nbsp;:{" "}
-                  {lastSavedAt ? formatDate(lastSavedAt, { dateStyle: "medium", timeStyle: "short" }) : "à venir"}
-                </span>
-              )}
+              {!isSavingDraft &&
+                !savingError && (
+                  <span suppressHydrationWarning>
+                    Dernier enregistrement&nbsp;:{" "}
+                    {lastSavedAt && isHydrated
+                      ? formatDate(lastSavedAt, { dateStyle: "medium", timeStyle: "short" })
+                      : "à venir"}
+                  </span>
+                )}
             </div>
           </div>
         </CardHeader>
