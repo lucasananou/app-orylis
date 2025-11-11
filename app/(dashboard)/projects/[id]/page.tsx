@@ -76,7 +76,7 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
   const isOwner = projectRow.ownerId === user.id;
 
   if (!staff && !isOwner) {
-    redirect("/dashboard" satisfies Route);
+    redirect("/dashboard" as Route);
   }
 
   const canCreateRequest = staff || isOwner;
