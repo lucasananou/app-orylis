@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   FileText,
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/onboarding", label: "Onboarding", icon: FileText },
   { href: "/tickets", label: "Tickets", icon: Ticket },
@@ -55,7 +56,7 @@ export function Sidebar({ className }: SidebarProps) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={{ pathname: item.href }}
               className={cn(
                 "inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
                 active

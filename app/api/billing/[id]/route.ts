@@ -1,50 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { billingLinks, projects } from "@/lib/schema";
-import { assertUserCanAccessProject } from "@/lib/utils";
+import { billingLinks } from "@/lib/schema";
+import { auth } from "@/auth";
 
-export async function DELETE(
-  _: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export const dynamic = "force-dynamic";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function GET(_req: NextRequest, ctx: Ctx) {
   const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await context.params;
+  const { id } = await ctx.params;
 
-  const link = await db
-    .select({
-      id: billingLinks.id,
-      projectId: billingLinks.projectId,
-      ownerId: projects.ownerId
-    })
-    .from(billingLinks)
-    .innerJoin(projects, eq(billingLinks.projectId, projects.id))
-    .where(eq(billingLinks.id, id))
-    .limit(1)
-    .then((rows) => rows.at(0));
+  const link = await db.query.billingLinks.findFirst({
+    where: (t, { eq }) => eq(t.id, id)
+  });
 
   if (!link) {
-    return NextResponse.json({ error: "Lien introuvable." }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  try {
-    assertUserCanAccessProject({
-      role: session.user.role,
-      userId: session.user.id,
-      ownerId: link.ownerId
-    });
-  } catch {
-    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+  return NextResponse.json({ data: link });
+}
+
+export async function DELETE(_req: NextRequest, ctx: Ctx) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await ctx.params;
 
   await db.delete(billingLinks).where(eq(billingLinks.id, id));
 
   return NextResponse.json({ ok: true });
 }
-

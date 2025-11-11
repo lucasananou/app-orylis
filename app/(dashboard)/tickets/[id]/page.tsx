@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, tickets } from "@/lib/schema";
 import { formatDate, isStaff } from "@/lib/utils";

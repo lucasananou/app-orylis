@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { profiles } from "@/lib/schema";
 import { profileUpdateSchema } from "@/lib/zod-schemas";

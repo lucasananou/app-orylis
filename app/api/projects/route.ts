@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { asc, eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, profiles } from "@/lib/schema";
 import { assertStaff, isStaff, parseISODate, safeJson } from "@/lib/utils";

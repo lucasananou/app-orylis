@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { eq, desc } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { billingLinks, projects } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";

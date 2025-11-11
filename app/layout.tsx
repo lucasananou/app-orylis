@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata } from "next/types";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import { cn } from "@/lib/utils";

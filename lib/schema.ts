@@ -11,12 +11,14 @@ import {
   boolean,
   integer,
   primaryKey,
-  index,
-  uniqueIndex
+  index
 } from "drizzle-orm/pg-core";
-import type { AdapterAccount } from "next-auth/adapters";
 
 const createTable = pgTableCreator((name) => `orylis_${name}`);
+
+const authUsersTable = pgTable("user", {
+  id: text("id").primaryKey()
+});
 
 export const profileRoleEnum = pgEnum("profile_role", ["client", "staff"]);
 export const projectStatusEnum = pgEnum("project_status", [
@@ -29,78 +31,12 @@ export const projectStatusEnum = pgEnum("project_status", [
 export const ticketStatusEnum = pgEnum("ticket_status", ["open", "in_progress", "done"]);
 export const storageProviderEnum = pgEnum("storage_provider", ["blob", "s3", "r2", "uploadthing"]);
 
-export const users = createTable(
-  "users",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    name: text("name"),
-    email: text("email").notNull(),
-    emailVerified: timestamp("email_verified", { withTimezone: true }),
-    image: text("image")
-  },
-  (user) => ({
-    emailIdx: index("users_email_idx").on(user.email),
-    emailUnique: uniqueIndex("users_email_unique").on(user.email)
-  })
-);
-
-export const accounts = createTable(
-  "accounts",
-  {
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type")
-      .$type<AdapterAccount["type"]>()
-      .notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("provider_account_id").notNull(),
-    refreshToken: text("refresh_token"),
-    accessToken: text("access_token"),
-    expiresAt: integer("expires_at"),
-    tokenType: text("token_type"),
-    scope: text("scope"),
-    idToken: text("id_token"),
-    sessionState: text("session_state")
-  },
-  (account) => ({
-    compoundPk: primaryKey({ columns: [account.provider, account.providerAccountId] }),
-    userIdx: index("accounts_user_id_idx").on(account.userId)
-  })
-);
-
-export const sessions = createTable(
-  "sessions",
-  {
-    sessionToken: text("session_token").primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    expires: timestamp("expires", { withTimezone: true }).notNull()
-  },
-  (session) => ({
-    userIdx: index("sessions_user_id_idx").on(session.userId)
-  })
-);
-
-export const verificationTokens = createTable(
-  "verification_tokens",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: timestamp("expires", { withTimezone: true }).notNull()
-  },
-  (token) => ({
-    compoundPk: primaryKey({ columns: [token.identifier, token.token] })
-  })
-);
-
 export const profiles = createTable(
   "profiles",
   {
-    id: uuid("id")
+    id: text("id")
       .primaryKey()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => authUsersTable.id, { onDelete: "cascade" }),
     role: profileRoleEnum("role").notNull().default("client"),
     fullName: text("full_name"),
     company: text("company"),
@@ -223,15 +159,6 @@ export const billingLinks = createTable(
     projectIdx: index("billing_project_id_idx").on(link.projectId)
   })
 );
-
-export const usersRelations = relations(users, ({ one, many }) => ({
-  profile: one(profiles, {
-    fields: [users.id],
-    references: [profiles.id]
-  }),
-  accounts: many(accounts),
-  sessions: many(sessions)
-}));
 
 export const profilesRelations = relations(profiles, ({ many }) => ({
   projects: many(projects),

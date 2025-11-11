@@ -1,8 +1,12 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next/types";
 
 const nextConfig: NextConfig = {
+  typedRoutes: true,
   reactStrictMode: true,
-  typedRoutes: false
+  experimental: {},
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

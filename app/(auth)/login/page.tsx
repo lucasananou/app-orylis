@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { LoginForm } from "./login-form";
 
 const session = await auth();

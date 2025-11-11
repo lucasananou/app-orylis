@@ -1,48 +1,33 @@
+// app/api/files/[id]/route.ts
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { del } from "@vercel/blob";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { files, projects } from "@/lib/schema";
-import { isStaff } from "@/lib/utils";
+import { files } from "@/lib/schema";
+import { auth } from "@/auth";
 
-export async function DELETE(
-  _: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export const dynamic = "force-dynamic";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function DELETE(_req: NextRequest, ctx: Ctx) {
   const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id: fileId } = await context.params;
+  const { id } = await ctx.params;
 
-  const record = await db
-    .select({
-      id: files.id,
-      path: files.path,
-      projectId: files.projectId,
-      ownerId: projects.ownerId
-    })
-    .from(files)
-    .innerJoin(projects, eq(files.projectId, projects.id))
-    .where(eq(files.id, fileId))
-    .then((rows) => rows.at(0));
+  const item = await db.query.files.findFirst({
+    where: (t, { eq }) => eq(t.id, id),
+    columns: { id: true, path: true, projectId: true, uploaderId: true }
+  });
 
-  if (!record) {
-    return NextResponse.json({ error: "Fichier introuvable." }, { status: 404 });
+  if (!item) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const canDelete = isStaff(session.user.role) || record.ownerId === session.user.id;
-
-  if (!canDelete) {
-    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
-  }
-
-  await del(record.path);
-  await db.delete(files).where(eq(files.id, fileId));
-
+  await db.delete(files).where(eq(files.id, id));
   return NextResponse.json({ ok: true });
 }
 

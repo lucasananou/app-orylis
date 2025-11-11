@@ -1,87 +1,50 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
-import { assertStaff, parseISODate, safeJson } from "@/lib/utils";
-import { projectUpdateSchema } from "@/lib/zod-schemas";
+import { auth } from "@/auth";
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export const dynamic = "force-dynamic";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function GET(_req: NextRequest, ctx: Ctx) {
   const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!session?.user) {
-    return safeJson({ error: "Non authentifié." }, 401);
-  }
+  const { id } = await ctx.params;
 
-  try {
-    assertStaff(session.user.role);
-  } catch {
-    return safeJson({ error: "Accès réservé au staff." }, 403);
-  }
-
-  const body = await request.json().catch(() => null);
-  const parsed = projectUpdateSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return safeJson(
-      {
-        error: "Payload invalide.",
-        details: parsed.error.flatten()
-      },
-      400
-    );
-  }
-
-  const updates: Partial<typeof projects.$inferInsert> = {};
-  const { id: projectId } = await context.params;
-
-  if (parsed.data.name !== undefined) {
-    updates.name = parsed.data.name;
-  }
-
-  if (parsed.data.status !== undefined) {
-    updates.status = parsed.data.status;
-  }
-
-  if (parsed.data.progress !== undefined) {
-    updates.progress = parsed.data.progress;
-  }
-
-  if (parsed.data.dueDate !== undefined) {
-    try {
-      parseISODate(parsed.data.dueDate);
-      updates.dueDate = parsed.data.dueDate ?? null;
-    } catch {
-      return safeJson({ error: "Date d’échéance invalide." }, 400);
-    }
-  }
-
-  const [updated] = await db
-    .update(projects)
-    .set(updates)
-    .where(eq(projects.id, projectId))
-    .returning({
-      id: projects.id,
-      name: projects.name,
-      status: projects.status,
-      progress: projects.progress,
-      dueDate: projects.dueDate,
-      ownerId: projects.ownerId
-    });
-
-  if (!updated) {
-    return safeJson({ error: "Projet introuvable." }, 404);
-  }
-
-  return safeJson({
-    ok: true,
-    project: {
-      ...updated,
-      dueDate: updated.dueDate ?? null
-    }
+  const item = await db.query.projects.findFirst({
+    where: (t, { eq }) => eq(t.id, id)
   });
+  if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json({ data: item });
 }
 
+export async function PATCH(req: NextRequest, ctx: Ctx) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await ctx.params;
+  const body = (await req.json()) as Partial<{
+    name: string;
+    status: "onboarding" | "design" | "build" | "review" | "delivered";
+    progress: number;
+    dueDate: string | null;
+  }>;
+
+  const update: Record<string, unknown> = {};
+  if (typeof body.name === "string") update.name = body.name;
+  if (typeof body.status === "string") update.status = body.status;
+  if (typeof body.progress === "number") update.progress = body.progress;
+  if (body.dueDate !== undefined) update.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: "No changes" }, { status: 400 });
+  }
+
+  await db.update(projects).set(update).where(eq(projects.id, id));
+  return NextResponse.json({ ok: true });
+}

@@ -64,7 +64,10 @@ export function TicketCard({
 
   if (href) {
     return (
-      <Link href={href} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
+      <Link
+        href={{ pathname: href }}
+        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      >
         {card}
       </Link>
     );

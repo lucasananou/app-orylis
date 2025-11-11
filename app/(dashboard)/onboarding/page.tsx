@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
 import { EmptyState } from "@/components/empty-state";

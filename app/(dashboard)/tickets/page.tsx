@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, tickets } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";

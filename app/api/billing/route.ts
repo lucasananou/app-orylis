@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { billingLinks, projects } from "@/lib/schema";
 import { billingLinkSchema } from "@/lib/zod-schemas";

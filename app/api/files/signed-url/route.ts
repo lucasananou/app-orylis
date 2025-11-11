@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { files, projects } from "@/lib/schema";
 import { buildFileStoragePath, isStaff } from "@/lib/utils";

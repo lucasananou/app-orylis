@@ -1,7 +1,7 @@
 import * as React from "react";
 import { redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, profiles } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
