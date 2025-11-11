@@ -88,10 +88,21 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const ownerProfile = await db.query.profiles.findFirst({
+    where: eq(profiles.id, parsed.data.ownerId),
+    columns: {
+      id: true
+    }
+  });
+
+  if (!ownerProfile) {
+    return safeJson({ error: "Client introuvable." }, 404);
+  }
+
   const [created] = await db
     .insert(projects)
     .values({
-      ownerId: parsed.data.ownerId,
+      ownerId: ownerProfile.id,
       name: parsed.data.name,
       status: parsed.data.status ?? "onboarding",
       progress: parsed.data.progress ?? 10,
