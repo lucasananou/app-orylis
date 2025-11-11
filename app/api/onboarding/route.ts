@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const safePayload = validation.data as completed
-    ? OnboardingFinalPayload
-    : OnboardingPayload;
+  const safePayload: OnboardingPayload | OnboardingFinalPayload = completed
+    ? (validation.data as OnboardingFinalPayload)
+    : (validation.data as OnboardingPayload);
 
   const existing = await db
     .select({
