@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -533,7 +534,7 @@ const customPagesArray = useFieldArray({
         setIsCompleted(true);
         setLastSavedAt(new Date());
         toast.success("Onboarding validé. L’équipe démarre la phase design.");
-        router.replace("/dashboard");
+        router.replace("/" as Route);
       } catch (error) {
         const message =
           error instanceof Error
