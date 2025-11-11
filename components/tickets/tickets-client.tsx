@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -190,7 +191,7 @@ export function TicketsClient({
                   createdAt={ticket.createdAt}
                   updatedAt={ticket.updatedAt}
                   projectName={ticket.projectName}
-                  href={`/tickets/${ticket.id}`}
+                  onSelect={() => router.push(`/tickets/${ticket.id}` as Route)}
                 />
               ))}
             </div>

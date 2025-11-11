@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
   const safePayload: OnboardingPayload | OnboardingFinalPayload = completed
     ? (validation.data as OnboardingFinalPayload)
     : (validation.data as OnboardingPayload);
+  const serializedPayload = JSON.parse(JSON.stringify(safePayload)) as Record<string, unknown>;
 
   const existing = await db
     .select({
@@ -93,19 +94,19 @@ export async function POST(req: NextRequest) {
     await db
       .update(onboardingResponses)
       .set({
-        payload: safePayload,
+        payload: serializedPayload,
         completed: completed ? true : existing.completed
       })
       .where(eq(onboardingResponses.id, existing.id));
   } else {
     await db.insert(onboardingResponses).values({
       projectId,
-      payload: safePayload,
+      payload: serializedPayload,
       completed
     });
   }
 
-  const summary = summarizeOnboardingPayload(safePayload as Record<string, unknown> | null);
+  const summary = summarizeOnboardingPayload(serializedPayload);
   const computedProgress = Math.max(10, Math.round(summary.completionRatio * 100));
   const progressToStore = completed ? 100 : Math.max(project.progress ?? 10, computedProgress);
 

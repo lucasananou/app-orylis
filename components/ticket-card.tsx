@@ -15,7 +15,7 @@ export interface TicketCardProps {
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
   projectName: string;
-  href?: string;
+  onSelect?: () => void;
 }
 
 const statusMap: Record<
@@ -28,7 +28,6 @@ const statusMap: Record<
 };
 
 export function TicketCard({
-  id,
   title,
   description,
   status,
@@ -36,9 +35,8 @@ export function TicketCard({
   createdAt,
   updatedAt,
   projectName,
-  href
+  onSelect
 }: TicketCardProps) {
-  const router = useRouter();
   const statusConfig = statusMap[status];
   const createdLabel = createdAt ? formatDate(createdAt, { dateStyle: "medium", timeStyle: "short" }) : null;
   const updatedLabel =
@@ -59,14 +57,29 @@ export function TicketCard({
   const categoryConfig = categoryLabels[category];
 
   const card = (
-    <Card className={cn("h-full transition hover:shadow-lg", href && "cursor-pointer")}>
+    <Card
+      className={cn(
+        "h-full transition hover:shadow-lg",
+        onSelect && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      )}
+      onClick={onSelect}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : -1}
+      onKeyDown={(event) => {
+        if (!onSelect) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+    >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold text-foreground">{title}</CardTitle>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{projectName}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
           {categoryConfig ? (
             <Badge variant={categoryConfig.variant} className="text-[11px] uppercase">
               {categoryConfig.label}
@@ -88,17 +101,5 @@ export function TicketCard({
     </Card>
   );
 
-  if (!href) {
-    return card;
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => router.push(`/tickets/${id}` as Route)}
-      className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-    >
-      {card}
-    </button>
-  );
+  return card;
 }
