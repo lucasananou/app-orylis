@@ -113,7 +113,12 @@ export const authOptions: NextAuthOptions = {
   }
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
+const authHandler = NextAuth(authOptions);
+
+export const handlers = authHandler.handlers;
+export const auth = authHandler.auth;
+export const signIn = authHandler.signIn;
+export const signOut = authHandler.signOut;
 
 export async function getSessionUser() {
   const session = await auth();
