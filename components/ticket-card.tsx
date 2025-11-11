@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import { cn, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +38,7 @@ export function TicketCard({
   projectName,
   href
 }: TicketCardProps) {
+  const router = useRouter();
   const statusConfig = statusMap[status];
   const createdLabel = createdAt ? formatDate(createdAt, { dateStyle: "medium", timeStyle: "short" }) : null;
   const updatedLabel =
@@ -84,16 +88,17 @@ export function TicketCard({
     </Card>
   );
 
-  if (href) {
-    return (
-      <Link
-        href={`/tickets/${id}` as const}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-      >
-        {card}
-      </Link>
-    );
+  if (!href) {
+    return card;
   }
 
-  return card;
+  return (
+    <button
+      type="button"
+      onClick={() => router.push(`/tickets/${id}` as Route)}
+      className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+    >
+      {card}
+    </button>
+  );
 }
