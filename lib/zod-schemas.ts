@@ -10,6 +10,14 @@ export const loginSchema = z.object({
   email: z.string().email({ message: "Merci d’entrer un email valide." })
 });
 
+export const passwordLoginSchema = z.object({
+  email: z.string().email({ message: "Merci d’entrer un email valide." }),
+  password: z
+    .string()
+    .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères." })
+    .max(128, { message: "Le mot de passe est trop long." })
+});
+
 export const profileSchema = z.object({
   fullName: emptyToUndefined(
     z
@@ -188,6 +196,7 @@ export const billingLinkSchema = z.object({
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
+export type PasswordLoginFormValues = z.infer<typeof passwordLoginSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 export type OnboardingPayload = z.infer<typeof OnboardingPayloadSchema>;
 export type OnboardingFinalPayload = z.infer<typeof OnboardingFinalSchema>;

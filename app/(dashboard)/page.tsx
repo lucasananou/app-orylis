@@ -15,85 +15,101 @@ import { ProgressSteps } from "@/components/progress-steps";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 import { Edit3, ClipboardList } from "lucide-react";
 
-const session = await auth();
+export const dynamic = "force-dynamic";
 
-if (!session?.user) {
-  redirect("/login");
+async function loadDashboardData() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user!;
+  const staff = isStaff(user.role);
+
+  const projectRows = staff
+    ? await db
+        .select({
+          id: projects.id,
+          name: projects.name,
+          status: projects.status,
+          progress: projects.progress,
+          dueDate: projects.dueDate,
+          ownerId: projects.ownerId,
+          ownerName: profiles.fullName
+        })
+        .from(projects)
+        .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+        .orderBy(asc(projects.createdAt))
+    : await db
+        .select({
+          id: projects.id,
+          name: projects.name,
+          status: projects.status,
+          progress: projects.progress,
+          dueDate: projects.dueDate,
+          ownerId: projects.ownerId,
+          ownerName: profiles.fullName
+        })
+        .from(projects)
+        .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+        .where(eq(projects.ownerId, user.id))
+        .orderBy(asc(projects.createdAt));
+
+  const rawOwners = staff
+    ? await db.query.profiles.findMany({
+        where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
+        columns: {
+          id: true,
+          fullName: true,
+          company: true
+        },
+        orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
+      })
+    : [];
+
+  const ownerOptions = staff
+    ? rawOwners.map((owner) => ({
+        id: owner.id,
+        name: owner.fullName ?? owner.company ?? "Client"
+      }))
+    : [];
+
+  const projectsData = projectRows.map((project) => ({
+    id: project.id,
+    name: project.name,
+    status: project.status,
+    progress: project.progress,
+    dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
+    ownerId: project.ownerId,
+    ownerName: project.ownerName ?? null
+  }));
+
+  const onboardingProject = projectsData.find((project) => project.status === "onboarding") ?? null;
+  const onboardingProgress = onboardingProject?.progress ?? 0;
+
+  const onboardingStepStates = onboardingProject
+    ? onboardingProgress < 15
+      ? (["current", "upcoming", "upcoming"] as const)
+      : onboardingProgress < 35
+        ? (["done", "current", "upcoming"] as const)
+        : (["done", "done", "current"] as const)
+    : (["done", "done", "done"] as const);
+
+  return {
+    role: user.role,
+    staff,
+    ownerOptions,
+    projectsData,
+    onboardingProject,
+    onboardingStepStates
+  };
 }
 
-const user = session.user!;
-const staff = isStaff(user.role);
+export default async function DashboardHomePage(): Promise<JSX.Element> {
+  const { role, staff, ownerOptions, projectsData, onboardingProject, onboardingStepStates } =
+    await loadDashboardData();
 
-const projectRows = staff
-  ? await db
-      .select({
-        id: projects.id,
-        name: projects.name,
-        status: projects.status,
-        progress: projects.progress,
-        dueDate: projects.dueDate,
-        ownerId: projects.ownerId,
-        ownerName: profiles.fullName
-      })
-      .from(projects)
-      .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-      .orderBy(asc(projects.createdAt))
-  : await db
-      .select({
-        id: projects.id,
-        name: projects.name,
-        status: projects.status,
-        progress: projects.progress,
-        dueDate: projects.dueDate,
-        ownerId: projects.ownerId,
-        ownerName: profiles.fullName
-      })
-      .from(projects)
-      .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-      .where(eq(projects.ownerId, user.id))
-      .orderBy(asc(projects.createdAt));
-
-const rawOwners = staff
-  ? await db.query.profiles.findMany({
-      where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
-      columns: {
-        id: true,
-        fullName: true,
-        company: true
-      },
-      orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
-    })
-  : [];
-
-const ownerOptions = staff
-  ? rawOwners.map((owner) => ({
-      id: owner.id,
-      name: owner.fullName ?? owner.company ?? "Client"
-    }))
-  : [];
-
-const projectsData = projectRows.map((project) => ({
-  id: project.id,
-  name: project.name,
-  status: project.status,
-  progress: project.progress,
-  dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
-  ownerId: project.ownerId,
-  ownerName: project.ownerName ?? null
-}));
-
-const onboardingProject = projectsData.find((project) => project.status === "onboarding");
-const onboardingProgress = onboardingProject?.progress ?? 0;
-
-const onboardingStepStates = onboardingProject
-  ? onboardingProgress < 15
-    ? (["current", "upcoming", "upcoming"] as const)
-    : onboardingProgress < 35
-      ? (["done", "current", "upcoming"] as const)
-      : (["done", "done", "current"] as const)
-  : (["done", "done", "done"] as const);
-
-export default function DashboardHomePage(): JSX.Element {
   return (
     <>
       <PageHeader
@@ -132,7 +148,7 @@ export default function DashboardHomePage(): JSX.Element {
           <CardContent>
             <DashboardProjects
               projects={projectsData}
-              role={user.role}
+              role={role}
               ownerOptions={ownerOptions}
             />
           </CardContent>

@@ -1,12 +1,14 @@
-"use server";
-
+import { randomUUID } from "node:crypto";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { compare, hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
 import type { JWT } from "next-auth/jwt";
+import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
+import { z } from "zod";
 import { db } from "@/lib/db";
-import { profiles } from "@/lib/schema";
+import { profiles, userCredentials } from "@/lib/schema";
 
 async function ensureProfile(userId: string) {
   await db
@@ -18,6 +20,79 @@ async function ensureProfile(userId: string) {
     .onConflictDoNothing({ target: profiles.id });
 }
 
+const credentialsSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8)
+});
+
+const TEST_USER_EMAIL = "demo@orylis.app";
+const TEST_USER_PASSWORD = "OrylisDemo1!";
+
+const authAdapter = DrizzleAdapter(db);
+
+const adapterGetUserByEmail = authAdapter.getUserByEmail?.bind(authAdapter);
+const adapterCreateUser = authAdapter.createUser?.bind(authAdapter);
+
+async function ensureTestUser() {
+  if (!adapterGetUserByEmail || !adapterCreateUser) {
+    console.warn("[Auth] Adapter does not expose user helpers. Skipping test user seeding.");
+    return;
+  }
+
+  try {
+    const existingUser = await adapterGetUserByEmail(TEST_USER_EMAIL);
+    let userId = existingUser?.id;
+
+    if (!userId) {
+      try {
+        const created = await adapterCreateUser({
+          id: randomUUID(),
+          email: TEST_USER_EMAIL,
+          name: "Compte démo",
+          emailVerified: null
+        });
+        userId = created.id;
+      } catch (error) {
+        const code = (error as { code?: string } | undefined)?.code;
+        if (code !== "23505") {
+          throw error;
+        }
+        const fallback = await adapterGetUserByEmail(TEST_USER_EMAIL);
+        userId = fallback?.id;
+      }
+    }
+
+    if (!userId) {
+      return;
+    }
+
+    await ensureProfile(userId);
+
+    const passwordHash = await hash(TEST_USER_PASSWORD, 12);
+
+    const existingCredentials = await db.query.userCredentials.findFirst({
+      where: (cred, { eq }) => eq(cred.userId, userId),
+      columns: {
+        userId: true
+      }
+    });
+
+    if (existingCredentials) {
+      await db
+        .update(userCredentials)
+        .set({ passwordHash })
+        .where(eq(userCredentials.userId, userId));
+    } else {
+      await db.insert(userCredentials).values({
+        userId,
+        passwordHash
+      });
+    }
+  } catch (error) {
+    console.warn("[Auth] Unable to seed demo user:", error);
+  }
+}
+
 async function fetchUserRole(userId: string) {
   const record = await db.query.profiles.findFirst({
     where: eq(profiles.id, userId),
@@ -27,10 +102,62 @@ async function fetchUserRole(userId: string) {
   return record?.role ?? "client";
 }
 
+await ensureTestUser();
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: authAdapter,
   session: { strategy: "jwt" },
   providers: [
+    CredentialsProvider({
+      name: "Email et mot de passe",
+      credentials: {
+        email: { label: "Adresse email", type: "email" },
+        password: { label: "Mot de passe", type: "password" }
+      },
+      async authorize(credentials) {
+        const parsed = credentialsSchema.safeParse(credentials);
+        if (!parsed.success) {
+          return null;
+        }
+
+        const { email, password } = parsed.data;
+
+        if (!adapterGetUserByEmail) {
+          return null;
+        }
+
+        const userRecord = await adapterGetUserByEmail(email);
+
+        if (!userRecord?.id) {
+          return null;
+        }
+
+        const credentialsRow = await db.query.userCredentials.findFirst({
+          where: (cred, { eq }) => eq(cred.userId, userRecord.id),
+          columns: {
+            passwordHash: true
+          }
+        });
+
+        if (!credentialsRow?.passwordHash) {
+          return null;
+        }
+
+        const isValid = await compare(password, credentialsRow.passwordHash);
+
+        if (!isValid) {
+          return null;
+        }
+
+        await ensureProfile(userRecord.id);
+
+        return {
+          id: userRecord.id,
+          email: userRecord.email ?? undefined,
+          name: userRecord.name ?? undefined
+        };
+      }
+    }),
     EmailProvider({
       from: process.env.EMAIL_FROM ?? "no-reply@orylis.app",
       server: {

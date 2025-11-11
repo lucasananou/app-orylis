@@ -16,7 +16,7 @@ import {
 
 const createTable = pgTableCreator((name) => `orylis_${name}`);
 
-const authUsersTable = pgTable("user", {
+export const authUsers = pgTable("user", {
   id: text("id").primaryKey()
 });
 
@@ -36,7 +36,7 @@ export const profiles = createTable(
   {
     id: text("id")
       .primaryKey()
-      .references(() => authUsersTable.id, { onDelete: "cascade" }),
+      .references(() => authUsers.id, { onDelete: "cascade" }),
     role: profileRoleEnum("role").notNull().default("client"),
     fullName: text("full_name"),
     company: text("company"),
@@ -158,6 +158,19 @@ export const billingLinks = createTable(
   (link) => ({
     projectIdx: index("billing_project_id_idx").on(link.projectId)
   })
+);
+
+export const userCredentials = createTable(
+  "credentials",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    passwordHash: text("password_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+  }
 );
 
 export const profilesRelations = relations(profiles, ({ many }) => ({

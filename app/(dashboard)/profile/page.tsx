@@ -7,24 +7,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { ProfileForm } from "./profile-form";
 
-const session = await auth();
+export const dynamic = "force-dynamic";
 
-if (!session?.user) {
-  redirect("/login");
+async function loadProfile() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user!;
+
+  const profile = await db.query.profiles.findFirst({
+    where: eq(profiles.id, user.id),
+    columns: {
+      fullName: true,
+      company: true,
+      phone: true
+    }
+  });
+
+  return { profile };
 }
 
-const user = session.user!;
+export default async function ProfilePage(): Promise<JSX.Element> {
+  const { profile } = await loadProfile();
 
-const profile = await db.query.profiles.findFirst({
-  where: eq(profiles.id, user.id),
-  columns: {
-    fullName: true,
-    company: true,
-    phone: true
-  }
-});
-
-export default function ProfilePage(): JSX.Element {
   return (
     <>
       <PageHeader

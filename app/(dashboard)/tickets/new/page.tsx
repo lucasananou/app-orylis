@@ -12,33 +12,41 @@ import { PageHeader } from "@/components/page-header";
 import { NewTicketForm } from "./new-ticket-form";
 import { Info } from "lucide-react";
 
-const session = await auth();
+export const dynamic = "force-dynamic";
 
-if (!session?.user) {
-  redirect("/login");
+async function loadNewTicketData() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user!;
+  const staff = isStaff(user.role);
+
+  const accessibleProjects = staff
+    ? await db
+        .select({
+          id: projects.id,
+          name: projects.name
+        })
+        .from(projects)
+        .orderBy(projects.name)
+    : await db.query.projects.findMany({
+        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
+        columns: {
+          id: true,
+          name: true
+        },
+        orderBy: (project, { asc }) => asc(project.name)
+      });
+
+  return { accessibleProjects, staff };
 }
 
-const user = session.user!;
-const staff = isStaff(user.role);
+export default async function NewTicketPage(): Promise<JSX.Element> {
+  const { accessibleProjects, staff } = await loadNewTicketData();
 
-const accessibleProjects = staff
-  ? await db
-      .select({
-        id: projects.id,
-        name: projects.name
-      })
-      .from(projects)
-      .orderBy(projects.name)
-  : await db.query.projects.findMany({
-      where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
-      columns: {
-        id: true,
-        name: true
-      },
-      orderBy: (project, { asc }) => asc(project.name)
-    });
-
-export default function NewTicketPage(): JSX.Element {
   return (
     <>
       <PageHeader

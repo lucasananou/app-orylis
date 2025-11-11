@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { LoginForm } from "./login-form";
+import { MagicLinkLoginForm, PasswordLoginForm } from "./login-form";
 
-const session = await auth();
+export const dynamic = "force-dynamic";
 
-if (session?.user) {
-  redirect("/");
-}
+export default async function LoginPage(): Promise<JSX.Element> {
+  const session = await auth();
 
-export default function LoginPage(): JSX.Element {
+  if (session?.user) {
+    redirect("/");
+  }
+
   return (
     <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-6 py-16 md:grid-cols-[0.8fr_1fr] md:px-20">
       <section className="hidden flex-col gap-6 text-slate-800 md:flex">
@@ -42,10 +44,37 @@ export default function LoginPage(): JSX.Element {
         <div className="mb-8 space-y-3 text-center">
           <h2 className="text-2xl font-semibold text-foreground">Connexion sécurisée</h2>
           <p className="text-sm text-muted-foreground">
-            Entrez votre email pour recevoir votre lien de connexion magique.
+            Choisissez votre méthode de connexion&nbsp;: lien magique par email ou mot de passe.
           </p>
         </div>
-        <LoginForm />
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Connexion par lien magique
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Nous t’envoyons un lien unique, valable quelques minutes.
+              </p>
+            </div>
+            <MagicLinkLoginForm />
+          </section>
+
+          <div className="h-px bg-border" />
+
+          <section className="space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Connexion par mot de passe
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Compte démo disponible : <strong>demo@orylis.app</strong> /{" "}
+                <strong>OrylisDemo1!</strong>
+              </p>
+            </div>
+            <PasswordLoginForm />
+          </section>
+        </div>
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Besoin d’aide ?{" "}
           <Link href="mailto:hello@orylis.fr" className="font-medium text-accent hover:underline">

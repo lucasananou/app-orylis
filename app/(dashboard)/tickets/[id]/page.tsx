@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { TicketDetailForm } from "./ticket-detail-form";
 
+export const dynamic = "force-dynamic";
+
 const STATUS_LABELS: Record<"open" | "in_progress" | "done", string> = {
   open: "Ouvert",
   in_progress: "En cours",

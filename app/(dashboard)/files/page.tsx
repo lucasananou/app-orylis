@@ -7,71 +7,94 @@ import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { FilesSection } from "@/components/files/files-section";
 
-const session = await auth();
+export const dynamic = "force-dynamic";
 
-if (!session?.user) {
-  redirect("/login");
+async function loadFilesPageData() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user!;
+  const staff = isStaff(user.role);
+
+  const accessibleProjects = staff
+    ? await db
+        .select({
+          id: projects.id,
+          name: projects.name,
+          ownerId: projects.ownerId
+        })
+        .from(projects)
+        .orderBy(projects.name)
+    : await db.query.projects.findMany({
+        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
+        columns: {
+          id: true,
+          name: true,
+          ownerId: true
+        },
+        orderBy: (project, { asc }) => asc(project.name)
+      });
+
+  const projectIds = accessibleProjects.map((project) => project.id);
+
+  const rawFiles =
+    projectIds.length === 0
+      ? []
+      : await (staff
+          ? db
+              .select({
+                id: files.id,
+                label: files.label,
+                storageProvider: files.storageProvider,
+                createdAt: files.createdAt,
+                path: files.path,
+                projectId: files.projectId,
+                projectName: projects.name,
+                ownerId: projects.ownerId
+              })
+              .from(files)
+              .innerJoin(projects, eq(files.projectId, projects.id))
+              .orderBy(desc(files.createdAt))
+          : db
+              .select({
+                id: files.id,
+                label: files.label,
+                storageProvider: files.storageProvider,
+                createdAt: files.createdAt,
+                path: files.path,
+                projectId: files.projectId,
+                projectName: projects.name,
+                ownerId: projects.ownerId
+              })
+              .from(files)
+              .innerJoin(projects, eq(files.projectId, projects.id))
+              .where(inArray(files.projectId, projectIds))
+              .orderBy(desc(files.createdAt)));
+
+  return {
+    role: user.role,
+    staff,
+    accessibleProjects,
+    userId: user.id,
+    files: rawFiles.map((file) => ({
+      id: file.id,
+      label: file.label ?? "Fichier sans titre",
+      storageProvider: file.storageProvider,
+      createdAt: file.createdAt.toISOString(),
+      path: file.path,
+      projectId: file.projectId,
+      projectName: file.projectName,
+      canDelete: staff || file.ownerId === user.id
+    }))
+  };
 }
 
-const user = session.user!;
-const staff = isStaff(user.role);
+export default async function FilesPage(): Promise<JSX.Element> {
+  const { role, staff, accessibleProjects, files, userId } = await loadFilesPageData();
 
-const accessibleProjects = staff
-  ? await db
-      .select({
-        id: projects.id,
-        name: projects.name,
-        ownerId: projects.ownerId
-      })
-      .from(projects)
-      .orderBy(projects.name)
-  : await db.query.projects.findMany({
-        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
-      columns: {
-        id: true,
-        name: true,
-        ownerId: true
-      },
-      orderBy: (project, { asc }) => asc(project.name)
-    });
-
-const projectIds = accessibleProjects.map((project) => project.id);
-
-const fileRows =
-  projectIds.length === 0
-    ? []
-    : await (staff
-        ? db
-            .select({
-              id: files.id,
-              label: files.label,
-              storageProvider: files.storageProvider,
-              createdAt: files.createdAt,
-              path: files.path,
-              projectId: files.projectId,
-              projectName: projects.name,
-              ownerId: projects.ownerId
-            })
-            .from(files)
-            .innerJoin(projects, eq(files.projectId, projects.id))
-            .orderBy(desc(files.createdAt))
-        : db
-            .select({
-              id: files.id,
-              label: files.label,
-              storageProvider: files.storageProvider,
-              createdAt: files.createdAt,
-              path: files.path,
-              projectId: files.projectId,
-              projectName: projects.name,
-              ownerId: projects.ownerId
-            })
-            .from(files)
-            .innerJoin(projects, eq(files.projectId, projects.id))
-            .where(inArray(files.projectId, projectIds))
-            .orderBy(desc(files.createdAt)));
-
-export default function FilesPage(): JSX.Element {
   return (
     <>
       <PageHeader
@@ -80,18 +103,9 @@ export default function FilesPage(): JSX.Element {
       />
       <FilesSection
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
-        files={fileRows.map((file) => ({
-          id: file.id,
-          label: file.label ?? "Fichier sans titre",
-          storageProvider: file.storageProvider,
-          createdAt: file.createdAt.toISOString(),
-          path: file.path,
-          projectId: file.projectId,
-          projectName: file.projectName,
-              canDelete: staff || file.ownerId === user.id
-        }))}
-        role={user.role}
-        canManage={staff || accessibleProjects.some((project) => project.ownerId === user.id)}
+        files={files}
+        role={role}
+        canManage={staff || accessibleProjects.some((project) => project.ownerId === userId)}
       />
     </>
   );

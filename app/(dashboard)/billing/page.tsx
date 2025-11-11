@@ -8,52 +8,67 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { BillingLinksManager } from "@/components/billing/billing-links-manager";
 
-const session = await auth();
+export const dynamic = "force-dynamic";
 
-if (!session?.user) {
-  redirect("/login");
+async function loadBillingData() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user!;
+  const staff = isStaff(user.role);
+
+  const accessibleProjects = staff
+    ? await db
+        .select({
+          id: projects.id,
+          name: projects.name
+        })
+        .from(projects)
+        .orderBy(projects.name)
+    : await db.query.projects.findMany({
+        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
+        columns: {
+          id: true,
+          name: true
+        },
+        orderBy: (project, { asc }) => asc(project.name)
+      });
+
+  const baseQuery = db
+    .select({
+      id: billingLinks.id,
+      label: billingLinks.label,
+      url: billingLinks.url,
+      projectId: billingLinks.projectId,
+      projectName: projects.name,
+      createdAt: billingLinks.createdAt,
+      ownerId: projects.ownerId
+    })
+    .from(billingLinks)
+    .innerJoin(projects, eq(billingLinks.projectId, projects.id));
+
+  const links = staff
+    ? await baseQuery.orderBy(desc(billingLinks.createdAt))
+    : await baseQuery
+        .where(eq(projects.ownerId, user.id))
+        .orderBy(desc(billingLinks.createdAt));
+
+  return {
+    role: user.role,
+    accessibleProjects,
+    links: links.map(({ ownerId: _ownerId, ...link }) => ({
+      ...link,
+      createdAt: link.createdAt.toISOString()
+    }))
+  };
 }
 
-const user = session.user!;
-const staff = isStaff(user.role);
+export default async function BillingPage(): Promise<JSX.Element> {
+  const { role, accessibleProjects, links } = await loadBillingData();
 
-const accessibleProjects = staff
-  ? await db
-      .select({
-        id: projects.id,
-        name: projects.name
-      })
-      .from(projects)
-      .orderBy(projects.name)
-  : await db.query.projects.findMany({
-      where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
-      columns: {
-        id: true,
-        name: true
-      },
-      orderBy: (project, { asc }) => asc(project.name)
-    });
-
-const baseQuery = db
-  .select({
-    id: billingLinks.id,
-    label: billingLinks.label,
-    url: billingLinks.url,
-    projectId: billingLinks.projectId,
-    projectName: projects.name,
-    createdAt: billingLinks.createdAt,
-    ownerId: projects.ownerId
-  })
-  .from(billingLinks)
-  .innerJoin(projects, eq(billingLinks.projectId, projects.id));
-
-const links = staff
-  ? await baseQuery.orderBy(desc(billingLinks.createdAt))
-  : await baseQuery
-      .where(eq(projects.ownerId, user.id))
-      .orderBy(desc(billingLinks.createdAt));
-
-export default function BillingPage(): JSX.Element {
   return (
     <>
       <PageHeader
@@ -72,12 +87,9 @@ export default function BillingPage(): JSX.Element {
         </CardHeader>
         <CardContent>
           <BillingLinksManager
-            links={links.map(({ ownerId: _ownerId, ...link }) => ({
-              ...link,
-              createdAt: link.createdAt.toISOString()
-            }))}
+            links={links}
             projects={accessibleProjects}
-            role={user.role}
+            role={role}
             canManage={accessibleProjects.length > 0}
           />
         </CardContent>

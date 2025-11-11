@@ -3,16 +3,29 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { ControllerRenderProps } from "react-hook-form";
-import { Loader2, Mail } from "lucide-react";
-import { loginSchema, type LoginFormValues } from "@/lib/zod-schemas";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Loader2, LockKeyhole, Mail } from "lucide-react";
+import {
+  loginSchema,
+  passwordLoginSchema,
+  type LoginFormValues,
+  type PasswordLoginFormValues
+} from "@/lib/zod-schemas";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 
-export function LoginForm() {
+export function MagicLinkLoginForm() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
@@ -36,19 +49,19 @@ export function LoginForm() {
         return;
       }
 
-      toast.success("Lien envoyé ! Vérifie ta boîte mail.");
+      toast.success("Lien magique envoyé ! Consulte ta boîte mail.");
       form.reset();
     });
   };
 
   return (
-    <Form form={form} className="w-full space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+    <Form form={form} className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
       <FormField<LoginFormValues, "email">
         control={form.control}
         name="email"
         render={({ field }: { field: ControllerRenderProps<LoginFormValues, "email"> }) => (
           <FormItem>
-            <FormLabel>Email professionnel</FormLabel>
+            <FormLabel>Adresse email</FormLabel>
             <FormControl>
               <Input
                 autoComplete="email"
@@ -76,10 +89,112 @@ export function LoginForm() {
         ) : (
           <>
             <Mail className="mr-2 h-4 w-4" />
-            Envoyer le lien de connexion
+            Recevoir un lien de connexion
           </>
         )}
       </Button>
+    </Form>
+  );
+}
+
+export function PasswordLoginForm() {
+  const router = useRouter();
+  const form = useForm<PasswordLoginFormValues>({
+    resolver: zodResolver(passwordLoginSchema),
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: ""
+    }
+  });
+
+  const [isSubmitting, startTransition] = React.useTransition();
+
+  const handleSubmit = (values: PasswordLoginFormValues) => {
+    startTransition(async () => {
+      const result = await signIn("credentials", {
+        ...values,
+        redirect: false,
+        callbackUrl: "/"
+      });
+
+      if (result?.error) {
+        toast.error("Email ou mot de passe invalide.");
+        return;
+      }
+
+      toast.success("Connexion réussie. Bienvenue !");
+      form.reset();
+      router.replace("/");
+      router.refresh();
+    });
+  };
+
+  return (
+    <Form form={form} className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+      <FormField<PasswordLoginFormValues, "email">
+        control={form.control}
+        name="email"
+        render={({ field }: { field: ControllerRenderProps<PasswordLoginFormValues, "email"> }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input
+                autoComplete="email"
+                inputMode="email"
+                placeholder="demo@orylis.app"
+                disabled={isSubmitting}
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField<PasswordLoginFormValues, "password">
+        control={form.control}
+        name="password"
+        render={({
+          field
+        }: {
+          field: ControllerRenderProps<PasswordLoginFormValues, "password">;
+        }) => (
+          <FormItem>
+            <FormLabel>Mot de passe</FormLabel>
+            <FormControl>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••••"
+                disabled={isSubmitting}
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={isSubmitting || !form.formState.isValid}
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Connexion…
+          </>
+        ) : (
+          <>
+            <LockKeyhole className="mr-2 h-4 w-4" />
+            Se connecter
+          </>
+        )}
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Compte démo : <strong>demo@orylis.app</strong> / <strong>OrylisDemo1!</strong>
+      </p>
     </Form>
   );
 }
