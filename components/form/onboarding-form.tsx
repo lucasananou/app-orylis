@@ -453,8 +453,6 @@ const customPagesArray = useFieldArray({
     };
   }, [watchedValues, projectId, isCompleted, isStaffRole]);
 
-  const summaryValues = watchedValues ?? defaultValues;
-
   if (!showEditor) {
     return (
       <OnboardingCompletedView

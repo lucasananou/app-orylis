@@ -1,7 +1,7 @@
 ﻿// app/api/onboarding/route.ts
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -81,13 +81,12 @@ export async function POST(req: NextRequest) {
     : (validation.data as OnboardingPayload);
 
   const serializedPayload = JSON.stringify(safePayload);
-  const parsedPayload = JSON.parse(serializedPayload) as Record<string, unknown>;
 
   console.log("[Onboarding] payload snapshot", {
     projectId,
     completed,
     payloadPreview: Object.fromEntries(
-      Object.entries(parsedPayload ?? {}).map(([key, value]) => [key, typeof value])
+      Object.entries(JSON.parse(serializedPayload) ?? {}).map(([key, value]) => [key, typeof value])
     )
   });
 
@@ -105,14 +104,14 @@ export async function POST(req: NextRequest) {
       await db
         .update(onboardingResponses)
         .set({
-          payload: parsedPayload,
+          payload: sql`${serializedPayload}::jsonb`,
           completed: completed ? true : existing.completed
         })
         .where(eq(onboardingResponses.id, existing.id));
     } else {
       await db.insert(onboardingResponses).values({
         projectId,
-        payload: parsedPayload,
+        payload: sql`${serializedPayload}::jsonb`,
         completed
       });
     }
@@ -128,7 +127,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const summary = summarizeOnboardingPayload(parsedPayload);
+  const summary = summarizeOnboardingPayload(JSON.parse(serializedPayload) as Record<string, unknown>);
   const computedProgress = Math.max(10, Math.round(summary.completionRatio * 100));
   const progressToStore = completed ? 100 : Math.max(project.progress ?? 10, computedProgress);
 
