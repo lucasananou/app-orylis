@@ -344,3 +344,32 @@ export const projectUpdateSchema = z
 export type ProfileUpdatePayload = z.infer<typeof profileUpdateSchema>;
 export type ProjectCreatePayload = z.infer<typeof projectCreateSchema>;
 export type ProjectUpdatePayload = z.infer<typeof projectUpdateSchema>;
+
+export const notificationMarkSchema = z
+  .object({
+    ids: z.array(z.string().uuid()).optional(),
+    all: z.boolean().optional()
+  })
+  .refine(
+    (value) => Boolean(value.all) || (Array.isArray(value.ids) && value.ids.length > 0),
+    {
+      message: "Précisez les notifications à marquer ou utilisez all=true.",
+      path: ["ids"]
+    }
+  );
+
+export const notificationPreferencesSchema = z
+  .object({
+    emailNotifications: z.boolean().optional(),
+    ticketUpdates: z.boolean().optional(),
+    fileUpdates: z.boolean().optional(),
+    billingUpdates: z.boolean().optional(),
+    onboardingUpdates: z.boolean().optional(),
+    marketing: z.boolean().optional()
+  })
+  .refine((values) => Object.keys(values).length > 0, {
+    message: "Aucun changement détecté.",
+    path: ["emailNotifications"]
+  });
+
+export type NotificationPreferencesPayload = z.infer<typeof notificationPreferencesSchema>;

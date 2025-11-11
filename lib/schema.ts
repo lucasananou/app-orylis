@@ -10,7 +10,6 @@ import {
   jsonb,
   boolean,
   integer,
-  primaryKey,
   index
 } from "drizzle-orm/pg-core";
 
@@ -19,7 +18,7 @@ const createTable = pgTableCreator((name) => `orylis_${name}`);
 export const authUsers = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name"),
-  email: text("email"),
+  email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { withTimezone: true }),
   image: text("image")
 });
@@ -33,7 +32,20 @@ export const projectStatusEnum = pgEnum("project_status", [
   "delivered"
 ]);
 export const ticketStatusEnum = pgEnum("ticket_status", ["open", "in_progress", "done"]);
-export const storageProviderEnum = pgEnum("storage_provider", ["blob", "s3", "r2", "uploadthing"]);
+export const storageProviderEnum = pgEnum("storage_provider", [
+  "blob",
+  "s3",
+  "r2",
+  "uploadthing"
+]);
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "ticket_created",
+  "ticket_updated",
+  "file_uploaded",
+  "billing_added",
+  "onboarding_update",
+  "system"
+]);
 
 export const profiles = createTable(
   "profiles",
@@ -164,23 +176,86 @@ export const billingLinks = createTable(
   })
 );
 
-export const userCredentials = createTable(
-  "credentials",
+export const notifications = createTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "set null" }),
+    type: notificationTypeEnum("type").notNull().default("system"),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    metadata: jsonb("metadata"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (notification) => ({
+    userIdx: index("notifications_user_id_idx").on(notification.userId),
+    projectIdx: index("notifications_project_id_idx").on(notification.projectId),
+    readIdx: index("notifications_read_at_idx").on(notification.readAt)
+  })
+);
+
+export const notificationPreferences = createTable(
+  "notification_preferences",
   {
     userId: text("user_id")
       .primaryKey()
       .references(() => profiles.id, { onDelete: "cascade" }),
-    passwordHash: text("password_hash").notNull(),
+    emailNotifications: boolean("email_notifications").notNull().default(true),
+    ticketUpdates: boolean("ticket_updates").notNull().default(true),
+    fileUpdates: boolean("file_updates").notNull().default(true),
+    billingUpdates: boolean("billing_updates").notNull().default(true),
+    onboardingUpdates: boolean("onboarding_updates").notNull().default(true),
+    marketing: boolean("marketing").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
       .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
   }
 );
 
-export const profilesRelations = relations(profiles, ({ many }) => ({
+export const userCredentials = createTable(
+  "user_credentials",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    passwordHash: text("password_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (credentials) => ({
+    userIdx: index("user_credentials_user_id_idx").on(credentials.userId)
+  })
+);
+
+export const profilesRelations = relations(profiles, ({ many, one }) => ({
   projects: many(projects),
   tickets: many(tickets),
-  files: many(files)
+  files: many(files),
+  notifications: many(notifications),
+  notificationPreferences: one(notificationPreferences, {
+    fields: [profiles.id],
+    references: [notificationPreferences.userId]
+  })
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -191,6 +266,38 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   onboardingResponses: many(onboardingResponses),
   tickets: many(tickets),
   files: many(files),
-  billingLinks: many(billingLinks)
+  billingLinks: many(billingLinks),
+  notifications: many(notifications)
 }));
 
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(profiles, {
+    fields: [notifications.userId],
+    references: [profiles.id]
+  }),
+  project: one(projects, {
+    fields: [notifications.projectId],
+    references: [projects.id]
+  })
+}));
+
+export const notificationPreferencesRelations = relations(
+  notificationPreferences,
+  ({ one }) => ({
+    user: one(profiles, {
+      fields: [notificationPreferences.userId],
+      references: [profiles.id]
+    })
+  })
+);
+
+export const authUsersRelations = relations(authUsers, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [authUsers.id],
+    references: [profiles.id]
+  }),
+  credentials: one(userCredentials, {
+    fields: [authUsers.id],
+    references: [userCredentials.userId]
+  })
+}));

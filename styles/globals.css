@@ -5,11 +5,11 @@
 :root {
   --background: 210 45% 97%;
   --foreground: 220 35% 12%;
-  --accent: 188 47% 50%;
+  --accent: 216 100% 50%;
   --muted: 214 32% 94%;
   --border: 214 32% 85%;
   --input: 214 32% 85%;
-  --ring: 188 47% 50%;
+  --ring: 216 100% 50%;
   --popover: var(--background);
   --popover-foreground: var(--foreground);
   --card: 0 0% 100%;

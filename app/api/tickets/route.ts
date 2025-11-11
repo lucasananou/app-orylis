@@ -4,6 +4,7 @@ import type { SQL } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, tickets } from "@/lib/schema";
+import { notifyProjectParticipants } from "@/lib/notifications";
 import { ticketCreateSchema } from "@/lib/zod-schemas";
 import { assertUserCanAccessProject } from "@/lib/utils";
 
@@ -124,6 +125,26 @@ export async function POST(request: NextRequest) {
     .returning({
       id: tickets.id
     });
+
+  const creatorName = session.user.name ?? session.user.email ?? "Un utilisateur";
+
+  try {
+    await notifyProjectParticipants({
+      projectId,
+      excludeUserIds: [session.user.id],
+      includeOwner: session.user.role === "staff",
+      includeStaff: true,
+      type: "ticket_created",
+      title: "Nouveau ticket",
+      body: `Le ticket “${title}” a été créé par ${creatorName}.`,
+      metadata: {
+        ticketId: created.id,
+        projectId
+      }
+    });
+  } catch (error) {
+    console.error("[Notifications] Échec de la création de notification ticket_created:", error);
+  }
 
   return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
 }

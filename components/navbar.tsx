@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -13,6 +15,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { ProjectSwitcher } from "@/components/project/project-switcher";
+import { Button } from "@/components/ui/button";
+import { NotificationMenu } from "@/components/notifications/notification-menu";
 
 const labelMap: Record<string, string> = {
   "": "Dashboard",
@@ -76,6 +80,27 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
         <Avatar>
           <AvatarFallback>{(userName ?? userEmail).slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
+        <NotificationMenu />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="hidden sm:inline-flex"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Se déconnecter
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="sm:hidden"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          aria-label="Se déconnecter"
+        >
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </header>
   );

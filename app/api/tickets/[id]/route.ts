@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { tickets } from "@/lib/schema";
 import { auth } from "@/auth";
+import { notifyProjectParticipants } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,56 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
   }
 
+  const existing = await db
+    .select({
+      id: tickets.id,
+      projectId: tickets.projectId,
+      title: tickets.title,
+      status: tickets.status
+    })
+    .from(tickets)
+    .where(eq(tickets.id, id))
+    .then((rows) => rows.at(0));
+
+  if (!existing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   await db.update(tickets).set(update).where(eq(tickets.id, id));
+
+  const updated = await db
+    .select({
+      title: tickets.title,
+      status: tickets.status
+    })
+    .from(tickets)
+    .where(eq(tickets.id, id))
+    .then((rows) => rows.at(0));
+
+  const statusLabel: Record<"open" | "in_progress" | "done", string> = {
+    open: "ouvert",
+    in_progress: "en cours",
+    done: "résolu"
+  };
+
+  try {
+    await notifyProjectParticipants({
+      projectId: existing.projectId,
+      excludeUserIds: [session.user.id],
+      includeOwner: true,
+      includeStaff: true,
+      type: "ticket_updated",
+      title: `Mise à jour du ticket`,
+      body: `Le ticket “${updated?.title ?? existing.title}” est désormais ${statusLabel[(updated?.status ??
+        existing.status) as keyof typeof statusLabel]}.`,
+      metadata: {
+        ticketId: existing.id,
+        projectId: existing.projectId
+      }
+    });
+  } catch (error) {
+    console.error("[Notifications] Échec de la création de notification ticket_updated:", error);
+  }
+
   return NextResponse.json({ ok: true });
 }

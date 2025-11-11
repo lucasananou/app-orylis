@@ -6,6 +6,7 @@ import { profiles } from "@/lib/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { ProfileForm } from "./profile-form";
+import { NotificationPreferencesForm } from "@/components/profile/notification-preferences-form";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,18 @@ export default async function ProfilePage(): Promise<JSX.Element> {
               phone: profile?.phone ?? ""
             }}
           />
+        </CardContent>
+      </Card>
+
+      <Card className="border border-border/70">
+        <CardHeader>
+          <CardTitle>Notifications</CardTitle>
+          <CardDescription>
+            Ajustez les alertes que vous recevez dans l’application et par email.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NotificationPreferencesForm />
         </CardContent>
       </Card>
     </>

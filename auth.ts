@@ -9,6 +9,7 @@ import EmailProvider from "next-auth/providers/email";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { profiles, userCredentials } from "@/lib/schema";
+import { ensureNotificationDefaults } from "@/lib/notifications";
 
 async function ensureProfile(userId: string) {
   await db
@@ -18,6 +19,8 @@ async function ensureProfile(userId: string) {
       role: "client",
     })
     .onConflictDoNothing({ target: profiles.id });
+
+  await ensureNotificationDefaults(userId, "client");
 }
 
 const credentialsSchema = z.object({

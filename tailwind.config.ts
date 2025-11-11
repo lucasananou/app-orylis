@@ -25,12 +25,12 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         accent: {
-          DEFAULT: "#43b2b9",
-          foreground: "#0f172a"
+          DEFAULT: "#0D69FF",
+          foreground: "#FFFFFF"
         },
         primary: {
-          DEFAULT: "#43b2b9",
-          foreground: "#0f172a"
+          DEFAULT: "#0D69FF",
+          foreground: "#FFFFFF"
         },
         secondary: {
           DEFAULT: "hsl(213 27% 95%)",
