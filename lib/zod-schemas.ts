@@ -47,7 +47,7 @@ export const OnboardingStep1Schema = z.object({
     .max(150, { message: "La raison sociale dépasse 150 caractères." }),
   phone: z
     .string({ required_error: "Merci d’indiquer un numéro de téléphone." })
-    .regex(/^[0-9 +().-]{8,30}$/, {
+    .regex(/^[0-9\s+().-]{8,30}$/, {
       message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
     }),
   website: emptyToUndefined(z.string().url({ message: "Merci de fournir une URL valide." }))
