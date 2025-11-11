@@ -32,6 +32,12 @@ export const projectStatusEnum = pgEnum("project_status", [
   "delivered"
 ]);
 export const ticketStatusEnum = pgEnum("ticket_status", ["open", "in_progress", "done"]);
+export const ticketCategoryEnum = pgEnum("ticket_category", [
+  "request",
+  "feedback",
+  "issue",
+  "general"
+]);
 export const storageProviderEnum = pgEnum("storage_provider", [
   "blob",
   "s3",
@@ -121,6 +127,7 @@ export const tickets = createTable(
     title: text("title").notNull(),
     description: text("description"),
     status: ticketStatusEnum("status").notNull().default("open"),
+    category: ticketCategoryEnum("category").notNull().default("request"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

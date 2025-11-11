@@ -35,6 +35,7 @@ interface TicketItem {
   title: string;
   description: string | null;
   status: "open" | "in_progress" | "done";
+  category: "request" | "feedback" | "issue" | "general";
   createdAt: string;
   updatedAt: string;
   projectId: string;
@@ -100,6 +101,7 @@ async function TicketsPageContent({
       title: tickets.title,
       description: tickets.description,
       status: tickets.status,
+      category: tickets.category,
       createdAt: tickets.createdAt,
       updatedAt: tickets.updatedAt,
       projectId: tickets.projectId,
@@ -118,6 +120,7 @@ async function TicketsPageContent({
     title: ticket.title,
     description: ticket.description,
     status: ticket.status,
+    category: ticket.category,
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
     projectId: ticket.projectId,

@@ -38,6 +38,7 @@ interface TicketItem {
   title: string;
   description: string | null;
   status: "open" | "in_progress" | "done";
+  category: "request" | "feedback" | "issue" | "general";
   createdAt: string;
   updatedAt: string;
   projectId: string;
@@ -185,6 +186,7 @@ export function TicketsClient({
                   title={ticket.title}
                   description={ticket.description}
                   status={ticket.status}
+                  category={ticket.category}
                   createdAt={ticket.createdAt}
                   updatedAt={ticket.updatedAt}
                   projectName={ticket.projectName}

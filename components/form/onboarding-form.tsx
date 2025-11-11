@@ -61,17 +61,15 @@ type UrlEntry = {
   value: string;
 };
 
-type PrimaryGoalOption = GoalOption | "";
-
 type OnboardingFormState = {
   fullName: string;
   company: string;
   phone: string;
   website: string;
   goals: string[];
-  primaryGoal: PrimaryGoalOption;
   description: string;
   pages: string[];
+  customPages: CustomPageEntry[];
   contentsNote: string;
   inspirations: UrlEntry[];
   competitors: UrlEntry[];
@@ -79,6 +77,11 @@ type OnboardingFormState = {
   domainName: string;
   hostingNotes: string;
   confirm: boolean;
+};
+
+type CustomPageEntry = {
+  title: string;
+  description: string;
 };
 
 type OnboardingDraftPayload = Partial<OnboardingPayload>;
@@ -111,14 +114,14 @@ const stepDefinitions = [
     label: "Objectifs",
     description: "Vision stratégique et attentes prioritaires.",
     schema: OnboardingStep2Schema,
-    fields: ["goals", "primaryGoal", "description"]
+    fields: ["goals", "description"]
   },
   {
     id: "pages",
     label: "Structure",
     description: "Pages clés et contenu attendu.",
     schema: OnboardingStep3Schema,
-    fields: ["pages", "contentsNote"]
+    fields: ["pages", "customPages", "contentsNote"]
   },
   {
     id: "inspirations",
@@ -152,9 +155,6 @@ const ensureBoolean = (value: unknown, fallback = false): boolean =>
 const ensureStringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
-const ensurePrimaryGoal = (value: unknown): PrimaryGoalOption =>
-  GOAL_OPTIONS.some((option) => option.value === value) ? (value as GoalOption) : "";
-
 const toUrlEntries = (values: string[], fallbackLength = 1): UrlEntry[] => {
   if (values.length === 0) {
     return Array.from({ length: fallbackLength }, () => ({ value: "" }));
@@ -170,6 +170,17 @@ const buildDefaultValues = (
   const payload = initialValues ?? {};
   const inspirations = ensureStringArray(payload.inspirations);
   const competitors = ensureStringArray(payload.competitors);
+  const customPages = Array.isArray(payload.customPages)
+    ? payload.customPages
+        .filter(
+          (entry): entry is { title?: unknown; description?: unknown } =>
+            typeof entry === "object" && entry !== null
+        )
+        .map((entry) => ({
+          title: ensureString(entry.title),
+          description: ensureString(entry.description)
+        }))
+    : [];
 
   return {
     fullName: ensureString(payload.fullName),
@@ -177,9 +188,9 @@ const buildDefaultValues = (
     phone: ensureString(payload.phone),
     website: ensureString(payload.website),
     goals: ensureStringArray(payload.goals),
-    primaryGoal: ensurePrimaryGoal(payload.primaryGoal),
     description: ensureString(payload.description),
     pages: ensureStringArray(payload.pages),
+    customPages,
     contentsNote: ensureString(payload.contentsNote),
     inspirations: toUrlEntries(inspirations, 1),
     competitors: toUrlEntries(competitors, 0),
@@ -198,11 +209,24 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
       .map((entry) => trimmed(entry.value))
       .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
 
+  const customPages = (values.customPages ?? [])
+    .map((page) => ({
+      title: trimmed(page.title),
+      description: trimmed(page.description)
+    }))
+    .filter((page) => page.title.length > 0);
+
   const draft: OnboardingDraftPayload = {
     goals: [...values.goals],
     pages: [...values.pages],
     domainOwned: values.domainOwned
   };
+
+  if (customPages.length > 0) {
+    draft.customPages = customPages;
+  } else {
+    draft.customPages = [];
+  }
 
   if (values.fullName.trim().length > 0) {
     draft.fullName = trimmed(values.fullName);
@@ -218,10 +242,6 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
 
   if (values.website.trim().length > 0) {
     draft.website = trimmed(values.website);
-  }
-
-  if (values.primaryGoal) {
-    draft.primaryGoal = values.primaryGoal as OnboardingPayload["primaryGoal"];
   }
 
   if (values.description.trim().length > 0) {
@@ -335,6 +355,11 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
     control,
     name: "competitors"
   });
+
+const customPagesArray = useFieldArray({
+  control,
+  name: "customPages"
+});
 
   const watchedValues = useWatch<OnboardingFormState>({
     control
@@ -508,7 +533,7 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
         setIsCompleted(true);
         setLastSavedAt(new Date());
         toast.success("Onboarding validé. L’équipe démarre la phase design.");
-        router.refresh();
+        router.replace("/dashboard");
       } catch (error) {
         const message =
           error instanceof Error
@@ -716,35 +741,6 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
 
                 <FormField
                   control={control}
-                  name="primaryGoal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Objectif prioritaire</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          disabled={isLocked}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez l’objectif principal" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {GOAL_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
@@ -771,7 +767,7 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
               <CardHeader>
                 <CardTitle>Structure de contenu</CardTitle>
                 <CardDescription>
-                  Identifiez les pages à produire et les contenus disponibles ou à créer.
+                  Identifiez les pages à prévoir et ajoutez vos sections personnalisées à produire.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -812,6 +808,114 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
                     </FormItem>
                   )}
                 />
+
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <FormLabel>Pages personnalisées</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Ajoutez autant de pages spécifiques que nécessaire (ex&nbsp;: offres, cas clients,
+                        landing).
+                      </p>
+                    </div>
+                    {!isLocked && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => customPagesArray.append({ title: "", description: "" })}
+                      >
+                        Ajouter une page
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    {customPagesArray.fields.length === 0 && (
+                      <p className="text-sm text-muted-foreground/80">
+                        Aucune page personnalisée pour le moment.
+                      </p>
+                    )}
+                    {customPagesArray.fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="space-y-4 rounded-2xl border border-border/70 bg-background/60 p-4"
+                      >
+                        <FormField
+                          control={control}
+                          name={`customPages.${index}.title`}
+                          render={({ field: titleField }) => (
+                            <FormItem>
+                              <FormLabel>Titre</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex : Page Services marketing"
+                                  disabled={isLocked}
+                                  {...titleField}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={control}
+                          name={`customPages.${index}.description`}
+                          render={({ field: descriptionField }) => (
+                            <FormItem>
+                              <FormLabel>Description (optionnelle)</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Notes sur le contenu, les sections, les CTA attendus…"
+                                  className="min-h-[110px]"
+                                  disabled={isLocked}
+                                  {...descriptionField}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {!isLocked && (
+                          <div className="flex justify-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => customPagesArray.remove(index)}
+                            >
+                              Supprimer
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Structure du site</p>
+                  <div className="mt-1 space-y-1 text-sm text-foreground">
+                    {form.getValues("pages").length === 0 &&
+                    form.getValues("customPages").length === 0 ? (
+                      <p>—</p>
+                    ) : (
+                      <>
+                        {form.getValues("pages").map((page) => (
+                          <p key={page}>
+                            {PAGE_OPTIONS.find((option) => option.value === page)?.label ?? page}
+                          </p>
+                        ))}
+                        {form.getValues("customPages").map((page, index) => (
+                          <p key={`${page.title}-${index}`}>
+                            {page.title || `Page personnalisée ${index + 1}`}
+                          </p>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                  {form.getValues("contentsNote") && (
+                    <p className="mt-2 text-sm text-muted-foreground/80">
+                      {form.getValues("contentsNote")}
+                    </p>
+                  )}
+                </div>
 
                 <FormField
                   control={control}
@@ -1040,22 +1144,20 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
                   <div>
                     <p className="text-sm font-semibold text-muted-foreground">Objectifs</p>
                     <ul className="mt-1 space-y-1 text-sm text-foreground">
-                      {form.getValues("goals").map((goal) => {
-                        const option = GOAL_OPTIONS.find((item) => item.value === goal);
-                        return (
-                          <li key={goal}>{option?.label ?? goal}</li>
-                        );
-                      })}
+                      {form.getValues("goals").length === 0 ? (
+                        <li>—</li>
+                      ) : (
+                        form.getValues("goals").map((goal) => {
+                          const option = GOAL_OPTIONS.find((item) => item.value === goal);
+                          return <li key={goal}>{option?.label ?? goal}</li>;
+                        })
+                      )}
                     </ul>
-                    <p className="mt-2 text-sm">
-                      Objectif prioritaire&nbsp;:{" "}
-                      <span className="font-medium">
-                        {
-                          GOAL_OPTIONS.find((option) => option.value === form.getValues("primaryGoal"))
-                            ?.label ?? "—"
-                        }
-                      </span>
-                    </p>
+                    {form.getValues("description") && (
+                      <p className="mt-2 text-sm text-muted-foreground/80">
+                        {form.getValues("description")}
+                      </p>
+                    )}
                   </div>
                 </div>
 

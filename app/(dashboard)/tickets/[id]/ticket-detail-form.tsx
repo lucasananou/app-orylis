@@ -39,6 +39,7 @@ interface TicketDetailFormProps {
     title: string;
     description: string;
     status: "open" | "in_progress" | "done";
+    category: "request" | "feedback" | "issue" | "general";
     projectName: string;
   };
   allowStatusChange: boolean;
@@ -55,7 +56,8 @@ export function TicketDetailForm({
   const initialRef = React.useRef({
     title: ticket.title,
     description: ticket.description,
-    status: ticket.status
+    status: ticket.status,
+    category: ticket.category
   });
 
   const form = useForm<TicketUpdatePayload>({
@@ -64,7 +66,8 @@ export function TicketDetailForm({
     defaultValues: {
       title: ticket.title,
       description: ticket.description,
-      status: ticket.status
+      status: ticket.status,
+      category: ticket.category
     }
   });
 
@@ -72,12 +75,14 @@ export function TicketDetailForm({
     form.reset({
       title: ticket.title,
       description: ticket.description,
-      status: ticket.status
+      status: ticket.status,
+      category: ticket.category
     });
     initialRef.current = {
       title: ticket.title,
       description: ticket.description,
-      status: ticket.status
+      status: ticket.status,
+      category: ticket.category
     };
   }, [ticket, form]);
 
@@ -98,12 +103,12 @@ export function TicketDetailForm({
           updates.description = values.description;
         }
 
-        if (
-          allowStatusChange &&
-          values.status &&
-          values.status !== initialRef.current.status
-        ) {
+        if (allowStatusChange && values.status && values.status !== initialRef.current.status) {
           updates.status = values.status;
+        }
+
+        if (allowStatusChange && values.category && values.category !== initialRef.current.category) {
+          updates.category = values.category;
         }
 
         if (Object.keys(updates).length === 0) {
@@ -196,6 +201,32 @@ export function TicketDetailForm({
             </FormItem>
           )}
         />
+      )}
+
+      {allowStatusChange && (
+        <FormField<TicketUpdatePayload, "category">
+          control={form.control}
+          name="category"
+          render={({ field }: { field: ControllerRenderProps<TicketUpdatePayload, "category"> }) => (
+            <FormItem>
+              <FormLabel>Catégorie</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez une catégorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="request">Demande</SelectItem>
+                    <SelectItem value="feedback">Feedback</SelectItem>
+                    <SelectItem value="issue">Incident / Bug</SelectItem>
+                    <SelectItem value="general">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        </FormField>
       )}
 
       <div className="flex items-center justify-end gap-3">

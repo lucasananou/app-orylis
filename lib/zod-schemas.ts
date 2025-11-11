@@ -56,19 +56,26 @@ export const OnboardingStep1Schema = z.object({
         message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
       })
   ),
-  website: emptyToUndefined(z.string().url({ message: "Merci de fournir une URL valide." }))
+  website: emptyToUndefined(z.string().max(200, { message: "Merci de rester sous 200 caractères." }))
 });
-
-const goalOptions = ["visibilite", "leads", "ecommerce", "autre"] as const;
 
 export const OnboardingStep2Schema = z.object({
   goals: z
     .array(z.string())
     .min(1, { message: "Sélectionnez au moins un objectif." })
     .max(5, { message: "Merci de limiter à 5 objectifs." }),
-  primaryGoal: z.enum(goalOptions, {
-    required_error: "Merci de sélectionner l’objectif prioritaire."
-  }),
+  description: emptyToUndefined(
+    z
+      .string()
+      .max(2000, { message: "Merci de rester sous 2000 caractères." })
+  )
+});
+
+const CustomPageSchema = z.object({
+  title: z
+    .string()
+    .min(2, { message: "Le titre doit contenir au moins 2 caractères." })
+    .max(120, { message: "Le titre est trop long (120 caractères max)." }),
   description: emptyToUndefined(
     z
       .string()
@@ -79,8 +86,11 @@ export const OnboardingStep2Schema = z.object({
 export const OnboardingStep3Schema = z.object({
   pages: z
     .array(z.string())
-    .min(1, { message: "Sélectionnez au moins une page." })
     .max(10, { message: "Merci de limiter à 10 pages principales." }),
+  customPages: z
+    .array(CustomPageSchema)
+    .max(20, { message: "Merci de limiter à 20 pages personnalisées." })
+    .optional(),
   contentsNote: emptyToUndefined(
     z
       .string()
@@ -140,6 +150,16 @@ export const OnboardingPayloadSchema = OnboardingPayloadFields.superRefine((data
       path: ["domainName"]
     });
   }
+
+  const selectedPages = Array.isArray(data.pages) ? data.pages.length : 0;
+  const customPagesCount = Array.isArray(data.customPages) ? data.customPages.length : 0;
+  if (selectedPages + customPagesCount < 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Ajoutez au moins une page, existante ou personnalisée.",
+      path: ["pages"]
+    });
+  }
 });
 
 export const OnboardingFinalSchema = OnboardingPayloadFields.merge(
@@ -156,7 +176,19 @@ export const OnboardingFinalSchema = OnboardingPayloadFields.merge(
       path: ["domainName"]
     });
   }
+
+  const selectedPages = Array.isArray(data.pages) ? data.pages.length : 0;
+  const customPagesCount = Array.isArray(data.customPages) ? data.customPages.length : 0;
+  if (selectedPages + customPagesCount < 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Ajoutez au moins une page, existante ou personnalisée.",
+      path: ["pages"]
+    });
+  }
 });
+
+export const ticketCategoryOptions = ["request", "feedback", "issue", "general"] as const;
 
 export const ticketCreateSchema = z.object({
   projectId: z.string().uuid({ message: "Projet invalide." }),
@@ -167,7 +199,8 @@ export const ticketCreateSchema = z.object({
   description: z
     .string()
     .min(12, { message: "Décrivez votre demande en quelques lignes." })
-    .max(4000, { message: "Merci de rester synthétique (4000 caractères max)." })
+    .max(4000, { message: "Merci de rester synthétique (4000 caractères max)." }),
+  category: z.enum(ticketCategoryOptions).default("request")
 });
 
 export const ticketUpdateSchema = z
@@ -182,10 +215,11 @@ export const ticketUpdateSchema = z
       .min(12, { message: "Décrivez votre demande en quelques lignes." })
       .max(4000, { message: "Merci de rester synthétique (4000 caractères max)." })
       .optional(),
-    status: z.enum(["open", "in_progress", "done"]).optional()
+    status: z.enum(["open", "in_progress", "done"]).optional(),
+    category: z.enum(ticketCategoryOptions).optional()
   })
   .refine(
-    (value) => Boolean(value.title ?? value.description ?? value.status),
+    (value) => Boolean(value.title ?? value.description ?? value.status ?? value.category),
     {
       message: "Aucun changement détecté.",
       path: ["status"]

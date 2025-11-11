@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,12 +60,12 @@ export function ProjectCard({
             Progression {safeProgress}%{dueDate ? ` · Échéance ${formatDate(dueDate)}` : ""}
           </p>
         </div>
-        <a
+        <Link
           href={`/projects/${id}`}
           className="text-sm font-medium text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           Voir les détails
-        </a>
+        </Link>
       </CardContent>
     </Card>
   );

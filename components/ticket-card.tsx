@@ -8,6 +8,7 @@ export interface TicketCardProps {
   title: string;
   description?: string | null;
   status: "open" | "in_progress" | "done";
+  category?: "request" | "feedback" | "issue" | "general";
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
   projectName: string;
@@ -27,6 +28,7 @@ export function TicketCard({
   title,
   description,
   status,
+  category = "request",
   createdAt,
   updatedAt,
   projectName,
@@ -39,6 +41,18 @@ export function TicketCard({
       ? formatDate(updatedAt, { dateStyle: "medium", timeStyle: "short" })
       : null;
 
+  const categoryLabels: Record<
+    NonNullable<TicketCardProps["category"]>,
+    { label: string; variant: "outline" | "secondary" | "default" }
+  > = {
+    request: { label: "Demande", variant: "outline" },
+    feedback: { label: "Feedback", variant: "secondary" },
+    issue: { label: "Incident", variant: "default" },
+    general: { label: "Autre", variant: "outline" }
+  };
+
+  const categoryConfig = categoryLabels[category];
+
   const card = (
     <Card className={cn("h-full transition hover:shadow-lg", href && "cursor-pointer")}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
@@ -46,7 +60,14 @@ export function TicketCard({
           <CardTitle className="text-base font-semibold text-foreground">{title}</CardTitle>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{projectName}</p>
         </div>
-        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+        <div className="flex flex-col items-end gap-2">
+          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+          {categoryConfig ? (
+            <Badge variant={categoryConfig.variant} className="text-[11px] uppercase">
+              {categoryConfig.label}
+            </Badge>
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4 text-sm text-muted-foreground">
         {description ? (

@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ticketCreateSchema,
-  type TicketCreateFormValues
-} from "@/lib/zod-schemas";
+import { ticketCreateSchema, type TicketCreateFormValues } from "@/lib/zod-schemas";
 import {
   Form,
   FormControl,
@@ -51,7 +48,8 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
     defaultValues: {
       projectId: defaultProjectId,
       title: "",
-      description: ""
+      description: "",
+      category: "request"
     }
   });
 
@@ -80,7 +78,8 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
         form.reset({
           projectId: projects.at(0)?.id ?? "",
           title: "",
-          description: ""
+          description: "",
+          category: "request"
         });
         router.replace(`/tickets/${data.id}`);
         router.refresh();
@@ -117,6 +116,30 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
                       {project.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField<TicketCreateFormValues, "category">
+        control={form.control}
+        name="category"
+        render={({ field }: { field: ControllerRenderProps<TicketCreateFormValues, "category"> }) => (
+          <FormItem>
+            <FormLabel>Type de ticket</FormLabel>
+            <FormControl>
+              <Select value={field.value} onValueChange={field.onChange} disabled={isDisabled}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="request">Demande</SelectItem>
+                  <SelectItem value="feedback">Feedback</SelectItem>
+                  <SelectItem value="issue">Incident / Bug</SelectItem>
+                  <SelectItem value="general">Autre</SelectItem>
                 </SelectContent>
               </Select>
             </FormControl>

@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       title: tickets.title,
       description: tickets.description,
       status: tickets.status,
+      category: tickets.category,
       projectId: tickets.projectId,
       projectName: projects.name,
       createdAt: tickets.createdAt,
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { projectId, title, description } = validation.data;
+  const { projectId, title, description, category } = validation.data;
 
   const project = await db.query.projects.findFirst({
     where: eq(projects.id, projectId),
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       status: "open",
+      category,
       authorId: session.user.id
     })
     .returning({

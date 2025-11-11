@@ -19,6 +19,13 @@ const STATUS_LABELS: Record<"open" | "in_progress" | "done", string> = {
   done: "Résolu"
 };
 
+const CATEGORY_LABELS: Record<"request" | "feedback" | "issue" | "general", string> = {
+  request: "Demande",
+  feedback: "Feedback",
+  issue: "Incident",
+  general: "Autre"
+};
+
 interface TicketPageProps {
   params: {
     id: string;
@@ -44,6 +51,7 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
       title: tickets.title,
       description: tickets.description,
       status: tickets.status,
+      category: tickets.category,
       projectId: tickets.projectId,
       createdAt: tickets.createdAt,
       updatedAt: tickets.updatedAt,
@@ -98,6 +106,7 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
                 title: ticket.title,
                 description: ticket.description ?? "",
                 status: ticket.status,
+                category: ticket.category,
                 projectName: ticket.projectName
               }}
               allowStatusChange={allowStatusChange}
@@ -116,6 +125,12 @@ async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX
               <p className="text-xs uppercase tracking-wide text-muted-foreground/80">Statut</p>
               <Badge variant="secondary" className="mt-1 capitalize">
                 {STATUS_LABELS[ticket.status]}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground/80">Catégorie</p>
+              <Badge variant="outline" className="mt-1 uppercase tracking-wide">
+                {CATEGORY_LABELS[ticket.category]}
               </Badge>
             </div>
             <div>

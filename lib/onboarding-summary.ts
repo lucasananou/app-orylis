@@ -27,8 +27,14 @@ export function summarizeOnboardingPayload(
   const safePayload = payload ?? {};
 
   const identityComplete = hasFilledString(safePayload.fullName) && hasFilledString(safePayload.company) && hasFilledString(safePayload.phone);
-  const objectivesComplete = toStringArray(safePayload.goals).length > 0 && hasFilledString(safePayload.primaryGoal);
-  const structureComplete = toStringArray(safePayload.pages).length > 0;
+  const objectivesComplete = toStringArray(safePayload.goals).length > 0;
+  const customPagesCount =
+    Array.isArray(safePayload.customPages) && safePayload.customPages
+      ? (safePayload.customPages as Array<{ title?: unknown }>).filter(
+          (page) => hasFilledString(page?.title)
+        ).length
+      : 0;
+  const structureComplete = toStringArray(safePayload.pages).length + customPagesCount > 0;
   const inspirationComplete = toStringArray(safePayload.inspirations).length > 0;
   const technicalComplete = isTruthyBoolean(safePayload.domainOwned)
     ? hasFilledString(safePayload.domainName)

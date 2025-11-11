@@ -19,7 +19,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   const { id } = await ctx.params;
 
   const item = await db.query.tickets.findFirst({
-    where: (t, { eq }) => eq(t.id, id),
+    where: (t, { eq }) => eq(t.id, id)
   });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -35,12 +35,14 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     title: string;
     description: string | null;
     status: "open" | "in_progress" | "done";
+    category: "request" | "feedback" | "issue" | "general";
   }>;
 
   const update: Record<string, unknown> = {};
   if (typeof body.title === "string") update.title = body.title;
   if (body.description !== undefined) update.description = body.description;
   if (typeof body.status === "string") update.status = body.status;
+  if (typeof body.category === "string") update.category = body.category;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
@@ -51,7 +53,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       id: tickets.id,
       projectId: tickets.projectId,
       title: tickets.title,
-      status: tickets.status
+      status: tickets.status,
+      category: tickets.category
     })
     .from(tickets)
     .where(eq(tickets.id, id))
