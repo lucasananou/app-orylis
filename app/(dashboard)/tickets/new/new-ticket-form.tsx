@@ -81,10 +81,7 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
           description: "",
           category: "request"
         });
-        router.replace({
-          pathname: "/tickets/[id]" as const,
-          params: { id: data.id }
-        });
+        router.replace(`/tickets/${data.id}` as const);
         router.refresh();
       } catch (error) {
         const message =

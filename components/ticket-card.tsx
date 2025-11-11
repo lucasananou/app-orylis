@@ -87,10 +87,7 @@ export function TicketCard({
   if (href) {
     return (
       <Link
-        href={{
-          pathname: "/tickets/[id]" as const,
-          params: { id }
-        }}
+        href={`/tickets/${id}` as const}
         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       >
         {card}
