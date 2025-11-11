@@ -371,7 +371,18 @@ const customPagesArray = useFieldArray({
     control
   });
 
-  const summaryValues = watchedValues ?? defaultValues;
+  const summaryValues = useMemo<OnboardingFormState>(() => {
+    const values = watchedValues ?? defaultValues;
+    return {
+      ...defaultValues,
+      ...values,
+      goals: [...values.goals],
+      pages: [...values.pages],
+      customPages: values.customPages ?? [],
+      inspirations: values.inspirations ?? [],
+      competitors: values.competitors ?? []
+    };
+  }, [watchedValues, defaultValues]);
 
   const draftSignatureRef = useRef<string>(
     JSON.stringify(normalizeDraftPayload(defaultValues))
