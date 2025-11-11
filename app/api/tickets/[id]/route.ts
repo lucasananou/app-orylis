@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { ticketMessages, tickets } from "@/lib/schema";
+import { profiles, ticketMessages, tickets } from "@/lib/schema";
 import { auth } from "@/auth";
 import { notifyProjectParticipants } from "@/lib/notifications";
 import { assertUserCanAccessProject } from "@/lib/utils";
@@ -30,9 +30,13 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
       id: ticketMessages.id,
       body: ticketMessages.body,
       createdAt: ticketMessages.createdAt,
-      authorId: ticketMessages.authorId
+      authorId: ticketMessages.authorId,
+      fullName: profiles.fullName,
+      email: profiles.id,
+      role: profiles.role
     })
     .from(ticketMessages)
+    .innerJoin(profiles, eq(ticketMessages.authorId, profiles.id))
     .where(eq(ticketMessages.ticketId, id))
     .orderBy(ticketMessages.createdAt);
 
@@ -63,9 +67,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       title: tickets.title,
       status: tickets.status,
       category: tickets.category,
-      authorId: tickets.authorId
+      ownerId: profiles.id
     })
     .from(tickets)
+    .innerJoin(profiles, eq(tickets.authorId, profiles.id))
     .where(eq(tickets.id, id))
     .then((rows) => rows.at(0));
 
@@ -77,7 +82,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     assertUserCanAccessProject({
       role: session.user.role,
       userId: session.user.id,
-      ownerId: existing.authorId
+      ownerId: existing.ownerId
     });
   } catch {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });

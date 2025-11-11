@@ -80,13 +80,14 @@ export async function POST(req: NextRequest) {
     ? (validation.data as OnboardingFinalPayload)
     : (validation.data as OnboardingPayload);
 
-  const serializedPayload = JSON.stringify(safePayload);
+  const jsonPayload = JSON.stringify(safePayload);
+  const parsedPayload = JSON.parse(jsonPayload) as Record<string, unknown>;
 
   console.log("[Onboarding] payload snapshot", {
     projectId,
     completed,
     payloadPreview: Object.fromEntries(
-      Object.entries(JSON.parse(serializedPayload) ?? {}).map(([key, value]) => [key, typeof value])
+      Object.entries(parsedPayload ?? {}).map(([key, value]) => [key, typeof value])
     )
   });
 
@@ -104,14 +105,14 @@ export async function POST(req: NextRequest) {
       await db
         .update(onboardingResponses)
         .set({
-          payload: sql`${serializedPayload}::jsonb`,
+          payload: sql.json(parsedPayload),
           completed: completed ? true : existing.completed
         })
         .where(eq(onboardingResponses.id, existing.id));
     } else {
       await db.insert(onboardingResponses).values({
         projectId,
-        payload: sql`${serializedPayload}::jsonb`,
+        payload: sql.json(parsedPayload),
         completed
       });
     }
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const summary = summarizeOnboardingPayload(JSON.parse(serializedPayload) as Record<string, unknown>);
+  const summary = summarizeOnboardingPayload(parsedPayload);
   const computedProgress = Math.max(10, Math.round(summary.completionRatio * 100));
   const progressToStore = completed ? 100 : Math.max(project.progress ?? 10, computedProgress);
 
