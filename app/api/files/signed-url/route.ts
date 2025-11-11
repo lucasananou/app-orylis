@@ -1,53 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createUploadURL, getDownloadUrl } from "@vercel/blob";
+import { put } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { files, projects } from "@/lib/schema";
 import { buildFileStoragePath, isStaff } from "@/lib/utils";
 import { fileMetaSchema } from "@/lib/zod-schemas";
-
-export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  }
-
-  const fileId = request.nextUrl.searchParams.get("fileId");
-  if (!fileId) {
-    return NextResponse.json({ error: "fileId requis." }, { status: 400 });
-  }
-
-  const fileRecord = await db
-    .select({
-      id: files.id,
-      path: files.path,
-      projectId: files.projectId,
-      ownerId: projects.ownerId
-    })
-    .from(files)
-    .innerJoin(projects, eq(files.projectId, projects.id))
-    .where(eq(files.id, fileId))
-    .then((rows) => rows.at(0));
-
-  if (!fileRecord) {
-    return NextResponse.json({ error: "Fichier introuvable." }, { status: 404 });
-  }
-
-  const canAccess =
-    isStaff(session.user.role) || fileRecord.ownerId === session.user.id || session.user.id === fileRecord.ownerId;
-
-  if (!canAccess) {
-    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
-  }
-
-  const { url } = await getDownloadUrl({
-    pathname: fileRecord.path,
-    expiresIn: 60
-  });
-
-  return NextResponse.json({ downloadUrl: url });
-}
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -56,8 +14,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => null);
-  const validation = fileMetaSchema.safeParse(body);
+  const formData = await request.formData().catch(() => null);
+
+  if (!formData) {
+    return NextResponse.json({ error: "FormData requis." }, { status: 400 });
+  }
+
+  const projectId = formData.get("projectId");
+  const file = formData.get("file");
+
+  if (typeof projectId !== "string" || !projectId) {
+    return NextResponse.json({ error: "projectId invalide." }, { status: 400 });
+  }
+
+  if (!(file instanceof File)) {
+    return NextResponse.json({ error: "Fichier manquant." }, { status: 400 });
+  }
+
+  const validation = fileMetaSchema.safeParse({
+    projectId,
+    filename: file.name,
+    type: file.type,
+    size: file.size
+  });
 
   if (!validation.success) {
     return NextResponse.json(
@@ -65,8 +44,6 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-
-  const { projectId, filename, type } = validation.data;
 
   const project = await db.query.projects.findFirst({
     where: eq(projects.id, projectId),
@@ -87,26 +64,13 @@ export async function POST(request: NextRequest) {
   }
 
   const fileId = crypto.randomUUID();
-  const pathname = buildFileStoragePath(projectId, fileId, filename);
+  const pathname = buildFileStoragePath(projectId, fileId, file.name);
 
-  const uploadData = await createUploadURL({
-    access: "private",
-    expires: new Date(Date.now() + 5 * 60 * 1000),
-    contentType: type,
-    contentLength: {
-      min: 1,
-      max: 10 * 1024 * 1024
-    },
-    metadata: {
-      projectId,
-      uploaderId: session.user.id,
-      fileId
-    },
-    pathname
+  const blob = await put(pathname, file, {
+    access: "public",
+    addRandomSuffix: false,
+    contentType: file.type
   });
-
-  const uploadUrl = uploadData.url;
-  const blobUrl = uploadUrl.split("?")[0];
 
   const [record] = await db
     .insert(files)
@@ -114,19 +78,28 @@ export async function POST(request: NextRequest) {
       id: fileId,
       projectId,
       uploaderId: session.user.id,
-      path: blobUrl,
-      label: filename,
+      path: blob.url,
+      label: file.name,
       storageProvider: "blob"
     })
     .returning({
       id: files.id,
-      path: files.path
+      path: files.path,
+      label: files.label,
+      createdAt: files.createdAt,
+      projectId: files.projectId
     });
 
   return NextResponse.json({
-    uploadUrl,
-    fileId: record.id,
-    filePath: record.path
+    ok: true,
+    file: {
+      id: record.id,
+      label: record.label,
+      path: record.path,
+      createdAt: record.createdAt,
+      projectId: record.projectId
+    }
   });
 }
+
 

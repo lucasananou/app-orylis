@@ -70,45 +70,23 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
     setIsUploading(true);
 
     try {
+      const formData = new FormData();
+      formData.append("projectId", projectId);
+      formData.append("file", file, file.name);
+
       const response = await fetch("/api/files/signed-url", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          projectId,
-          filename: file.name,
-          type: file.type,
-          size: file.size
-        })
+        body: formData
       });
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error ?? "Impossible de préparer l’upload.");
-      }
-
-      const { uploadUrl, fileId } = (await response.json()) as {
-        uploadUrl: string;
-        fileId: string;
-      };
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": file.type
-        },
-        body: file
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("L’upload a échoué. Merci de réessayer.");
+        throw new Error(payload.error ?? "Impossible d’uploader le fichier.");
       }
 
       toast.success("Fichier uploadé avec succès.");
       setOpen(false);
       router.refresh();
-      return fileId;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur lors de l’upload.";
       toast.error(message);
@@ -118,7 +96,6 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
         inputRef.current.value = "";
       }
     }
-    return null;
   };
 
   return (
@@ -182,4 +159,5 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
     </Dialog>
   );
 }
+
 

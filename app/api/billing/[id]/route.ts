@@ -5,12 +5,17 @@ import { db } from "@/lib/db";
 import { billingLinks, projects } from "@/lib/schema";
 import { assertUserCanAccessProject } from "@/lib/utils";
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const session = await auth();
 
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
+
+  const { id } = await context.params;
 
   const link = await db
     .select({
@@ -20,7 +25,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     })
     .from(billingLinks)
     .innerJoin(projects, eq(billingLinks.projectId, projects.id))
-    .where(eq(billingLinks.id, params.id))
+    .where(eq(billingLinks.id, id))
     .limit(1)
     .then((rows) => rows.at(0));
 
@@ -38,7 +43,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
-  await db.delete(billingLinks).where(eq(billingLinks.id, params.id));
+  await db.delete(billingLinks).where(eq(billingLinks.id, id));
 
   return NextResponse.json({ ok: true });
 }

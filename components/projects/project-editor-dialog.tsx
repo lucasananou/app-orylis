@@ -132,15 +132,13 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
     startTransition(async () => {
       try {
         if (isCreateMode) {
+          const createValues = values as CreateProjectFormValues;
           const payload = {
-            ownerId: values.ownerId,
-            name: values.name,
-            status: values.status,
-            progress: values.progress,
-            dueDate:
-              values.dueDate && values.dueDate !== ""
-                ? `${values.dueDate}T00:00:00.000Z`
-                : undefined
+            ownerId: createValues.ownerId,
+            name: createValues.name,
+            status: createValues.status,
+            progress: createValues.progress,
+            dueDate: createValues.dueDate && createValues.dueDate !== "" ? createValues.dueDate : undefined
           };
 
           const response = await fetch("/api/projects", {
@@ -169,16 +167,13 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             updates.progress = editValues.progress;
           }
 
-          const normalizedDueDate =
-            editValues.dueDate && editValues.dueDate !== ""
-              ? `${editValues.dueDate}T00:00:00.000Z`
-              : "";
+          const normalizedDueDate = editValues.dueDate && editValues.dueDate !== "" ? editValues.dueDate : "";
           const currentDueDate = project.dueDate ? project.dueDate.slice(0, 10) : "";
 
-          if (normalizedDueDate !== "" && normalizedDueDate !== project.dueDate) {
+          if (normalizedDueDate !== "" && normalizedDueDate !== currentDueDate) {
             updates.dueDate = normalizedDueDate;
           } else if (normalizedDueDate === "" && currentDueDate) {
-            // pas encore supporté (suppression) -> ignorer
+            // suppression non supportée
           }
 
           if (Object.keys(updates).length === 0) {

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 import { billingLinkSchema, type BillingLinkFormValues } from "@/lib/zod-schemas";
 import { useProjectSelection } from "@/lib/project-selection";
 import { formatDate, isStaff } from "@/lib/utils";
@@ -214,10 +215,14 @@ export function BillingLinksManager({ links, projects, role, canManage }: Billin
               </DialogDescription>
             </DialogHeader>
             <Form form={form} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <FormField
+              <FormField<BillingLinkFormValues, "projectId">
                 control={form.control}
                 name="projectId"
-                render={({ field }) => (
+                render={({
+                  field
+                }: {
+                  field: ControllerRenderProps<BillingLinkFormValues, "projectId">;
+                }) => (
                   <FormItem>
                     <FormLabel>Projet</FormLabel>
                     <FormControl>
@@ -242,10 +247,12 @@ export function BillingLinksManager({ links, projects, role, canManage }: Billin
                   </FormItem>
                 )}
               />
-              <FormField
+              <FormField<BillingLinkFormValues, "label">
                 control={form.control}
                 name="label"
-                render={({ field }) => (
+                render={({
+                  field
+                }: { field: ControllerRenderProps<BillingLinkFormValues, "label"> }) => (
                   <FormItem>
                     <FormLabel>Libellé</FormLabel>
                     <FormControl>
@@ -260,10 +267,12 @@ export function BillingLinksManager({ links, projects, role, canManage }: Billin
                 )}
               />
 
-              <FormField
+              <FormField<BillingLinkFormValues, "url">
                 control={form.control}
                 name="url"
-                render={({ field }) => (
+                render={({
+                  field
+                }: { field: ControllerRenderProps<BillingLinkFormValues, "url"> }) => (
                   <FormItem>
                     <FormLabel>URL</FormLabel>
                     <FormControl>

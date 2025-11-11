@@ -4,6 +4,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 import { Loader2, Mail } from "lucide-react";
 import { loginSchema, type LoginFormValues } from "@/lib/zod-schemas";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -42,10 +43,10 @@ export function LoginForm() {
 
   return (
     <Form form={form} className="w-full space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-      <FormField
+      <FormField<LoginFormValues, "email">
         control={form.control}
         name="email"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<LoginFormValues, "email"> }) => (
           <FormItem>
             <FormLabel>Email professionnel</FormLabel>
             <FormControl>

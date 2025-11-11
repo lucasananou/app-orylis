@@ -85,46 +85,64 @@ export const OnboardingStep4Schema = z.object({
     .optional()
 });
 
-export const OnboardingStep5Schema = z
-  .object({
-    domainOwned: z.boolean(),
-    domainName: emptyToUndefined(
-      z
-        .string()
-        .min(2, { message: "Nom de domaine trop court." })
-        .max(120, { message: "Nom de domaine trop long." })
-    ),
-    hostingNotes: emptyToUndefined(
-      z
-        .string()
-        .max(1200, { message: "Merci de rester sous 1200 caractères." })
-    )
-  })
-  .refine(
-    (data) => {
-      if (data.domainOwned) {
-        return Boolean(data.domainName);
-      }
-      return true;
-    },
-    {
-      message: "Merci de préciser le nom de domaine.",
-      path: ["domainName"]
-    }
-  );
+const OnboardingStep5Fields = z.object({
+  domainOwned: z.boolean(),
+  domainName: emptyToUndefined(
+    z
+      .string()
+      .min(2, { message: "Nom de domaine trop court." })
+      .max(120, { message: "Nom de domaine trop long." })
+  ),
+  hostingNotes: emptyToUndefined(
+    z
+      .string()
+      .max(1200, { message: "Merci de rester sous 1200 caractères." })
+  )
+});
 
-export const OnboardingPayloadSchema = OnboardingStep1Schema.merge(OnboardingStep2Schema)
+export const OnboardingStep5Schema = OnboardingStep5Fields.refine(
+  (data) => {
+    if (data.domainOwned) {
+      return Boolean(data.domainName);
+    }
+    return true;
+  },
+  {
+    message: "Merci de préciser le nom de domaine.",
+    path: ["domainName"]
+  }
+);
+
+export const OnboardingPayloadFields = OnboardingStep1Schema.merge(OnboardingStep2Schema)
   .merge(OnboardingStep3Schema)
   .merge(OnboardingStep4Schema)
-  .merge(OnboardingStep5Schema);
+  .merge(OnboardingStep5Fields);
 
-export const OnboardingFinalSchema = OnboardingPayloadSchema.merge(
+export const OnboardingPayloadSchema = OnboardingPayloadFields.superRefine((data, ctx) => {
+  if (data.domainOwned && !data.domainName) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Merci de préciser le nom de domaine.",
+      path: ["domainName"]
+    });
+  }
+});
+
+export const OnboardingFinalSchema = OnboardingPayloadFields.merge(
   z.object({
     confirm: z.literal(true, {
       errorMap: () => ({ message: "Merci de confirmer la validation de l’onboarding." })
     })
   })
-);
+).superRefine((data, ctx) => {
+  if (data.domainOwned && !data.domainName) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Merci de préciser le nom de domaine.",
+      path: ["domainName"]
+    });
+  }
+});
 
 export const ticketCreateSchema = z.object({
   projectId: z.string().uuid({ message: "Projet invalide." }),

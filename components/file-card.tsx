@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { Download, FileArchive, FileText, Image, Loader2, Trash2 } from "lucide-react";
+import { Download, FileArchive, FileText, Image, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, getFileKindIcon } from "@/lib/utils";
@@ -13,7 +13,7 @@ export interface FileCardProps {
   createdAt?: string | Date | null;
   projectName: string;
   canDelete: boolean;
-  onDownload: (fileId: string) => Promise<void>;
+  url: string;
   onDelete: (fileId: string) => Promise<void>;
 }
 
@@ -31,23 +31,13 @@ export function FileCard({
   createdAt,
   projectName,
   canDelete,
-  onDownload,
+  url,
   onDelete
 }: FileCardProps) {
-  const [isDownloading, setDownloading] = React.useState(false);
   const [isDeleting, setDeleting] = React.useState(false);
 
   const iconKey = getFileKindIcon(label.toLowerCase());
   const icon = iconMap[iconKey] ?? iconMap.doc;
-
-  const handleDownload = async () => {
-    try {
-      setDownloading(true);
-      await onDownload(id);
-    } finally {
-      setDownloading(false);
-    }
-  };
 
   const handleDelete = async () => {
     if (!canDelete) return;
@@ -79,17 +69,12 @@ export function FileCard({
         <Button
           size="sm"
           variant="outline"
-          onClick={handleDownload}
-          disabled={isDownloading}
+          asChild
         >
-          {isDownloading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Télécharger
-            </>
-          )}
+          <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
+            <Download className="mr-2 h-4 w-4" />
+            Télécharger
+          </a>
         </Button>
       </CardHeader>
       <CardContent className="flex items-center justify-between text-xs text-muted-foreground/80">

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ticketUpdateSchema, type TicketUpdatePayload } from "@/lib/zod-schemas";
 import {
@@ -133,10 +134,10 @@ export function TicketDetailForm({
 
   return (
     <Form form={form} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-      <FormField
+      <FormField<TicketUpdatePayload, "title">
         control={form.control}
         name="title"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<TicketUpdatePayload, "title"> }) => (
           <FormItem>
             <FormLabel>Titre</FormLabel>
             <FormControl>
@@ -151,10 +152,10 @@ export function TicketDetailForm({
         )}
       />
 
-      <FormField
+      <FormField<TicketUpdatePayload, "description">
         control={form.control}
         name="description"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<TicketUpdatePayload, "description"> }) => (
           <FormItem>
             <FormLabel>Description</FormLabel>
             <FormControl>
@@ -171,10 +172,10 @@ export function TicketDetailForm({
       />
 
       {allowStatusChange && (
-        <FormField
+        <FormField<TicketUpdatePayload, "status">
           control={form.control}
           name="status"
-          render={({ field }) => (
+          render={({ field }: { field: ControllerRenderProps<TicketUpdatePayload, "status"> }) => (
             <FormItem>
               <FormLabel>Statut</FormLabel>
               <FormControl>

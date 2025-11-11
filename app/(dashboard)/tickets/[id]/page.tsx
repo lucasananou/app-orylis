@@ -23,7 +23,11 @@ interface TicketPageProps {
   };
 }
 
-export default async function TicketDetailPage({ params }: TicketPageProps) {
+export default function TicketDetailPage(props: TicketPageProps): JSX.Element {
+  return <TicketDetailPageContent {...props} />;
+}
+
+async function TicketDetailPageContent({ params }: TicketPageProps): Promise<JSX.Element> {
   const session = await auth();
 
   if (!session?.user) {

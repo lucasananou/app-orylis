@@ -424,12 +424,13 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
     }
     const fieldErrors = result.error.flatten().fieldErrors;
     Object.entries(fieldErrors).forEach(([field, messages]) => {
-      if (!messages || messages.length === 0) {
+      const items = Array.isArray(messages) ? messages : [];
+      if (items.length === 0) {
         return;
       }
       form.setError(field as keyof OnboardingFormState, {
         type: "manual",
-        message: messages[0]
+        message: items[0]
       });
     });
   };

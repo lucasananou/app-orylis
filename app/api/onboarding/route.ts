@@ -6,6 +6,7 @@ import { onboardingResponses, projects } from "@/lib/schema";
 import {
   OnboardingFinalSchema,
   OnboardingPayloadSchema,
+  OnboardingPayloadFields,
   type OnboardingFinalPayload,
   type OnboardingPayload
 } from "@/lib/zod-schemas";
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
   const projectId: string = body.projectId;
   const completedRequest: boolean = Boolean(body.completed);
   const incomingPayload = (body.payload ?? {}) as Partial<OnboardingPayload>;
-  const confirmFlag: boolean = Boolean(body.confirm ?? incomingPayload?.confirm);
+  const confirmFlag: boolean = Boolean(body.confirm);
 
   const project = await db.query.projects.findFirst({
     where: eq(projects.id, projectId),
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
-  const partialValidation = OnboardingPayloadSchema.partial().safeParse(incomingPayload);
+  const partialValidation = OnboardingPayloadFields.partial().safeParse(incomingPayload);
   if (!partialValidation.success) {
     return NextResponse.json(
       { error: "Payload onboarding invalide.", details: partialValidation.error.flatten() },
@@ -194,14 +195,14 @@ export async function POST(request: NextRequest) {
       await tx
         .update(onboardingResponses)
         .set({
-          payload: sanitizePayload(mergedPayload),
+          payload: sanitizePayload(mergedPayload as OnboardingPayload),
           completed: existing.completed
         })
         .where(and(eq(onboardingResponses.projectId, projectId), eq(onboardingResponses.id, existing.id)));
     } else {
       await tx.insert(onboardingResponses).values({
         projectId,
-        payload: sanitizePayload(mergedPayload),
+        payload: sanitizePayload(mergedPayload as OnboardingPayload),
         completed: false
       });
     }

@@ -15,6 +15,7 @@ import { FileCard } from "@/components/file-card";
 import { FileUploadDialog } from "@/components/files/file-upload-dialog";
 import { useProjectSelection } from "@/lib/project-selection";
 import { isStaff } from "@/lib/utils";
+import { UploadCloud } from "lucide-react";
 
 interface ProjectOption {
   id: string;
@@ -26,6 +27,7 @@ export interface FileItem {
   label: string;
   storageProvider: string;
   createdAt: string;
+  path: string;
   projectId: string;
   projectName: string;
   canDelete: boolean;
@@ -45,37 +47,17 @@ export function FilesSection({ projects, files, role, canManage }: FilesSectionP
   const hasProjects = projects.length > 0;
 
   React.useEffect(() => {
-    if (!ready) {
+    if (!ready || staff || !hasProjects) {
       return;
     }
-    if (!staff && hasProjects && !projectId) {
+    if (!projectId) {
       setProjectId(projects[0].id);
     }
-  }, [ready, staff, hasProjects, projectId, projects, setProjectId]);
+  }, [hasProjects, projectId, projects, ready, setProjectId, staff]);
 
   const selectValue = staff ? projectId ?? "__all__" : projectId ?? (projects[0]?.id ?? "");
   const activeProjectId = staff && selectValue === "__all__" ? null : selectValue;
   const uploadDisabled = !canManage || !activeProjectId;
-
-  const handleDownload = async (fileId: string) => {
-    try {
-      const response = await fetch(`/api/files/signed-url?fileId=${fileId}`, {
-        method: "GET"
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error ?? "Impossible de générer le lien de téléchargement.");
-      }
-
-      const { downloadUrl } = (await response.json()) as { downloadUrl: string };
-      window.open(downloadUrl, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erreur lors de la récupération du lien.";
-      toast.error(message);
-    }
-  };
 
   const handleDelete = async (fileId: string) => {
     const confirmed = window.confirm("Supprimer ce fichier ?");
@@ -110,7 +92,7 @@ export function FilesSection({ projects, files, role, canManage }: FilesSectionP
   if (!hasProjects) {
     return (
       <EmptyState
-        icon={UploadPlaceholderIcon}
+        icon={UploadCloud}
         title="Aucun projet disponible"
         description="Créez un projet ou finalisez l’onboarding pour déposer vos premiers fichiers."
       />
@@ -137,9 +119,7 @@ export function FilesSection({ projects, files, role, canManage }: FilesSectionP
               <SelectValue placeholder="Sélectionnez un projet" />
             </SelectTrigger>
             <SelectContent>
-              {staff && (
-                <SelectItem value="__all__">Tous les projets</SelectItem>
-              )}
+              {staff && <SelectItem value="__all__">Tous les projets</SelectItem>}
               {projects.map((project) => (
                 <SelectItem key={project.id} value={project.id}>
                   {project.name}
@@ -157,7 +137,7 @@ export function FilesSection({ projects, files, role, canManage }: FilesSectionP
 
       {filteredFiles.length === 0 ? (
         <EmptyState
-          icon={UploadPlaceholderIcon}
+          icon={UploadCloud}
           title="Aucun fichier pour ce projet"
           description="Déposez vos premiers livrables, exports ou documents partagés."
         />
@@ -172,22 +152,13 @@ export function FilesSection({ projects, files, role, canManage }: FilesSectionP
               createdAt={file.createdAt}
               projectName={file.projectName}
               canDelete={file.canDelete && canManage}
-              onDownload={handleDownload}
+              url={file.path}
               onDelete={handleDelete}
             />
           ))}
         </div>
       )}
     </div>
-  );
-}
-
-function UploadPlaceholderIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V8m0 0l-3 3m3-3l3 3" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 20h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.586a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 0012.586 10H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-    </svg>
   );
 }
 

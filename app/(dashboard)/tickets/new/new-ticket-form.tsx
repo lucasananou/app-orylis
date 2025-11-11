@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ticketCreateSchema,
@@ -95,10 +96,10 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
 
   return (
     <Form form={form} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-      <FormField
+      <FormField<TicketCreateFormValues, "projectId">
         control={form.control}
         name="projectId"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<TicketCreateFormValues, "projectId"> }) => (
           <FormItem>
             <FormLabel>Projet concerné</FormLabel>
             <FormControl>
@@ -124,10 +125,10 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
         )}
       />
 
-      <FormField
+      <FormField<TicketCreateFormValues, "title">
         control={form.control}
         name="title"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<TicketCreateFormValues, "title"> }) => (
           <FormItem>
             <FormLabel>Titre</FormLabel>
             <FormControl>
@@ -142,10 +143,10 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
         )}
       />
 
-      <FormField
+      <FormField<TicketCreateFormValues, "description">
         control={form.control}
         name="description"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<TicketCreateFormValues, "description"> }) => (
           <FormItem>
             <FormLabel>Description</FormLabel>
             <FormControl>

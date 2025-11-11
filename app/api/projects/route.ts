@@ -47,7 +47,7 @@ export async function GET(_: NextRequest) {
   return safeJson({
     data: results.map((project) => ({
       ...project,
-      dueDate: project.dueDate ? project.dueDate.toISOString() : null
+      dueDate: project.dueDate
     }))
   });
 }
@@ -78,10 +78,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let dueDateValue: Date | undefined;
+  let dueDateValue: string | null = null;
   if (parsed.data.dueDate) {
     try {
-      dueDateValue = parseISODate(parsed.data.dueDate);
+      parseISODate(parsed.data.dueDate);
+      dueDateValue = parsed.data.dueDate;
     } catch {
       return safeJson({ error: "Date d’échéance invalide." }, 400);
     }
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       project: {
         ...created,
-        dueDate: created.dueDate ? created.dueDate.toISOString() : null
+        dueDate: created.dueDate
       }
     },
     201

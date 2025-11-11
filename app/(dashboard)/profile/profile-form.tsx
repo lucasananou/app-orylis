@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, type ProfileFormValues } from "@/lib/zod-schemas";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -68,10 +69,10 @@ export function ProfileForm({
 
   return (
     <Form form={form} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-      <FormField
+      <FormField<ProfileFormValues, "fullName">
         control={form.control}
         name="fullName"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<ProfileFormValues, "fullName"> }) => (
           <FormItem>
             <FormLabel>Nom complet</FormLabel>
             <FormControl>
@@ -81,10 +82,10 @@ export function ProfileForm({
           </FormItem>
         )}
       />
-      <FormField
+      <FormField<ProfileFormValues, "company">
         control={form.control}
         name="company"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<ProfileFormValues, "company"> }) => (
           <FormItem>
             <FormLabel>Entreprise</FormLabel>
             <FormControl>
@@ -94,10 +95,10 @@ export function ProfileForm({
           </FormItem>
         )}
       />
-      <FormField
+      <FormField<ProfileFormValues, "phone">
         control={form.control}
         name="phone"
-        render={({ field }) => (
+        render={({ field }: { field: ControllerRenderProps<ProfileFormValues, "phone"> }) => (
           <FormItem>
             <FormLabel>Téléphone</FormLabel>
             <FormControl>

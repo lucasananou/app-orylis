@@ -42,9 +42,7 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
         <Breadcrumb className="hidden md:flex">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/">Dashboard</Link>
-              </BreadcrumbLink>
+              <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
             </BreadcrumbItem>
             {segments.map((segment, index) => {
               const href = `/${segments.slice(0, index + 1).join("/")}`;
@@ -57,9 +55,7 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
                   {isLast ? (
                     <BreadcrumbPage>{label}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink asChild>
-                      <Link href={href}>{label}</Link>
-                    </BreadcrumbLink>
+                    <BreadcrumbLink href={href}>{label}</BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
               );

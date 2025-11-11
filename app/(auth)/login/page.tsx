@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
-export default async function LoginPage() {
-  const session = await auth();
+const session = await auth();
 
-  if (session?.user) {
-    redirect("/");
-  }
+if (session?.user) {
+  redirect("/");
+}
 
+export default function LoginPage(): JSX.Element {
   return (
     <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-6 py-16 md:grid-cols-[0.8fr_1fr] md:px-20">
       <section className="hidden flex-col gap-6 text-slate-800 md:flex">

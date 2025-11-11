@@ -8,51 +8,51 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { BillingLinksManager } from "@/components/billing/billing-links-manager";
 
-export default async function BillingPage() {
-  const session = await auth();
+const session = await auth();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+if (!session?.user) {
+  redirect("/login");
+}
 
-  const staff = isStaff(session.user.role);
+const staff = isStaff(session.user.role);
 
-  const accessibleProjects = staff
-    ? await db
-        .select({
-          id: projects.id,
-          name: projects.name
-        })
-        .from(projects)
-        .orderBy(projects.name)
-    : await db.query.projects.findMany({
-        where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
-        columns: {
-          id: true,
-          name: true
-        },
-        orderBy: (project, { asc }) => asc(project.name)
-      });
+const accessibleProjects = staff
+  ? await db
+      .select({
+        id: projects.id,
+        name: projects.name
+      })
+      .from(projects)
+      .orderBy(projects.name)
+  : await db.query.projects.findMany({
+      where: (project, { eq: eqFn }) => eqFn(project.ownerId, session.user.id),
+      columns: {
+        id: true,
+        name: true
+      },
+      orderBy: (project, { asc }) => asc(project.name)
+    });
 
-  const baseQuery = db
-    .select({
-      id: billingLinks.id,
-      label: billingLinks.label,
-      url: billingLinks.url,
-      projectId: billingLinks.projectId,
-      projectName: projects.name,
-      createdAt: billingLinks.createdAt,
-      ownerId: projects.ownerId
-    })
-    .from(billingLinks)
-    .innerJoin(projects, eq(billingLinks.projectId, projects.id));
+const baseQuery = db
+  .select({
+    id: billingLinks.id,
+    label: billingLinks.label,
+    url: billingLinks.url,
+    projectId: billingLinks.projectId,
+    projectName: projects.name,
+    createdAt: billingLinks.createdAt,
+    ownerId: projects.ownerId
+  })
+  .from(billingLinks)
+  .innerJoin(projects, eq(billingLinks.projectId, projects.id));
 
-  const links = staff
-    ? await baseQuery.orderBy(desc(billingLinks.createdAt))
-    : await baseQuery
-        .where(eq(projects.ownerId, session.user.id))
-        .orderBy(desc(billingLinks.createdAt));
+const links = staff
+  ? await baseQuery.orderBy(desc(billingLinks.createdAt))
+  : await baseQuery
+      .where(eq(projects.ownerId, session.user.id))
+      .orderBy(desc(billingLinks.createdAt));
 
+export default function BillingPage(): JSX.Element {
   return (
     <>
       <PageHeader

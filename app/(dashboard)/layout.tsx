@@ -2,39 +2,43 @@ import { redirect } from "next/navigation";
 import { eq, asc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { projects, profiles } from "@/lib/schema";
+import { projects } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
 import { Navbar } from "@/components/navbar";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+const session = await auth();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+if (!session?.user) {
+  redirect("/login");
+}
 
-  const { user } = session;
-  const userEmail = user.email ?? "—";
-  const staff = isStaff(user.role);
+const { user } = session;
+const userEmail = user.email ?? "—";
+const staff = isStaff(user.role);
 
-  const accessibleProjects = staff
-    ? await db
-        .select({
-          id: projects.id,
-          name: projects.name
-        })
-        .from(projects)
-        .orderBy(asc(projects.name))
-    : await db
-        .select({
-          id: projects.id,
-          name: projects.name
-        })
-        .from(projects)
-        .where(eq(projects.ownerId, user.id))
-        .orderBy(asc(projects.name));
+const accessibleProjects = staff
+  ? await db
+      .select({
+        id: projects.id,
+        name: projects.name
+      })
+      .from(projects)
+      .orderBy(asc(projects.name))
+  : await db
+      .select({
+        id: projects.id,
+        name: projects.name
+      })
+      .from(projects)
+      .where(eq(projects.ownerId, user.id))
+      .orderBy(asc(projects.name));
 
+export default function DashboardLayout({
+  children
+}: {
+  children: React.ReactNode;
+}): JSX.Element {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />

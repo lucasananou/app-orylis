@@ -6,12 +6,17 @@ import { projects, tickets } from "@/lib/schema";
 import { ticketUpdateSchema } from "@/lib/zod-schemas";
 import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  _: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const session = await auth();
 
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
+
+  const { id } = await context.params;
 
   const [row] = await db
     .select({
@@ -28,7 +33,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     })
     .from(tickets)
     .innerJoin(projects, eq(tickets.projectId, projects.id))
-    .where(eq(tickets.id, params.id))
+    .where(eq(tickets.id, id))
     .limit(1);
 
   if (!row) {
@@ -50,12 +55,17 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   return NextResponse.json({ data: ticket });
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const session = await auth();
 
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
+
+  const { id } = await context.params;
 
   const payload = await request.json().catch(() => null);
   const validation = ticketUpdateSchema.safeParse(payload);
@@ -78,7 +88,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     })
     .from(tickets)
     .innerJoin(projects, eq(tickets.projectId, projects.id))
-    .where(eq(tickets.id, params.id))
+    .where(eq(tickets.id, id))
     .limit(1);
 
   if (!existing) {
@@ -139,7 +149,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   await db
     .update(tickets)
     .set(updatePayload)
-    .where(eq(tickets.id, params.id));
+    .where(eq(tickets.id, id));
 
   const [updated] = await db
     .select({
@@ -151,7 +161,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       updatedAt: tickets.updatedAt
     })
     .from(tickets)
-    .where(eq(tickets.id, params.id))
+    .where(eq(tickets.id, id))
     .limit(1);
 
   return NextResponse.json({ ok: true, data: updated });

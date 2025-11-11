@@ -7,7 +7,9 @@ import { projects, tickets } from "@/lib/schema";
 import { ticketCreateSchema } from "@/lib/zod-schemas";
 import { assertUserCanAccessProject } from "@/lib/utils";
 
-const TICKET_STATUSES = new Set(["open", "in_progress", "done"]);
+type TicketStatus = "open" | "in_progress" | "done";
+
+const TICKET_STATUSES = new Set<TicketStatus>(["open", "in_progress", "done"]);
 
 function buildWhereClause(
   conditions: Array<SQL<unknown>>
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const url = new URL(request.url);
   const projectId = url.searchParams.get("projectId");
-  const status = url.searchParams.get("status");
+  const status = url.searchParams.get("status") as TicketStatus | null;
 
   if (status && !TICKET_STATUSES.has(status)) {
     return NextResponse.json({ error: "Status invalide." }, { status: 400 });

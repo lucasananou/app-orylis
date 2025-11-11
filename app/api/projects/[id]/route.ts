@@ -6,7 +6,10 @@ import { projects } from "@/lib/schema";
 import { assertStaff, parseISODate, safeJson } from "@/lib/utils";
 import { projectUpdateSchema } from "@/lib/zod-schemas";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const session = await auth();
 
   if (!session?.user) {
@@ -33,6 +36,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 
   const updates: Partial<typeof projects.$inferInsert> = {};
+  const { id: projectId } = await context.params;
 
   if (parsed.data.name !== undefined) {
     updates.name = parsed.data.name;
@@ -48,7 +52,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   if (parsed.data.dueDate !== undefined) {
     try {
-      updates.dueDate = parseISODate(parsed.data.dueDate);
+      parseISODate(parsed.data.dueDate);
+      updates.dueDate = parsed.data.dueDate ?? null;
     } catch {
       return safeJson({ error: "Date d’échéance invalide." }, 400);
     }
@@ -57,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const [updated] = await db
     .update(projects)
     .set(updates)
-    .where(eq(projects.id, params.id))
+    .where(eq(projects.id, projectId))
     .returning({
       id: projects.id,
       name: projects.name,
@@ -75,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     ok: true,
     project: {
       ...updated,
-      dueDate: updated.dueDate ? updated.dueDate.toISOString() : null
+      dueDate: updated.dueDate ?? null
     }
   });
 }

@@ -7,22 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { ProfileForm } from "./profile-form";
 
-export default async function ProfilePage() {
-  const session = await auth();
+const session = await auth();
 
-  if (!session?.user) {
-    redirect("/login");
+if (!session?.user) {
+  redirect("/login");
+}
+
+const profile = await db.query.profiles.findFirst({
+  where: eq(profiles.id, session.user.id),
+  columns: {
+    fullName: true,
+    company: true,
+    phone: true
   }
+});
 
-  const profile = await db.query.profiles.findFirst({
-    where: eq(profiles.id, session.user.id),
-    columns: {
-      fullName: true,
-      company: true,
-      phone: true
-    }
-  });
-
+export default function ProfilePage(): JSX.Element {
   return (
     <>
       <PageHeader

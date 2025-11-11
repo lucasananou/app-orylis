@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: "Espace client Orylis – Suivi de projet, tickets et ressources."
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }): JSX.Element {
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>

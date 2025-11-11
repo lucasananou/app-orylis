@@ -6,14 +6,17 @@ import { db } from "@/lib/db";
 import { files, projects } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   const session = await auth();
 
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
-  const fileId = params.id;
+  const { id: fileId } = await context.params;
 
   const record = await db
     .select({

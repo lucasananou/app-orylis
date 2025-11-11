@@ -13,86 +13,86 @@ import { PageHeader } from "@/components/page-header";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { ProgressSteps } from "@/components/progress-steps";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
-import { Edit3 } from "lucide-react";
+import { Edit3, ClipboardList } from "lucide-react";
 
-export default async function DashboardHomePage() {
-  const session = await auth();
+const session = await auth();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+if (!session?.user) {
+  redirect("/login");
+}
 
-  const staff = isStaff(session.user.role);
+const staff = isStaff(session.user.role);
 
-  const projectRows = staff
-    ? await db
-        .select({
-          id: projects.id,
-          name: projects.name,
-          status: projects.status,
-          progress: projects.progress,
-          dueDate: projects.dueDate,
-          ownerId: projects.ownerId,
-          ownerName: profiles.fullName
-        })
-        .from(projects)
-        .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-        .orderBy(asc(projects.createdAt))
-    : await db
-        .select({
-          id: projects.id,
-          name: projects.name,
-          status: projects.status,
-          progress: projects.progress,
-          dueDate: projects.dueDate,
-          ownerId: projects.ownerId,
-          ownerName: profiles.fullName
-        })
-        .from(projects)
-        .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-        .where(eq(projects.ownerId, session.user.id))
-        .orderBy(asc(projects.createdAt));
-
-  const rawOwners = staff
-    ? await db.query.profiles.findMany({
-        where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
-        columns: {
-          id: profiles.id,
-          fullName: profiles.fullName,
-          company: profiles.company
-        },
-        orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
+const projectRows = staff
+  ? await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        status: projects.status,
+        progress: projects.progress,
+        dueDate: projects.dueDate,
+        ownerId: projects.ownerId,
+        ownerName: profiles.fullName
       })
-    : [];
+      .from(projects)
+      .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+      .orderBy(asc(projects.createdAt))
+  : await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        status: projects.status,
+        progress: projects.progress,
+        dueDate: projects.dueDate,
+        ownerId: projects.ownerId,
+        ownerName: profiles.fullName
+      })
+      .from(projects)
+      .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+      .where(eq(projects.ownerId, session.user.id))
+      .orderBy(asc(projects.createdAt));
 
-  const ownerOptions = staff
-    ? rawOwners.map((owner) => ({
-        id: owner.id,
-        name: owner.fullName ?? owner.company ?? "Client"
-      }))
-    : [];
+const rawOwners = staff
+  ? await db.query.profiles.findMany({
+      where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
+      columns: {
+        id: true,
+        fullName: true,
+        company: true
+      },
+      orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
+    })
+  : [];
 
-  const projectsData = projectRows.map((project) => ({
-    id: project.id,
-    name: project.name,
-    status: project.status,
-    progress: project.progress,
-    dueDate: project.dueDate ? project.dueDate.toISOString() : null,
-    ownerId: project.ownerId,
-    ownerName: project.ownerName ?? null
-  }));
+const ownerOptions = staff
+  ? rawOwners.map((owner) => ({
+      id: owner.id,
+      name: owner.fullName ?? owner.company ?? "Client"
+    }))
+  : [];
 
-  const onboardingProject = projectsData.find((project) => project.status === "onboarding");
-  const onboardingProgress = onboardingProject?.progress ?? 0;
+const projectsData = projectRows.map((project) => ({
+  id: project.id,
+  name: project.name,
+  status: project.status,
+  progress: project.progress,
+  dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
+  ownerId: project.ownerId,
+  ownerName: project.ownerName ?? null
+}));
 
-  const onboardingStepStates = onboardingProject
-    ? onboardingProgress < 15
-      ? (["current", "upcoming", "upcoming"] as const)
-      : onboardingProgress < 35
-        ? (["done", "current", "upcoming"] as const)
-        : (["done", "done", "current"] as const)
-    : (["done", "done", "done"] as const);
+const onboardingProject = projectsData.find((project) => project.status === "onboarding");
+const onboardingProgress = onboardingProject?.progress ?? 0;
 
+const onboardingStepStates = onboardingProject
+  ? onboardingProgress < 15
+    ? (["current", "upcoming", "upcoming"] as const)
+    : onboardingProgress < 35
+      ? (["done", "current", "upcoming"] as const)
+      : (["done", "done", "current"] as const)
+  : (["done", "done", "done"] as const);
+
+export default function DashboardHomePage(): JSX.Element {
   return (
     <>
       <PageHeader
@@ -251,7 +251,7 @@ function DashboardProjects({ projects, role, ownerOptions }: DashboardProjectsPr
   if (!hasProjects) {
     return (
       <EmptyState
-        icon={ClipboardIcon}
+        icon={ClipboardList}
         title="Aucun projet en cours"
         description="Lancez un onboarding pour démarrer votre premier projet."
       />
@@ -268,7 +268,7 @@ function DashboardProjects({ projects, role, ownerOptions }: DashboardProjectsPr
   if (filteredProjects.length === 0) {
     return (
       <EmptyState
-        icon={ClipboardIcon}
+        icon={ClipboardList}
         title="Aucun projet sélectionné"
         description="Choisissez un projet via le sélecteur en haut de page."
       />
@@ -322,14 +322,6 @@ function DashboardProjects({ projects, role, ownerOptions }: DashboardProjectsPr
         />
       ))}
     </div>
-  );
-}
-
-function ClipboardIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5h6m-3-2v4m-7 4h12m-12 4h8m3-9a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V8a2 2 0 012-2h2" />
-    </svg>
   );
 }
 
