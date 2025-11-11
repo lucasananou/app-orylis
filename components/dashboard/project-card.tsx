@@ -1,11 +1,13 @@
-'use client';
+"use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatDate, formatProgress } from "@/lib/utils";
+import { useProjectSelection } from "@/lib/project-selection";
+import type { Route } from "next";
 
 interface ProjectCardProps {
   id: string;
@@ -35,6 +37,14 @@ export function ProjectCard({
   editTrigger
 }: ProjectCardProps) {
   const safeProgress = formatProgress(progress);
+  const router = useRouter();
+  const { setProjectId } = useProjectSelection();
+
+  const handleViewDetails = React.useCallback(() => {
+    setProjectId(id);
+    router.push("/onboarding" as Route);
+  }, [id, router, setProjectId]);
+
   return (
     <Card className="h-full border border-border/70 bg-white shadow-subtle">
       <CardHeader className="space-y-2 pb-4">
@@ -60,12 +70,13 @@ export function ProjectCard({
             Progression {safeProgress}%{dueDate ? ` · Échéance ${formatDate(dueDate)}` : ""}
           </p>
         </div>
-        <Link
-          href={`/projects/${id}`}
-          className="text-sm font-medium text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        <button
+          type="button"
+          onClick={handleViewDetails}
+          className="text-left text-sm font-medium text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           Voir les détails
-        </Link>
+        </button>
       </CardContent>
     </Card>
   );

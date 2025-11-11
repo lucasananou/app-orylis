@@ -964,7 +964,7 @@ const customPagesArray = useFieldArray({
                             <div className="flex gap-3">
                               <FormControl>
                                 <Input
-                                  placeholder="https://exemple.com"
+                                  placeholder="Lien, référence ou note (ex : Dribbble, site, moodboard...)"
                                   disabled={isLocked}
                                   {...inspirationField}
                                 />
@@ -1009,7 +1009,7 @@ const customPagesArray = useFieldArray({
                             <div className="flex gap-3">
                               <FormControl>
                                 <Input
-                                  placeholder="https://concurrent.fr"
+                                  placeholder="Nom, lien ou note (ex : Concurrent X, agence Y, etc.)"
                                   disabled={isLocked}
                                   {...competitorField}
                                 />

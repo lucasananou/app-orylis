@@ -98,15 +98,18 @@ export const OnboardingStep3Schema = z.object({
   )
 });
 
+const inspirationEntrySchema = z
+  .string()
+  .trim()
+  .min(2, { message: "Merci de préciser cette référence." })
+  .max(200, { message: "200 caractères maximum par entrée." });
+
 export const OnboardingStep4Schema = z.object({
   inspirations: z
-    .array(z.string().url({ message: "Merci d’indiquer une URL valide." }))
+    .array(inspirationEntrySchema)
     .min(1, { message: "Fournissez au moins une source d’inspiration." })
     .max(8, { message: "8 inspirations maximum." }),
-  competitors: z
-    .array(z.string().url({ message: "Merci d’indiquer une URL valide." }))
-    .max(8, { message: "8 concurrents maximum." })
-    .optional()
+  competitors: z.array(inspirationEntrySchema).max(8, { message: "8 concurrents maximum." }).optional()
 });
 
 const OnboardingStep5Fields = z.object({

@@ -25,6 +25,7 @@ const statusMap: Record<
 };
 
 export function TicketCard({
+  id,
   title,
   description,
   status,
@@ -61,7 +62,7 @@ export function TicketCard({
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{projectName}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
           {categoryConfig ? (
             <Badge variant={categoryConfig.variant} className="text-[11px] uppercase">
               {categoryConfig.label}
@@ -86,7 +87,10 @@ export function TicketCard({
   if (href) {
     return (
       <Link
-        href={{ pathname: href }}
+        href={{
+          pathname: "/tickets/[id]" as const,
+          params: { id }
+        }}
         className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       >
         {card}
