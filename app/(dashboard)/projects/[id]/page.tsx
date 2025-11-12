@@ -151,20 +151,21 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
               <ProgressBadge value={safeProgress} showLabel={safeProgress < 100} />
               {safeProgress < 100 && (
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                <span>
-                  Créé le{" "}
-                  {formatDate(projectRow.createdAt, {
-                    dateStyle: "medium",
-                    timeStyle: "short"
-                  })}
-                </span>
-                {projectRow.ownerName ? (
                   <span>
-                    Client : {projectRow.ownerName}
-                    {projectRow.ownerCompany ? ` (${projectRow.ownerCompany})` : ""}
+                    Créé le{" "}
+                    {formatDate(projectRow.createdAt, {
+                      dateStyle: "medium",
+                      timeStyle: "short"
+                    })}
                   </span>
-                ) : null}
-              </div>
+                  {projectRow.ownerName ? (
+                    <span>
+                      Client : {projectRow.ownerName}
+                      {projectRow.ownerCompany ? ` (${projectRow.ownerCompany})` : ""}
+                    </span>
+                  ) : null}
+                </div>
+              )}
               <div className="flex flex-wrap gap-3">
                 {canCreateRequest ? (
                   <>
