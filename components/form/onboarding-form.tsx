@@ -488,6 +488,7 @@ const customPagesArray = useFieldArray({
         lastSavedAt={lastSavedAt}
         projectId={projectId}
         isStaffRole={isStaffRole}
+        role={role}
         onEdit={() => setShowEditor(true)}
       />
     );
