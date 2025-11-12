@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "orylis.fr",
+        pathname: "/wp-content/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

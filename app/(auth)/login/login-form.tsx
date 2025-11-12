@@ -137,13 +137,14 @@ export function PasswordLoginForm() {
         name="email"
         render={({ field }: { field: ControllerRenderProps<PasswordLoginFormValues, "email"> }) => (
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel>Adresse e-mail</FormLabel>
             <FormControl>
               <Input
                 autoComplete="email"
                 inputMode="email"
-                placeholder="demo@orylis.app"
+                placeholder="vous@entreprise.fr"
                 disabled={isSubmitting}
+                className="placeholder:text-[#9CA3AF]"
                 {...field}
               />
             </FormControl>
@@ -167,6 +168,7 @@ export function PasswordLoginForm() {
                 autoComplete="current-password"
                 placeholder="••••••••"
                 disabled={isSubmitting}
+                className="placeholder:text-[#9CA3AF]"
                 {...field}
               />
             </FormControl>
@@ -177,7 +179,7 @@ export function PasswordLoginForm() {
       <Button
         type="submit"
         size="lg"
-        className="w-full"
+        className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-md"
         disabled={isSubmitting || !form.formState.isValid}
       >
         {isSubmitting ? (
@@ -192,9 +194,6 @@ export function PasswordLoginForm() {
           </>
         )}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">
-        Compte démo : <strong>demo@orylis.app</strong> / <strong>OrylisDemo1!</strong>
-      </p>
     </Form>
   );
 }

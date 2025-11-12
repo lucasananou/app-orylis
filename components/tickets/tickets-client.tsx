@@ -201,6 +201,7 @@ export function TicketsClient({
           )}
         </CardContent>
       </Card>
+      </div>
 
       {/* Bouton FAB flottant */}
       <Button
