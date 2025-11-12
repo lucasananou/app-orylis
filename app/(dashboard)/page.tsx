@@ -299,7 +299,7 @@ async function loadDashboardData() {
       id: `ticket-${ticket.id}`,
       type: "ticket",
       title: ticket.title,
-      description: `${ticketStatusLabels[ticket.status]} · ${ticket.projectName}`,
+      description: `${ticketStatusLabels[ticket.status as keyof typeof ticketStatusLabels] ?? ticket.status} · ${ticket.projectName}`,
       date: ticket.updatedAt.toISOString()
     }));
 
