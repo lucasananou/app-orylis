@@ -75,6 +75,7 @@ async function loadDashboardData() {
 
   const user = session.user!;
   const staff = isStaff(user.role);
+  const isProspectUser = isProspect(user.role);
 
   // Charger les projets et les owners en parallèle
   const [projectRows, rawOwners] = await Promise.all([
