@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
