@@ -72,27 +72,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Upsert le template
-    const [template] = await db
-      .insert(emailTemplates)
-      .values({
-        type: type as EmailTemplateType,
-        subject,
-        htmlContent,
-        textContent: textContent ?? null,
-        variables: variablesJsonb
-      })
-      .onConflictDoUpdate({
-        target: emailTemplates.type,
-        set: {
+    // Vérifier si le template existe déjà
+    const existingTemplate = await db.query.emailTemplates.findFirst({
+      where: (templates, { eq }) => eq(templates.type, type as EmailTemplateType)
+    });
+
+    let template;
+    if (existingTemplate) {
+      // Mettre à jour le template existant
+      [template] = await db
+        .update(emailTemplates)
+        .set({
           subject,
           htmlContent,
           textContent: textContent ?? null,
           variables: variablesJsonb
           // updatedAt sera mis à jour automatiquement par le trigger SQL
-        }
-      })
-      .returning();
+        })
+        .where(eq(emailTemplates.type, type as EmailTemplateType))
+        .returning();
+    } else {
+      // Créer un nouveau template
+      [template] = await db
+        .insert(emailTemplates)
+        .values({
+          type: type as EmailTemplateType,
+          subject,
+          htmlContent,
+          textContent: textContent ?? null,
+          variables: variablesJsonb
+          // createdAt et updatedAt seront définis automatiquement par les defaults SQL
+        })
+        .returning();
+    }
 
     return NextResponse.json({ data: template });
   } catch (error) {

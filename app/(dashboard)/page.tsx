@@ -484,6 +484,15 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
               Votre projet {mainProject.name} est en cours. Suivez son avancement ci-dessous.
             </p>
           </div>
+          <Button
+            size="sm"
+            className="shrink-0 min-h-[44px] rounded-full"
+            asChild
+          >
+            <a href="https://calendly.com/lucas-orylis/30min" target="_blank" rel="noopener noreferrer">
+              Prendre rendez-vous
+            </a>
+          </Button>
         </div>
 
         {/* Timeline et progression */}
@@ -564,9 +573,16 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                 }
               />
             )}
-            <Button size="sm" variant="outline" className="min-h-[44px] rounded-full sm:size-lg">
-              <span className="hidden md:inline">Planifier un point</span>
-              <span className="md:hidden">Point</span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="min-h-[44px] rounded-full sm:size-lg"
+              asChild
+            >
+              <a href="https://calendly.com/lucas-orylis/30min" target="_blank" rel="noopener noreferrer">
+                <span className="hidden md:inline">Planifier un point</span>
+                <span className="md:hidden">Point</span>
+              </a>
             </Button>
           </div>
         }
