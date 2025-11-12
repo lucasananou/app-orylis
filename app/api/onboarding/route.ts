@@ -88,11 +88,14 @@ export async function POST(req: NextRequest) {
     return value;
   });
 
+  // Parser le JSON pour l'utiliser dans summarizeOnboardingPayload
+  const parsedPayload = JSON.parse(jsonPayload) as Record<string, unknown>;
+
   console.log("[Onboarding] payload snapshot", {
     projectId,
     completed,
     payloadPreview: Object.fromEntries(
-      Object.entries(JSON.parse(jsonPayload) ?? {}).map(([key, value]) => [key, typeof value])
+      Object.entries(parsedPayload ?? {}).map(([key, value]) => [key, typeof value])
     )
   });
 
