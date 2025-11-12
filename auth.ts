@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { compare, hash } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import NextAuth from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -104,10 +104,10 @@ await db
         .set({ passwordHash })
         .where(eq(userCredentials.userId, userId));
     } else {
-      await db.insert(userCredentials).values({
-        userId,
-        passwordHash
-      });
+      // Utiliser db.execute() pour éviter les problèmes avec les dates par défaut
+      await db.execute(
+        sql`INSERT INTO ${userCredentials} (user_id, password_hash) VALUES (${userId}, ${passwordHash})`
+      );
     }
   } catch (error) {
     console.warn("[Auth] Unable to seed demo user:", error);

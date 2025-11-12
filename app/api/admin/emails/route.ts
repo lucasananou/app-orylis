@@ -48,6 +48,8 @@ export async function POST(req: NextRequest) {
     // Vérifier que le type est valide
     const validTypes: EmailTemplateType[] = [
       "welcome",
+      "project_created",
+      "prospect_promoted",
       "ticket_created",
       "ticket_reply",
       "ticket_updated",

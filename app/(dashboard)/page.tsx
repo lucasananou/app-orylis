@@ -41,8 +41,8 @@ import { ProspectStaffMessages } from "@/components/dashboard/prospect-staff-mes
 import { ProspectFeaturesTeaser } from "@/components/dashboard/prospect-features-teaser";
 import { ProspectCTASticky } from "@/components/dashboard/prospect-cta-sticky";
 
-// Cache les données du dashboard pendant 30 secondes pour améliorer les performances
-export const revalidate = 30;
+// Cache les données du dashboard pendant 60 secondes pour améliorer les performances
+export const revalidate = 60;
 
 const ticketStatusLabels: Record<"open" | "in_progress" | "done", string> = {
   open: "Ouvert",
@@ -144,7 +144,115 @@ async function loadDashboardData() {
 
   const projectIds = projectsData.map((project) => project.id);
 
-  // Préparer toutes les promesses de requêtes en parallèle
+  // Pour les prospects, charger seulement les données nécessaires
+  if (isProspectUser && projectsData.length > 0) {
+    const mainProject = projectsData[0];
+    
+    // Charger seulement l'onboarding et les messages staff pour les prospects
+    const [onboardingResponseRow, staffMessagesRows] = await Promise.all([
+      db
+        .select({
+          payload: onboardingResponses.payload,
+          updatedAt: onboardingResponses.updatedAt
+        })
+        .from(onboardingResponses)
+        .where(eq(onboardingResponses.projectId, mainProject.id))
+        .then((rows) => rows.at(0) ?? null),
+      db
+        .select({
+          id: projectMessages.id,
+          message: projectMessages.message,
+          authorName: profiles.fullName,
+          createdAt: projectMessages.createdAt
+        })
+        .from(projectMessages)
+        .innerJoin(profiles, eq(projectMessages.authorId, profiles.id))
+        .where(eq(projectMessages.projectId, mainProject.id))
+        .orderBy(desc(projectMessages.createdAt))
+        .limit(5)
+    ]);
+
+    const onboardingPayload = onboardingResponseRow
+      ? ((onboardingResponseRow.payload as Record<string, unknown> | null) ?? null)
+      : null;
+    const onboardingUpdatedAt = onboardingResponseRow?.updatedAt ?? null;
+    const onboardingSummary = mainProject.status === "onboarding"
+      ? summarizeOnboardingPayload(onboardingPayload)
+      : null;
+
+    const staffMessages: Array<{
+      id: string;
+      message: string;
+      authorName: string | null;
+      createdAt: string;
+    }> = staffMessagesRows.map((row) => ({
+      id: row.id,
+      message: row.message,
+      authorName: row.authorName,
+      createdAt: row.createdAt.toISOString()
+    }));
+
+    // Compter les fichiers et tickets pour le teaser
+    const [filesCountResult, ticketsCountResult] = await Promise.all([
+      db
+        .select({ value: sql<number>`count(*)` })
+        .from(files)
+        .where(eq(files.projectId, mainProject.id))
+        .then((rows) => rows.at(0)),
+      db
+        .select({ value: sql<number>`count(*)` })
+        .from(tickets)
+        .where(eq(tickets.projectId, mainProject.id))
+        .then((rows) => rows.at(0))
+    ]);
+
+    const filesCount = filesCountResult?.value ?? 0;
+    const ticketsCount = ticketsCountResult?.value ?? 0;
+
+    const onboardingCardProject = mainProject.status === "onboarding"
+      ? {
+          id: mainProject.id,
+          name: mainProject.name,
+          progress: mainProject.progress,
+          dueDate: mainProject.dueDate,
+          updatedAt: onboardingUpdatedAt ? onboardingUpdatedAt.toISOString() : null,
+          payload: onboardingPayload
+        }
+      : null;
+
+    return {
+      role: user.role,
+      staff: false,
+      isProspectUser: true,
+      ownerOptions: [],
+      projectsData: [mainProject],
+      highlights: [
+        {
+          id: "projects",
+          label: "Mon projet",
+          value: "1",
+          helper: "En cours"
+        },
+        {
+          id: "onboarding",
+          label: "Onboarding",
+          value: mainProject.status === "onboarding" ? `${formatProgress(mainProject.progress)}%` : "0%",
+          helper: mainProject.status === "onboarding" && onboardingSummary?.nextAction
+            ? `Prochaine étape : ${onboardingSummary.nextAction}`
+            : "Aucun onboarding actif"
+        }
+      ],
+      onboardingCardProject,
+      activityItems: [],
+      userName: user.name,
+      userEmail: user.email,
+      staffMessages,
+      filesCount,
+      ticketsCount
+    };
+  }
+
+  // Pour les clients/staff, charger toutes les données en parallèle
   const onboardingPromise = onboardingProject
     ? db
         .select({
@@ -158,32 +266,14 @@ async function loadDashboardData() {
 
   const unreadNotificationsPromise = countUnreadNotifications(user.id);
 
-  // Préparer la requête pour les messages staff (prospects)
-  const staffMessagesPromise = isProspectUser && projectsData.length > 0
-    ? db
-        .select({
-          id: projectMessages.id,
-          message: projectMessages.message,
-          authorName: profiles.fullName,
-          createdAt: projectMessages.createdAt
-        })
-        .from(projectMessages)
-        .innerJoin(profiles, eq(projectMessages.authorId, profiles.id))
-        .where(inArray(projectMessages.projectId, projectIds))
-        .orderBy(desc(projectMessages.createdAt))
-        .limit(5)
-    : Promise.resolve([]);
-
   // Charger toutes les données en parallèle
   const [
     onboardingResponseRow,
     unreadNotifications,
-    staffMessagesRows,
     ...dashboardData
   ] = await Promise.all([
     onboardingPromise,
     unreadNotificationsPromise,
-    staffMessagesPromise,
     ...(projectIds.length > 0
       ? [
           db
@@ -355,18 +445,13 @@ async function loadDashboardData() {
       .slice(0, 6);
   }
 
-  // Traiter les messages staff pour les prospects
+  // Les messages staff ne sont pas chargés pour les clients/staff (seulement pour les prospects)
   const staffMessages: Array<{
     id: string;
     message: string;
     authorName: string | null;
     createdAt: string;
-  }> = staffMessagesRows.map((row) => ({
-    id: row.id,
-    message: row.message,
-    authorName: row.authorName,
-    createdAt: row.createdAt.toISOString()
-  }));
+  }> = [];
 
   // Compter les fichiers et tickets pour le teaser (si client)
   let filesCount = 0;
