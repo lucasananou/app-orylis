@@ -17,7 +17,6 @@ import type { EmailTemplateType } from "@/lib/emails";
 
 const templateTypeLabels: Record<EmailTemplateType, string> = {
   welcome: "Email de bienvenue",
-  welcome_with_credentials: "Email de bienvenue avec identifiants",
   project_created: "Projet créé",
   prospect_promoted: "Prospect promu en client",
   ticket_created: "Nouveau ticket créé",
@@ -29,8 +28,7 @@ const templateTypeLabels: Record<EmailTemplateType, string> = {
 };
 
 const templateVariables: Record<EmailTemplateType, string[]> = {
-  welcome: ["userName", "projectName", "loginUrl"],
-  welcome_with_credentials: ["userName", "userEmail", "userPassword", "loginUrl"],
+  welcome: ["userName", "projectName", "userEmail", "userPassword", "loginUrl"],
   project_created: ["userName", "projectName", "onboardingUrl"],
   prospect_promoted: ["userName", "loginUrl"],
   ticket_created: ["authorName", "ticketTitle", "projectName", "ticketUrl"],
@@ -44,7 +42,6 @@ const templateVariables: Record<EmailTemplateType, string[]> = {
 const templateSchema = z.object({
   type: z.enum([
     "welcome",
-    "welcome_with_credentials",
     "project_created",
     "prospect_promoted",
     "ticket_created",

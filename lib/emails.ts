@@ -7,12 +7,11 @@
 
 import { Resend } from "resend";
 import { db } from "@/lib/db";
-import { profiles, projects, emailTemplates } from "@/lib/schema";
+import { profiles, projects, emailTemplates, authUsers } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
 export type EmailTemplateType =
   | "welcome"
-  | "welcome_with_credentials"
   | "project_created"
   | "prospect_promoted"
   | "ticket_created"
@@ -217,7 +216,11 @@ function getEmailTemplate(content: string, ctaText?: string, ctaUrl?: string): s
 /**
  * Email de bienvenue pour un nouveau client
  */
-export async function sendWelcomeEmail(userId: string, projectName?: string) {
+export async function sendWelcomeEmail(
+  userId: string,
+  projectName?: string,
+  credentials?: { email: string; password: string }
+) {
   const user = await getUserInfo(userId);
   if (!user.email) {
     return { success: false, error: "User email not found" };
@@ -225,11 +228,12 @@ export async function sendWelcomeEmail(userId: string, projectName?: string) {
 
   const userName = user.name ?? "Bienvenue";
   
-  // Template par défaut
+  // Template par défaut qui gère les deux cas
   const defaultContent = `
     <h2 style="color: #1a202c; margin-top: 0;">Bonjour {{userName}} 👋</h2>
     <p>Bienvenue sur votre espace client Orylis !</p>
     {{projectInfo}}
+    {{credentialsSection}}
     <p>Vous pouvez maintenant :</p>
     <ul>
       <li>Suivre l'avancement de votre projet en temps réel</li>
@@ -244,8 +248,19 @@ export async function sendWelcomeEmail(userId: string, projectName?: string) {
     ? `<p>Votre projet <strong>${projectName}</strong> a été créé avec succès.</p>`
     : "";
 
+  const credentialsSection = credentials
+    ? `<p>Votre compte a été créé par l'équipe Orylis. Voici vos identifiants de connexion :</p>
+       <div style="background: #F1F5F9; border-radius: 12px; padding: 16px; margin: 16px 0;">
+         <p style="margin: 0; color: #0F172A;"><strong>Email :</strong> {{userEmail}}</p>
+         <p style="margin: 8px 0 0 0; color: #0F172A;"><strong>Mot de passe :</strong> {{userPassword}}</p>
+       </div>
+       <p style="color: #64748B; font-size: 13px;">Pour des raisons de sécurité, pensez à modifier votre mot de passe après la première connexion.</p>`
+    : "";
+
   const defaultHtml = getEmailTemplate(
-    defaultContent.replace("{{projectInfo}}", projectInfo),
+    defaultContent
+      .replace("{{projectInfo}}", projectInfo)
+      .replace("{{credentialsSection}}", credentialsSection),
     "Accéder à mon espace",
     `${appUrl}/login`
   );
@@ -253,13 +268,15 @@ export async function sendWelcomeEmail(userId: string, projectName?: string) {
   // Récupérer le template depuis la DB ou utiliser le fallback
   const template = await getTemplateFromDB(
     "welcome",
-    "Bienvenue sur Orylis Hub",
+    credentials ? "Votre accès à Orylis Hub" : "Bienvenue sur Orylis Hub",
     defaultHtml
   );
 
   const html = replaceTemplateVariables(template.html, {
     userName,
     projectName: projectName ?? "",
+    userEmail: credentials?.email ?? "",
+    userPassword: credentials?.password ?? "",
     loginUrl: `${appUrl}/login`
   });
 
@@ -272,51 +289,24 @@ export async function sendWelcomeEmail(userId: string, projectName?: string) {
 
 /**
  * Email de bienvenue avec identifiants (création de compte client)
+ * @deprecated Utilisez sendWelcomeEmail avec le paramètre credentials à la place
  */
 export async function sendWelcomeEmailWithCredentials(
   email: string,
   password: string,
   fullName?: string | null
 ): Promise<{ success: boolean; error?: string }> {
-  const displayName = fullName ?? "Bonjour";
-  
-  // Template par défaut
-  const defaultContent = `
-    <h2 style="color: #1a202c; margin-top: 0;">{{userName}}, bienvenue sur Orylis Hub 👋</h2>
-    <p>Votre compte a été créé par l'équipe Orylis. Voici vos identifiants de connexion :</p>
-    <div style="background: #F1F5F9; border-radius: 12px; padding: 16px; margin: 16px 0;">
-      <p style="margin: 0; color: #0F172A;"><strong>Email :</strong> {{userEmail}}</p>
-      <p style="margin: 8px 0 0 0; color: #0F172A;"><strong>Mot de passe :</strong> {{userPassword}}</p>
-    </div>
-    <p>Vous pouvez vous connecter dès maintenant via <a href="{{loginUrl}}" style="color: #43b2b9;">Orylis Hub</a>.</p>
-    <p style="color: #64748B; font-size: 13px;">Pour des raisons de sécurité, pensez à modifier votre mot de passe après la première connexion.</p>
-  `;
-
-  const defaultHtml = getEmailTemplate(
-    defaultContent,
-    "Accéder à mon espace",
-    `${appUrl}/login`
-  );
-
-  // Récupérer le template depuis la DB ou utiliser le fallback
-  const template = await getTemplateFromDB(
-    "welcome_with_credentials",
-    "Votre accès à Orylis Hub",
-    defaultHtml
-  );
-
-  const html = replaceTemplateVariables(template.html, {
-    userName: displayName,
-    userEmail: email,
-    userPassword: password,
-    loginUrl: `${appUrl}/login`
+  // Trouver l'utilisateur par email
+  const user = await db.query.authUsers.findFirst({
+    where: (users, { eq }) => eq(users.email, email),
+    columns: { id: true }
   });
 
-  return sendEmail({
-    to: email,
-    subject: replaceTemplateVariables(template.subject, { userName: displayName }),
-    html
-  });
+  if (!user) {
+    return { success: false, error: "User not found" };
+  }
+
+  return sendWelcomeEmail(user.id, undefined, { email, password });
 }
 
 /**
