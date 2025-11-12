@@ -53,7 +53,7 @@ interface TicketsClientProps {
   statusFilter: StatusOption["value"];
   projects: ProjectOption[];
   tickets: TicketItem[];
-  role: "client" | "staff";
+  role: "prospect" | "client" | "staff";
 }
 
 export function TicketsClient({

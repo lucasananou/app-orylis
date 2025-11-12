@@ -55,7 +55,7 @@ interface ProjectOption {
 interface BillingLinksManagerProps {
   links: BillingLink[];
   projects: ProjectOption[];
-  role: "client" | "staff";
+  role: "prospect" | "client" | "staff";
   canManage: boolean;
 }
 

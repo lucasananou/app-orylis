@@ -36,7 +36,7 @@ export interface FileItem {
 interface FilesSectionProps {
   projects: ProjectOption[];
   files: FileItem[];
-  role: "client" | "staff";
+  role: "prospect" | "client" | "staff";
   canManage: boolean;
 }
 
