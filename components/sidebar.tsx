@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -43,10 +44,16 @@ export function Sidebar({ className, role = "client" }: SidebarProps) {
       )}
     >
       <div className="mb-8 lg:mb-10">
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-          Orylis
-        </span>
-        <p className="mt-2 text-lg font-semibold text-foreground">Hub</p>
+        <Link href="/" className="block">
+          <Image
+            src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
+            alt="Orylis"
+            width={120}
+            height={40}
+            className="h-auto w-auto"
+            priority
+          />
+        </Link>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1.5 lg:gap-2">
