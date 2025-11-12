@@ -11,7 +11,8 @@ import { ProfileForm } from "./profile-form";
 import { NotificationPreferencesForm } from "@/components/profile/notification-preferences-form";
 import { Edit } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+// Cache le profil pendant 30 secondes (les changements sont rares)
+export const revalidate = 30;
 
 async function loadProfile() {
   const session = await auth();

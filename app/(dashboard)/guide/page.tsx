@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { BookOpen, Plus } from "lucide-react";
 
-// Cache les articles pendant 60 secondes (contenu qui change peu souvent)
-export const revalidate = 60;
+// Cache les articles pendant 5 minutes (contenu qui change peu souvent)
+export const revalidate = 300;
 
 // Cache la session pour éviter les appels multiples
 const getCachedSession = cache(async () => {

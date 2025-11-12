@@ -118,6 +118,7 @@ export function MobileMenu({ role = "client" }: MobileMenuProps) {
               <Link
                 key={item.href}
                 href={{ pathname: item.href }}
+                prefetch
                 onClick={() => setOpen(false)}
               >
                 {content}
@@ -135,6 +136,7 @@ export function MobileMenu({ role = "client" }: MobileMenuProps) {
                   <Link
                     key={item.href}
                     href={{ pathname: item.href }}
+                    prefetch
                     onClick={() => setOpen(false)}
                     className={cn(
                       "inline-flex min-h-[44px] items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200",

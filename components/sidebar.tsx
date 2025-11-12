@@ -98,7 +98,7 @@ export function Sidebar({ className, role = "client" }: SidebarProps) {
           }
 
           return (
-            <Link key={item.href} href={{ pathname: item.href }}>
+            <Link key={item.href} href={{ pathname: item.href }} prefetch>
               {content}
             </Link>
           );
@@ -114,6 +114,7 @@ export function Sidebar({ className, role = "client" }: SidebarProps) {
                 <Link
                   key={item.href}
                   href={{ pathname: item.href }}
+                  prefetch
                   className={cn(
                     "inline-flex min-h-[44px] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:px-4 lg:py-3",
                     isActive
