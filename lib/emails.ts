@@ -446,33 +446,3 @@ export async function sendProjectUpdatedEmail(
   });
 }
 
-/**
- * Email de notification : projet mis à jour
- */
-export async function sendProjectUpdatedEmail(
-  projectId: string,
-  projectName: string,
-  updateMessage: string,
-  recipientUserId: string
-) {
-  const user = await getUserInfo(recipientUserId);
-  if (!user.email) {
-    return { success: false, error: "User email not found" };
-  }
-
-  const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Mise à jour du projet</h2>
-    <p>Votre projet <strong>${projectName}</strong> a été mis à jour.</p>
-    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
-      <p style="margin: 0;">${updateMessage}</p>
-    </div>
-    <p>Connectez-vous pour voir les détails.</p>
-  `;
-
-  return sendEmail({
-    to: user.email,
-    subject: `Mise à jour : ${projectName}`,
-    html: getEmailTemplate(content, "Voir le projet", `${appUrl}/projects/${projectId}`)
-  });
-}
-
