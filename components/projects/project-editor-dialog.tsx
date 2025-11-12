@@ -57,8 +57,8 @@ const createProjectSchema = z.object({
     .int()
     .min(0, { message: "Progression minimale 0%." })
     .max(100, { message: "Progression maximale 100%." })
-    .default(10),
-  dueDate: dueDateSchema
+    .default(10)
+  // dueDate retiré de la création (peut être ajouté plus tard via l'édition)
 });
 
 const editProjectSchema = z.object({
@@ -111,8 +111,8 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           ownerId: owners.at(0)?.id ?? "",
           name: "",
           status: "onboarding",
-          progress: 10,
-          dueDate: ""
+          progress: 10
+          // dueDate n'est pas inclus dans les valeurs par défaut pour la création
         }
       : {
           name: project?.name ?? "",
@@ -137,8 +137,8 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             ownerId: createValues.ownerId,
             name: createValues.name,
             status: createValues.status,
-            progress: createValues.progress,
-            dueDate: createValues.dueDate && createValues.dueDate !== "" ? createValues.dueDate : undefined
+            progress: createValues.progress
+            // dueDate est omis lors de la création (peut être ajouté plus tard)
           };
 
           const response = await fetch("/api/projects", {
@@ -304,19 +304,21 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date d’échéance (optionnel)</FormLabel>
-                  <FormControl>
-                    <Input type="date" disabled={isSubmitting} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isCreateMode && (
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date d'échéance (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input type="date" disabled={isSubmitting} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>

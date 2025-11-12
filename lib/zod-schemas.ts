@@ -381,11 +381,8 @@ export const projectCreateSchema = z.object({
     .int()
     .min(0, { message: "Progression minimale 0%." })
     .max(100, { message: "Progression maximale 100%." })
-    .optional(),
-  dueDate: z
-    .string()
-    .datetime({ message: "La date doit être une ISO valide." })
     .optional()
+  // dueDate retiré de la création (peut être ajouté plus tard via l'édition)
 });
 
 export const projectUpdateSchema = z

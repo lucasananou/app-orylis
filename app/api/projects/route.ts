@@ -78,15 +78,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let dueDateValue: string | null = null;
-  if (parsed.data.dueDate) {
-    try {
-      parseISODate(parsed.data.dueDate);
-      dueDateValue = parsed.data.dueDate;
-    } catch {
-      return safeJson({ error: "Date d’échéance invalide." }, 400);
-    }
-  }
+  // Ne pas utiliser dueDate lors de la création d'un projet (onboarding)
+  // La date d'échéance peut être ajoutée plus tard par le staff
 
   const ownerProfile = await db.query.profiles.findFirst({
     where: eq(profiles.id, parsed.data.ownerId),
@@ -105,8 +98,8 @@ export async function POST(request: NextRequest) {
       ownerId: ownerProfile.id,
       name: parsed.data.name,
       status: parsed.data.status ?? "onboarding",
-      progress: parsed.data.progress ?? 10,
-      dueDate: dueDateValue
+      progress: parsed.data.progress ?? 10
+      // dueDate est omis, peut être ajouté plus tard
     })
     .returning({
       id: projects.id,

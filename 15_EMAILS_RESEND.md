@@ -7,7 +7,7 @@
 Dans Vercel, ajoutez ces variables :
 
 - `RESEND_API_KEY` : Votre clé API Resend (obtenue depuis [resend.com](https://resend.com))
-- `EMAIL_FROM` : L'adresse email d'envoi validée (ex: `no-reply@orylis.fr` ou `no-reply@app.orylis.fr`)
+- `EMAIL_FROM` : L'adresse email d'envoi validée (ex: `noreply@orylis.fr`)
 - `NEXTAUTH_URL` : L'URL de votre application (ex: `https://app.orylis.fr`)
 
 ### Obtenir la clé API Resend
@@ -24,7 +24,7 @@ Pour améliorer la délivrabilité :
 1. Dans Resend, allez dans **Domains**
 2. Ajoutez votre domaine (ex: `orylis.fr`)
 3. Configurez les enregistrements DNS (DKIM, SPF) comme indiqué
-4. Une fois validé, utilisez `no-reply@orylis.fr` comme `EMAIL_FROM`
+4. Une fois validé, utilisez `noreply@orylis.fr` comme `EMAIL_FROM`
 
 ## Architecture
 

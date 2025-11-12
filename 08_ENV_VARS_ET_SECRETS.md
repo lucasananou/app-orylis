@@ -5,7 +5,7 @@
 - `NEXTAUTH_SECRET=...` (générer)
 - `DATABASE_URL=postgresql://...` (Railway)
 - `RESEND_API_KEY=...`
-- `EMAIL_FROM=no-reply@app.orylis.fr` (ou autre domaine validé)
+- `EMAIL_FROM=noreply@orylis.fr` (ou autre domaine validé)
 - `BLOB_READ_WRITE_TOKEN=...` (obligatoire pour l'upload de fichiers)
 
 ### Comment obtenir BLOB_READ_WRITE_TOKEN

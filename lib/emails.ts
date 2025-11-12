@@ -20,7 +20,7 @@ export type EmailTemplateType =
   | "project_updated";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const emailFrom = process.env.EMAIL_FROM ?? "no-reply@orylis.app";
+const emailFrom = process.env.EMAIL_FROM ?? "noreply@orylis.fr";
 const appUrl = process.env.NEXTAUTH_URL ?? "https://app.orylis.fr";
 
 interface EmailOptions {

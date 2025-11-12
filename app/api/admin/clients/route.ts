@@ -24,7 +24,7 @@ async function sendWelcomeEmail(params: {
   const { email, password, fullName } = params;
   const subject = "Votre accès à Orylis Hub";
   const displayName = fullName ?? "Bonjour";
-  const from = process.env.EMAIL_FROM ?? "no-reply@orylis.app";
+  const from = process.env.EMAIL_FROM ?? "noreply@orylis.fr";
   const html = `
     <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; background-color: #F7F9FB;">
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px;">
