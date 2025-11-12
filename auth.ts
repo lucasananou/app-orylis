@@ -51,7 +51,8 @@ async function ensureTestUser() {
         const created = await adapterCreateUser({
           id: randomUUID(),
           email: TEST_USER_EMAIL,
-          name: "Compte démo"
+          name: "Compte démo",
+          emailVerified: null
         });
         userId = created.id;
       } catch (error) {
