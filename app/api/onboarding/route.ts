@@ -80,14 +80,19 @@ export async function POST(req: NextRequest) {
     ? (validation.data as OnboardingFinalPayload)
     : (validation.data as OnboardingPayload);
 
-  const jsonPayload = JSON.stringify(safePayload);
-  const parsedPayload = JSON.parse(jsonPayload) as Record<string, unknown>;
+  // Sérialiser en JSON de manière sûre, en convertissant toutes les Dates en ISO strings
+  const jsonPayload = JSON.stringify(safePayload, (_key, value) => {
+    if (value && typeof value === "object" && typeof (value as Date).toISOString === "function") {
+      return (value as Date).toISOString();
+    }
+    return value;
+  });
 
   console.log("[Onboarding] payload snapshot", {
     projectId,
     completed,
     payloadPreview: Object.fromEntries(
-      Object.entries(parsedPayload ?? {}).map(([key, value]) => [key, typeof value])
+      Object.entries(JSON.parse(jsonPayload) ?? {}).map(([key, value]) => [key, typeof value])
     )
   });
 
@@ -101,20 +106,21 @@ export async function POST(req: NextRequest) {
     .then((rows) => rows.at(0) ?? null);
 
   try {
+    // Utiliser db.execute() avec sql template literal pour insérer le JSON de manière sécurisée
+    // On utilise sql.raw() pour le JSON pour éviter que Drizzle essaie de le sérialiser
+    // Cela évite les erreurs toISOString
+    // On échappe les apostrophes pour éviter les injections SQL
+    const escapedJson = jsonPayload.replace(/'/g, "''").replace(/\\/g, "\\\\");
+    const jsonbValue = sql.raw(`'${escapedJson}'::jsonb`);
+    
     if (existing) {
-      await db
-        .update(onboardingResponses)
-        .set({
-          payload: sql.json(parsedPayload),
-          completed: completed ? true : existing.completed
-        })
-        .where(eq(onboardingResponses.id, existing.id));
+      await db.execute(
+        sql`UPDATE ${onboardingResponses} SET payload = ${jsonbValue}, completed = ${completed ? true : existing.completed} WHERE id = ${existing.id}`
+      );
     } else {
-      await db.insert(onboardingResponses).values({
-        projectId,
-        payload: sql.json(parsedPayload),
-        completed
-      });
+      await db.execute(
+        sql`INSERT INTO ${onboardingResponses} (project_id, payload, completed) VALUES (${projectId}, ${jsonbValue}, ${completed})`
+      );
     }
   } catch (error) {
     console.error("[Onboarding] Failed to upsert payload", {
