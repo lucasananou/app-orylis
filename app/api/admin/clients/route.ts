@@ -167,12 +167,13 @@ export async function POST(request: NextRequest) {
 
   const userId = randomUUID();
 
+  // Insérer l'utilisateur sans emailVerified pour éviter les erreurs de date
   await db.insert(authUsers).values({
     id: userId,
     email,
     name: fullName ?? null,
-    emailVerified: null,
     image: null
+    // emailVerified est omis, la valeur par défaut (null) sera utilisée
   });
 
   await db
