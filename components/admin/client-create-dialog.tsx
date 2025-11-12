@@ -89,7 +89,12 @@ export function ClientCreateDialog({ trigger }: ClientCreateDialogProps): JSX.El
         }
 
         const payload = await response.json().catch(() => null);
-        toast.success("Client créé avec succès.");
+        const projectMessage = payload?.projectName
+          ? `Projet "${payload.projectName}" créé automatiquement.`
+          : "";
+        toast.success("Client créé avec succès.", {
+          description: projectMessage || undefined
+        });
         if (payload?.emailSent === false && payload?.emailMessage) {
           toast("Email non envoyé automatiquement", {
             description: payload.emailMessage

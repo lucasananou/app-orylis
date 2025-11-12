@@ -5,10 +5,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { authUsers, profiles, userCredentials } from "@/lib/schema";
+import { authUsers, profiles, projects, userCredentials } from "@/lib/schema";
 import { clientCreateSchema } from "@/lib/zod-schemas";
 import { assertStaff } from "@/lib/utils";
-import { sendWelcomeEmailWithCredentials } from "@/lib/emails";
+import { sendWelcomeEmailWithCredentials, sendProjectCreatedEmail } from "@/lib/emails";
 
 
 export async function POST(request: NextRequest) {
@@ -129,13 +129,51 @@ export async function POST(request: NextRequest) {
     throw error;
   }
 
+  // Créer automatiquement un projet pour le client
+  let projectId: string | null = null;
+  let projectName: string | null = null;
+  
+  try {
+    // Utiliser le nom du client (fullName) ou l'email comme nom du projet
+    const projectNameValue = fullName || email.split("@")[0] || "Nouveau projet";
+    
+    const [createdProject] = await db
+      .insert(projects)
+      .values({
+        ownerId: userId,
+        name: projectNameValue,
+        status: "onboarding",
+        progress: 10
+      })
+      .returning({
+        id: projects.id,
+        name: projects.name
+      });
+    
+    projectId = createdProject.id;
+    projectName = createdProject.name;
+  } catch (error) {
+    console.error("[Admin/Clients] Error creating project:", error);
+    // Ne pas faire échouer la création du client si le projet échoue
+    // On continue quand même
+  }
+
   // Envoyer l'email de bienvenue avec identifiants
   const emailResult = await sendWelcomeEmailWithCredentials(email, password, fullName);
+
+  // Envoyer l'email de création de projet si le projet a été créé
+  if (projectId && projectName) {
+    sendProjectCreatedEmail(projectId, projectName, userId).catch((error) => {
+      console.error("[Admin/Clients] Failed to send project created email:", error);
+    });
+  }
 
   return NextResponse.json(
     {
       ok: true,
       userId,
+      projectId,
+      projectName,
       emailSent: emailResult.success,
       emailMessage: emailResult.error ?? null
     },
