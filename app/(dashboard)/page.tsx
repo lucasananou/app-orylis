@@ -1,7 +1,7 @@
 import * as React from "react";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import {
@@ -111,11 +111,15 @@ async function loadDashboardData() {
           .orderBy(asc(projects.createdAt)),
     staff
       ? db.query.profiles.findMany({
-          where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
+          where: (profile, { or, eq: eqFn }) => or(
+            eqFn(profile.role, "client"),
+            eqFn(profile.role, "prospect")
+          ),
           columns: {
             id: true,
             fullName: true,
-            company: true
+            company: true,
+            role: true
           },
           orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
         })
