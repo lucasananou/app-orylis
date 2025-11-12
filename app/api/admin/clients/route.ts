@@ -217,23 +217,28 @@ export async function POST(request: NextRequest) {
   const passwordHash = await hash(password, 12);
 
   try {
-    // Insérer les credentials sans les champs avec valeurs par défaut
-    await db
-      .insert(userCredentials)
-      .values({
+    // Vérifier si les credentials existent déjà
+    const existingCredentials = await db.query.userCredentials.findFirst({
+      where: (creds, { eq }) => eq(creds.userId, userId),
+      columns: { userId: true }
+    });
+
+    if (existingCredentials) {
+      // Mettre à jour uniquement le passwordHash
+      await db
+        .update(userCredentials)
+        .set({ passwordHash })
+        .where(eq(userCredentials.userId, userId));
+    } else {
+      // Insérer les credentials sans les champs avec valeurs par défaut
+      await db.insert(userCredentials).values({
         userId,
         passwordHash
         // createdAt et updatedAt sont omis, les valeurs par défaut seront utilisées
-      })
-      .onConflictDoUpdate({
-        target: userCredentials.userId,
-        set: {
-          passwordHash
-          // updatedAt sera mis à jour automatiquement par le trigger SQL
-        }
       });
+    }
   } catch (error) {
-    console.error("[Admin/Clients] Error inserting userCredentials:", error);
+    console.error("[Admin/Clients] Error inserting/updating userCredentials:", error);
     throw error;
   }
 
