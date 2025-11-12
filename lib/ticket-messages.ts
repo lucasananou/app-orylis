@@ -10,7 +10,7 @@ export interface TicketMessageWithAuthor {
     id: string;
     fullName: string | null;
     email: string | null;
-    role: "client" | "staff";
+    role: "prospect" | "client" | "staff";
   };
 }
 
