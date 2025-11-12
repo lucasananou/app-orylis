@@ -167,40 +167,75 @@ export async function POST(request: NextRequest) {
 
   const userId = randomUUID();
 
-  // Insérer l'utilisateur sans emailVerified pour éviter les erreurs de date
-  await db.insert(authUsers).values({
-    id: userId,
-    email,
-    name: fullName ?? null,
-    image: null
-    // emailVerified est omis, la valeur par défaut (null) sera utilisée
-  });
-
-  await db
-    .insert(profiles)
-    .values({
+  try {
+    // Insérer l'utilisateur sans les champs optionnels null
+    const userValues: {
+      id: string;
+      email: string;
+      name?: string | null;
+    } = {
       id: userId,
-      role: "client",
-      fullName: fullName ?? null,
-      company: null,
-      phone: null
-    })
-    .onConflictDoNothing({ target: profiles.id });
+      email
+    };
+    
+    if (fullName) {
+      userValues.name = fullName;
+    }
+    
+    await db.insert(authUsers).values(userValues);
+  } catch (error) {
+    console.error("[Admin/Clients] Error inserting authUsers:", error);
+    throw error;
+  }
+
+  try {
+    // Insérer le profil sans les champs avec valeurs par défaut
+    const profileValues: {
+      id: string;
+      role: "client";
+      fullName?: string | null;
+      company?: string | null;
+      phone?: string | null;
+    } = {
+      id: userId,
+      role: "client"
+    };
+    
+    if (fullName) {
+      profileValues.fullName = fullName;
+    }
+    
+    await db
+      .insert(profiles)
+      .values(profileValues)
+      .onConflictDoNothing({ target: profiles.id });
+  } catch (error) {
+    console.error("[Admin/Clients] Error inserting profiles:", error);
+    throw error;
+  }
 
   const passwordHash = await hash(password, 12);
 
-  await db
-    .insert(userCredentials)
-    .values({
-      userId,
-      passwordHash
-    })
-    .onConflictDoUpdate({
-      target: userCredentials.userId,
-      set: {
+  try {
+    // Insérer les credentials sans les champs avec valeurs par défaut
+    await db
+      .insert(userCredentials)
+      .values({
+        userId,
         passwordHash
-      }
-    });
+        // createdAt et updatedAt sont omis, les valeurs par défaut seront utilisées
+      })
+      .onConflictDoUpdate({
+        target: userCredentials.userId,
+        set: {
+          passwordHash
+          // updatedAt sera mis à jour automatiquement par le trigger SQL
+        }
+      });
+  } catch (error) {
+    console.error("[Admin/Clients] Error inserting userCredentials:", error);
+    throw error;
+  }
 
   const emailResult = await sendWelcomeEmail({ email, password, fullName });
 
