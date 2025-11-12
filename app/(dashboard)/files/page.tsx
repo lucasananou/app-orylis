@@ -7,7 +7,8 @@ import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { FilesSection } from "@/components/files/files-section";
 
-export const dynamic = "force-dynamic";
+// Cache les fichiers pendant 20 secondes
+export const revalidate = 20;
 
 async function loadFilesPageData() {
   const session = await auth();

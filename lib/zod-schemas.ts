@@ -229,6 +229,23 @@ export const ticketUpdateSchema = z
     }
   );
 
+export const knowledgeArticleCreateSchema = z.object({
+  title: z
+    .string()
+    .min(3, { message: "Le titre doit contenir au moins 3 caractères." })
+    .max(200, { message: "Le titre dépasse 200 caractères." }),
+  content: z
+    .string()
+    .min(10, { message: "Le contenu doit contenir au moins 10 caractères." })
+    .max(50000, { message: "Le contenu dépasse 50000 caractères." }),
+  category: z.string().max(50).optional(),
+  published: z.boolean().default(true)
+});
+
+export const knowledgeArticleUpdateSchema = knowledgeArticleCreateSchema.partial();
+
+export type KnowledgeArticleCreatePayload = z.infer<typeof knowledgeArticleCreateSchema>;
+
 export const ticketMessageSchema = z.object({
   body: z
     .string()

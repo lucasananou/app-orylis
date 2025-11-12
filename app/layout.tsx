@@ -1,5 +1,6 @@
 import type { Metadata } from "next/types";
 import { Inter } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import "../styles/globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
@@ -19,6 +20,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+        <NextTopLoader
+          color="#43b2b9"
+          height={3}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #43b2b9,0 0 5px #43b2b9"
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { Progress } from "@/components/ui/progress";
+import { ProgressBadge } from "@/components/ui/progress-badge";
 import { ProjectRequestDialog } from "@/components/projects/project-request-dialog";
 import { ProjectFeedbackDialog } from "@/components/projects/project-feedback-dialog";
 
@@ -147,9 +148,9 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Progress value={safeProgress} />
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                <span>Progression {safeProgress}%</span>
+              <ProgressBadge value={safeProgress} showLabel={safeProgress < 100} />
+              {safeProgress < 100 && (
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <span>
                   Créé le{" "}
                   {formatDate(projectRow.createdAt, {

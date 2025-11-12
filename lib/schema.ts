@@ -255,6 +255,32 @@ export const notificationPreferences = createTable(
   }
 );
 
+export const knowledgeArticles = createTable(
+  "knowledge_articles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    category: text("category"),
+    published: boolean("published").notNull().default(true),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (article) => ({
+    authorIdx: index("knowledge_articles_author_id_idx").on(article.authorId),
+    publishedIdx: index("knowledge_articles_published_idx").on(article.published),
+    categoryIdx: index("knowledge_articles_category_idx").on(article.category)
+  })
+);
+
 export const userCredentials = createTable(
   "user_credentials",
   {
@@ -343,6 +369,13 @@ export const notificationPreferencesRelations = relations(
     })
   })
 );
+
+export const knowledgeArticlesRelations = relations(knowledgeArticles, ({ one }) => ({
+  author: one(profiles, {
+    fields: [knowledgeArticles.authorId],
+    references: [profiles.id]
+  })
+}));
 
 export const authUsersRelations = relations(authUsers, ({ one }) => ({
   profile: one(profiles, {

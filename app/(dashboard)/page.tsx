@@ -16,6 +16,8 @@ import { summarizeOnboardingPayload } from "@/lib/onboarding-summary";
 import { countUnreadNotifications } from "@/lib/notifications";
 import { formatDate, formatProgress, isStaff } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BookOpen } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
@@ -31,7 +33,8 @@ import {
 } from "@/components/dashboard/dashboard-activity";
 import { DashboardOnboardingCard } from "@/components/dashboard/dashboard-onboarding-card";
 
-export const dynamic = "force-dynamic";
+// Cache les données du dashboard pendant 30 secondes pour améliorer les performances
+export const revalidate = 30;
 
 const ticketStatusLabels: Record<"open" | "in_progress" | "done", string> = {
   open: "Ouvert",
@@ -414,26 +417,20 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
 
         <Card className="border border-border/70">
           <CardHeader className="pb-3">
-            <CardTitle>Canaux & Support</CardTitle>
-            <CardDescription>Vos accès rapides pour collaborer avec nous.</CardDescription>
+            <CardTitle>Guide & Support</CardTitle>
+            <CardDescription>Accédez à la base de connaissances et au support.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3">
-              <span>Slack partagé</span>
-              <Button size="sm" variant="ghost">
-                Ouvrir
-              </Button>
-            </div>
-            <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3">
+          <CardContent className="space-y-4">
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/guide">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Base de connaissances
+              </Link>
+            </Button>
+            <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
               <span>Email support</span>
-              <Button size="sm" variant="ghost">
-                hello@orylis.fr
-              </Button>
-            </div>
-            <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3">
-              <span>Documentation projet</span>
-              <Button size="sm" variant="ghost">
-                Notion
+              <Button size="sm" variant="ghost" asChild>
+                <a href="mailto:hello@orylis.fr">hello@orylis.fr</a>
               </Button>
             </div>
           </CardContent>

@@ -5,6 +5,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ProgressBadge } from "@/components/ui/progress-badge";
 import { formatDate, formatProgress } from "@/lib/utils";
 import { useProjectSelection } from "@/lib/project-selection";
 import type { Route } from "next";
@@ -65,10 +66,12 @@ export function ProjectCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Progress value={safeProgress} />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Progression {safeProgress}%{dueDate ? ` · Échéance ${formatDate(dueDate)}` : ""}
-          </p>
+          <ProgressBadge value={safeProgress} showLabel={safeProgress < 100} />
+          {safeProgress < 100 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {dueDate ? `Échéance ${formatDate(dueDate)}` : ""}
+            </p>
+          )}
         </div>
         <button
           type="button"

@@ -48,6 +48,9 @@ const reduceConditions = (conditions: Array<SQL<unknown>>) =>
     undefined
   );
 
+// Cache les tickets pendant 10 secondes (données qui changent souvent mais pas besoin d'être 100% à jour)
+export const revalidate = 10;
+
 export default function TicketsPage(props: TicketsPageProps): JSX.Element {
   return <TicketsPageContent {...props} />;
 }

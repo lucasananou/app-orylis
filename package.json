@@ -33,6 +33,7 @@
     "lucide-react": "^0.462.0",
     "next": "16.0.1",
     "next-auth": "5.0.0-beta.30",
+    "nextjs-toploader": "^3.9.17",
     "nodemailer": "^7.0.10",
     "pg": "^8.12.0",
     "react": "19.2.0",
