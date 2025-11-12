@@ -1,7 +1,7 @@
 // app/api/guide/route.ts
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { knowledgeArticles, profiles } from "@/lib/schema";
@@ -24,6 +24,16 @@ export async function GET(req: NextRequest) {
   const staff = isStaff(session.user.role);
   const showUnpublished = staff && includeUnpublished;
 
+  const whereConditions = [];
+  
+  if (!showUnpublished) {
+    whereConditions.push(eq(knowledgeArticles.published, true));
+  }
+  
+  if (category) {
+    whereConditions.push(eq(knowledgeArticles.category, category));
+  }
+
   const articles = await db
     .select({
       id: knowledgeArticles.id,
@@ -37,15 +47,7 @@ export async function GET(req: NextRequest) {
     })
     .from(knowledgeArticles)
     .leftJoin(profiles, eq(knowledgeArticles.authorId, profiles.id))
-    .where(
-      showUnpublished
-        ? category
-          ? eq(knowledgeArticles.category, category)
-          : undefined
-        : category
-          ? eq(knowledgeArticles.published, true).and(eq(knowledgeArticles.category, category))
-          : eq(knowledgeArticles.published, true)
-    )
+    .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
     .orderBy(desc(knowledgeArticles.createdAt));
 
   return NextResponse.json({
