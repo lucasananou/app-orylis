@@ -144,10 +144,7 @@ async function loadDashboardData() {
 
   const projectIds = projectsData.map((project) => project.id);
 
-  let onboardingPayload: Record<string, unknown> | null = null;
-  let onboardingUpdatedAt: Date | null = null;
-
-  // Charger l'onboarding en parallèle avec les autres données si un projet onboarding existe
+  // Préparer toutes les promesses de requêtes en parallèle
   const onboardingPromise = onboardingProject
     ? db
         .select({
@@ -159,21 +156,105 @@ async function loadDashboardData() {
         .then((rows) => rows.at(0) ?? null)
     : Promise.resolve(null);
 
-  // Attendre l'onboarding seulement si nécessaire
-  if (onboardingProject) {
-    const responseRow = await onboardingPromise;
-    onboardingPayload = (responseRow?.payload as Record<string, unknown> | null) ?? null;
-    onboardingUpdatedAt = responseRow?.updatedAt ?? null;
-  }
+  const unreadNotificationsPromise = countUnreadNotifications(user.id);
 
+  // Préparer la requête pour les messages staff (prospects)
+  const staffMessagesPromise = isProspectUser && projectsData.length > 0
+    ? db
+        .select({
+          id: projectMessages.id,
+          message: projectMessages.message,
+          authorName: profiles.fullName,
+          createdAt: projectMessages.createdAt
+        })
+        .from(projectMessages)
+        .innerJoin(profiles, eq(projectMessages.authorId, profiles.id))
+        .where(inArray(projectMessages.projectId, projectIds))
+        .orderBy(desc(projectMessages.createdAt))
+        .limit(5)
+    : Promise.resolve([]);
+
+  // Charger toutes les données en parallèle
+  const [
+    onboardingResponseRow,
+    unreadNotifications,
+    staffMessagesRows,
+    ...dashboardData
+  ] = await Promise.all([
+    onboardingPromise,
+    unreadNotificationsPromise,
+    staffMessagesPromise,
+    ...(projectIds.length > 0
+      ? [
+          db
+            .select({ value: sql<number>`count(*)` })
+            .from(tickets)
+            .where(and(inArray(tickets.projectId, projectIds), eq(tickets.status, "open"))),
+          db
+            .select({
+              id: tickets.id,
+              title: tickets.title,
+              status: tickets.status,
+              projectName: projects.name,
+              updatedAt: tickets.updatedAt
+            })
+            .from(tickets)
+            .innerJoin(projects, eq(tickets.projectId, projects.id))
+            .where(inArray(tickets.projectId, projectIds))
+            .orderBy(desc(tickets.updatedAt))
+            .limit(5),
+          db
+            .select({
+              id: files.id,
+              label: files.label,
+              projectName: projects.name,
+              createdAt: files.createdAt
+            })
+            .from(files)
+            .innerJoin(projects, eq(files.projectId, projects.id))
+            .where(inArray(files.projectId, projectIds))
+            .orderBy(desc(files.createdAt))
+            .limit(5),
+          db
+            .select({
+              id: billingLinks.id,
+              label: billingLinks.label,
+              projectName: projects.name,
+              createdAt: billingLinks.createdAt
+            })
+            .from(billingLinks)
+            .innerJoin(projects, eq(billingLinks.projectId, projects.id))
+            .where(inArray(billingLinks.projectId, projectIds))
+            .orderBy(desc(billingLinks.createdAt))
+            .limit(5),
+          db
+            .select({
+              id: notifications.id,
+              type: notifications.type,
+              title: notifications.title,
+              body: notifications.body,
+              createdAt: notifications.createdAt
+            })
+            .from(notifications)
+            .where(eq(notifications.userId, user.id))
+            .orderBy(desc(notifications.createdAt))
+            .limit(4)
+        ]
+      : [])
+  ]);
+
+  // Traiter les données de l'onboarding
+  const onboardingPayload = onboardingResponseRow
+    ? ((onboardingResponseRow.payload as Record<string, unknown> | null) ?? null)
+    : null;
+  const onboardingUpdatedAt = onboardingResponseRow?.updatedAt ?? null;
   const onboardingSummary = onboardingProject
     ? summarizeOnboardingPayload(onboardingPayload)
     : null;
 
+  // Traiter les données du dashboard
   let openTicketsCount = 0;
   let recentActivity: DashboardActivityItem[] = [];
-
-  let unreadNotifications = 0;
 
   if (projectIds.length > 0) {
     const [
@@ -182,61 +263,35 @@ async function loadDashboardData() {
       recentFilesRows,
       recentBillingRows,
       recentNotificationsRows
-    ] = await Promise.all([
-      db
-        .select({ value: sql<number>`count(*)` })
-        .from(tickets)
-        .where(and(inArray(tickets.projectId, projectIds), eq(tickets.status, "open"))),
-      db
-        .select({
-          id: tickets.id,
-          title: tickets.title,
-          status: tickets.status,
-          projectName: projects.name,
-          updatedAt: tickets.updatedAt
-        })
-        .from(tickets)
-        .innerJoin(projects, eq(tickets.projectId, projects.id))
-        .where(inArray(tickets.projectId, projectIds))
-        .orderBy(desc(tickets.updatedAt))
-        .limit(5),
-      db
-        .select({
-          id: files.id,
-          label: files.label,
-          projectName: projects.name,
-          createdAt: files.createdAt
-        })
-        .from(files)
-        .innerJoin(projects, eq(files.projectId, projects.id))
-        .where(inArray(files.projectId, projectIds))
-        .orderBy(desc(files.createdAt))
-        .limit(5),
-      db
-        .select({
-          id: billingLinks.id,
-          label: billingLinks.label,
-          projectName: projects.name,
-          createdAt: billingLinks.createdAt
-        })
-        .from(billingLinks)
-        .innerJoin(projects, eq(billingLinks.projectId, projects.id))
-        .where(inArray(billingLinks.projectId, projectIds))
-        .orderBy(desc(billingLinks.createdAt))
-        .limit(5),
-      db
-        .select({
-          id: notifications.id,
-          type: notifications.type,
-          title: notifications.title,
-          body: notifications.body,
-          createdAt: notifications.createdAt
-        })
-        .from(notifications)
-        .where(eq(notifications.userId, user.id))
-        .orderBy(desc(notifications.createdAt))
-        .limit(4)
-    ]);
+    ] = dashboardData as [
+      Array<{ value: number }>,
+      Array<{
+        id: string;
+        title: string;
+        status: string;
+        projectName: string;
+        updatedAt: Date;
+      }>,
+      Array<{
+        id: string;
+        label: string | null;
+        projectName: string;
+        createdAt: Date;
+      }>,
+      Array<{
+        id: string;
+        label: string;
+        projectName: string;
+        createdAt: Date;
+      }>,
+      Array<{
+        id: string;
+        type: string;
+        title: string;
+        body: string;
+        createdAt: Date;
+      }>
+    ];
 
     openTicketsCount = openTicketsRows.at(0)?.value ?? 0;
 
@@ -300,38 +355,18 @@ async function loadDashboardData() {
       .slice(0, 6);
   }
 
-  unreadNotifications = await countUnreadNotifications(user.id);
-
-  // Charger les messages staff pour les prospects
-  let staffMessages: Array<{
+  // Traiter les messages staff pour les prospects
+  const staffMessages: Array<{
     id: string;
     message: string;
     authorName: string | null;
     createdAt: string;
-  }> = [];
-
-  if (isProspectUser && projectsData.length > 0) {
-    const projectIds = projectsData.map((p) => p.id);
-    const messagesRows = await db
-      .select({
-        id: projectMessages.id,
-        message: projectMessages.message,
-        authorName: profiles.fullName,
-        createdAt: projectMessages.createdAt
-      })
-      .from(projectMessages)
-      .innerJoin(profiles, eq(projectMessages.authorId, profiles.id))
-      .where(inArray(projectMessages.projectId, projectIds))
-      .orderBy(desc(projectMessages.createdAt))
-      .limit(5);
-
-    staffMessages = messagesRows.map((msg) => ({
-      id: msg.id,
-      message: msg.message,
-      authorName: msg.authorName,
-      createdAt: msg.createdAt.toISOString()
-    }));
-  }
+  }> = staffMessagesRows.map((row) => ({
+    id: row.id,
+    message: row.message,
+    authorName: row.authorName,
+    createdAt: row.createdAt.toISOString()
+  }));
 
   // Compter les fichiers et tickets pour le teaser (si client)
   let filesCount = 0;

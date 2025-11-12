@@ -65,7 +65,18 @@ export async function POST(req: NextRequest) {
     if (variables) {
       try {
         // S'assurer que c'est un objet/array valide et le sérialiser correctement
-        const serialized = JSON.stringify(variables);
+        // Utiliser un replacer pour convertir les dates et autres objets non sérialisables
+        const serialized = JSON.stringify(variables, (key, value) => {
+          // Ignorer les fonctions et undefined
+          if (typeof value === "function" || value === undefined) {
+            return null;
+          }
+          // Convertir les dates en ISO string
+          if (value instanceof Date) {
+            return value.toISOString();
+          }
+          return value;
+        });
         variablesJsonb = JSON.parse(serialized);
       } catch {
         variablesJsonb = null;

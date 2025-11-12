@@ -26,7 +26,12 @@ const pool =
         ? {
             rejectUnauthorized: false
           }
-        : undefined
+        : undefined,
+    // Optimisations de performance
+    max: 20, // Maximum de connexions dans le pool
+    min: 2, // Minimum de connexions maintenues
+    idleTimeoutMillis: 30000, // Fermer les connexions inactives après 30s
+    connectionTimeoutMillis: 10000 // Timeout de connexion de 10s
   });
 
 const dbInstance =

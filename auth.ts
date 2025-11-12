@@ -12,13 +12,20 @@ import { authUsers, profiles, userCredentials } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
 
 async function ensureProfile(userId: string) {
-  await db
-    .insert(profiles)
-    .values({
+  // Vérifier si le profil existe déjà
+  const existingProfile = await db.query.profiles.findFirst({
+    where: (profile, { eq }) => eq(profile.id, userId),
+    columns: { id: true }
+  });
+
+  // Créer le profil seulement s'il n'existe pas
+  if (!existingProfile) {
+    await db.insert(profiles).values({
       id: userId,
-      role: "client",
-    })
-    .onConflictDoNothing({ target: profiles.id });
+      role: "client"
+      // createdAt sera défini automatiquement par le default SQL
+    });
+  }
 
   await ensureNotificationDefaults(userId, "client");
 }
