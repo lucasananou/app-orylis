@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { TicketMessageWithAuthor } from "@/lib/ticket-messages";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,7 +67,7 @@ export function TicketConversation({
         ]);
 
         setAnswer("");
-        toast.success("Message envoyé.");
+        toast.success("✅ Demande enregistrée ! Vous recevrez une notification dès qu'un membre de l'équipe y répondra.");
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Une erreur est survenue.");
       }
@@ -80,26 +80,37 @@ export function TicketConversation({
         <CardTitle>Conversations</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col">
           {localMessages.length === 0 ? (
             <p className="text-sm text-muted-foreground">Aucune réponse pour le moment.</p>
           ) : (
-            localMessages.map((message) => (
-              <div key={message.id} className="rounded-2xl border border-border/60 bg-muted/30 p-4 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium text-foreground">
-                    {message.author.fullName ?? message.author.email ?? "Utilisateur"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(message.createdAt, {
-                      dateStyle: "medium",
-                      timeStyle: "short"
-                    })}
-                  </span>
+            localMessages.map((message) => {
+              const isCurrentUser = message.author.id === currentUserId;
+              return (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "rounded-3xl p-5 text-sm shadow-sm transition-all duration-200",
+                    isCurrentUser
+                      ? "ml-auto max-w-[85%] border border-accent/20 bg-accent/10"
+                      : "mr-auto max-w-[85%] border border-border/60 bg-muted/50"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <span className="font-semibold text-foreground">
+                      {message.author.fullName ?? message.author.email ?? "Utilisateur"}
+                    </span>
+                    <span className="text-xs text-muted-foreground/80">
+                      {formatDate(message.createdAt, {
+                        dateStyle: "medium",
+                        timeStyle: "short"
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{message.body}</p>
                 </div>
-                <p className="mt-2 text-muted-foreground">{message.body}</p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

@@ -144,12 +144,7 @@ async function TicketsPageContent({
     <>
       <PageHeader
         title="Tickets"
-        description="Créez des demandes pour suivre vos besoins produit & design avec l’équipe Orylis."
-        actions={
-          <Button size="lg" asChild>
-            <Link href="/tickets/new">Nouveau ticket</Link>
-          </Button>
-        }
+        description="Créez des demandes pour suivre vos besoins produit & design avec l'équipe Orylis."
       />
 
       <TicketsClient

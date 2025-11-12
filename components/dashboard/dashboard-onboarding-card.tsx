@@ -7,6 +7,15 @@ import { Progress } from "@/components/ui/progress";
 import { summarizeOnboardingPayload, type OnboardingChecklistSummary } from "@/lib/onboarding-summary";
 import { formatDate, formatProgress, type UserRole } from "@/lib/utils";
 
+const sectionIcons: Record<string, string> = {
+  "Identité & contact": "🧾",
+  "Objectifs": "🎯",
+  "Structure": "📄",
+  "Inspirations": "💡",
+  "Technique": "⚙️",
+  "Validation": "✅"
+};
+
 interface OnboardingProjectInfo {
   id: string;
   name: string;
@@ -54,8 +63,8 @@ export function DashboardOnboardingCard({ project, role }: DashboardOnboardingCa
         </CardTitle>
         <CardDescription>
           {summary.nextAction
-            ? `Prochaine étape : ${summary.nextAction}`
-            : "Onboarding complet. Nous pouvons passer à la production."}
+            ? `Étape suivante : informations sur ton entreprise`
+            : "✅ Onboarding terminé ! Nous pouvons maintenant démarrer la création."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -69,19 +78,25 @@ export function DashboardOnboardingCard({ project, role }: DashboardOnboardingCa
         </div>
 
         <ul className="space-y-3">
-          {summary.items.map((item) => (
-            <li key={item.id} className="flex items-start gap-3">
-              {item.completed ? (
-                <CheckCircle2 className="mt-1 h-5 w-5 text-accent" />
-              ) : (
-                <Circle className="mt-1 h-5 w-5 text-muted-foreground" />
-              )}
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
-              </div>
-            </li>
-          ))}
+          {summary.items.map((item) => {
+            const icon = sectionIcons[item.title] ?? "";
+            return (
+              <li key={item.id} className="flex items-start gap-3">
+                {item.completed ? (
+                  <CheckCircle2 className="mt-1 h-5 w-5 text-accent" />
+                ) : (
+                  <Circle className="mt-1 h-5 w-5 text-muted-foreground" />
+                )}
+                <div className="space-y-1 flex-1">
+                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                    {icon && <span>{icon}</span>}
+                    {item.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                </div>
+              </li>
+            );
+          })}
         </ul>
 
         {role === "staff" ? (

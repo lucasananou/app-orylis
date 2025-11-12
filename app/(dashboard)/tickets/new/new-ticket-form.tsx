@@ -74,7 +74,7 @@ export function NewTicketForm({ projects }: NewTicketFormProps) {
         }
 
         const data = (await response.json()) as { id: string };
-        toast.success("Ticket créé avec succès.");
+        toast.success("✅ Demande enregistrée ! Vous recevrez une notification dès qu'un membre de l'équipe y répondra.");
         form.reset({
           projectId: projects.at(0)?.id ?? "",
           title: "",

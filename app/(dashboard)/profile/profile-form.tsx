@@ -68,7 +68,8 @@ export function ProfileForm({
   };
 
   return (
-    <Form form={form} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+    <div id="profile-form">
+      <Form form={form} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
       <FormField<ProfileFormValues, "fullName">
         control={form.control}
         name="fullName"
@@ -132,6 +133,7 @@ export function ProfileForm({
         </Button>
       </div>
     </Form>
+    </div>
   );
 }
 

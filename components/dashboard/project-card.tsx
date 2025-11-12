@@ -46,8 +46,17 @@ export function ProjectCard({
     router.push("/onboarding" as Route);
   }, [id, router, setProjectId]);
 
+  const statusColor =
+    status === "delivered"
+      ? "bg-muted text-muted-foreground"
+      : status === "onboarding"
+        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+        : status === "build" || status === "review"
+          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+          : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300";
+
   return (
-    <Card className="h-full border border-border/70 bg-white shadow-subtle">
+    <Card className="group h-full border border-border/70 bg-white shadow-subtle transition-all duration-200 hover:shadow-md hover:-translate-y-1">
       <CardHeader className="space-y-2 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-2">
@@ -57,7 +66,7 @@ export function ProjectCard({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="capitalize">
+            <Badge variant="secondary" className={`capitalize ${statusColor}`}>
               {statusLabels[status] ?? status}
             </Badge>
             {editTrigger}
@@ -76,9 +85,12 @@ export function ProjectCard({
         <button
           type="button"
           onClick={handleViewDetails}
-          className="text-left text-sm font-medium text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="group/btn flex items-center gap-2 text-left text-sm font-medium text-accent transition-colors hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           Voir les détails
+          <span className="opacity-0 transition-all group-hover/btn:translate-x-1 group-hover/btn:opacity-100">
+            →
+          </span>
         </button>
       </CardContent>
     </Card>

@@ -3,6 +3,8 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Route } from "next";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -120,8 +122,9 @@ export function TicketsClient({
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="border border-border/70 bg-white/90">
+    <>
+      <div className="space-y-6">
+        <Card className="border border-border/70 bg-white/90">
         <CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2">
             {statusOptions.map((option) => (
@@ -198,7 +201,19 @@ export function TicketsClient({
           )}
         </CardContent>
       </Card>
-    </div>
+
+      {/* Bouton FAB flottant */}
+      <Button
+        asChild
+        size="lg"
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl md:bottom-8 md:right-8"
+        aria-label="Créer un nouveau ticket"
+      >
+        <Link href="/tickets/new">
+          <Plus className="h-6 w-6" />
+        </Link>
+      </Button>
+    </>
   );
 }
 

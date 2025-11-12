@@ -647,14 +647,21 @@ const customPagesArray = useFieldArray({
       </Card>
 
       {isLocked && (
-        <Card className="border border-emerald-200 bg-emerald-50/80 text-emerald-900">
-          <CardHeader className="flex-row items-center gap-3 space-y-0">
-            <ShieldCheck className="h-5 w-5" />
-            <CardTitle className="text-base font-semibold">Onboarding validé</CardTitle>
+        <Card className="border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100/80 text-emerald-900 shadow-lg">
+          <CardHeader className="flex-row items-center gap-3 space-y-0 pb-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg font-semibold">✅ Onboarding terminé !</CardTitle>
+              <p className="text-sm text-emerald-800/90 mt-1">
+                Nous pouvons maintenant démarrer la création de votre projet.
+              </p>
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">
-              Les informations ont été transmises à l’équipe Orylis. Contactez-nous si vous devez
+            <p className="text-sm text-emerald-900/80">
+              Les informations ont été transmises à l'équipe Orylis. Contactez-nous si vous devez
               effectuer une modification.
             </p>
           </CardContent>
@@ -667,7 +674,10 @@ const customPagesArray = useFieldArray({
           {currentStepIndex === 0 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader>
-                <CardTitle>Identité & contact</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span>🧾</span>
+                  Identité & contact
+                </CardTitle>
                 <CardDescription>
                   Qui sera notre point de contact principal ? Ces éléments permettront de personnaliser
                   nos échanges.
@@ -734,7 +744,10 @@ const customPagesArray = useFieldArray({
           {currentStepIndex === 1 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader>
-                <CardTitle>Objectifs & vision</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span>🎯</span>
+                  Objectifs & vision
+                </CardTitle>
                 <CardDescription>
                   Partagez vos priorités pour que nous alignions design, contenu et stratégie.
                 </CardDescription>
@@ -804,7 +817,10 @@ const customPagesArray = useFieldArray({
           {currentStepIndex === 2 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader>
-                <CardTitle>Structure de contenu</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span>📄</span>
+                  Structure de contenu
+                </CardTitle>
                 <CardDescription>
                   Identifiez les pages à prévoir et ajoutez vos sections personnalisées à produire.
                 </CardDescription>
@@ -982,7 +998,10 @@ const customPagesArray = useFieldArray({
           {currentStepIndex === 3 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader>
-                <CardTitle>Inspirations & concurrents</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span>💡</span>
+                  Inspirations & concurrents
+                </CardTitle>
                 <CardDescription>
                   Partagez des références (design, fonctionnalités, positionnement) et concurrents à
                   surveiller.
@@ -1086,7 +1105,10 @@ const customPagesArray = useFieldArray({
           {currentStepIndex === 4 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader>
-                <CardTitle>Aspects techniques</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span>⚙️</span>
+                  Aspects techniques
+                </CardTitle>
                 <CardDescription>
                   Domaines, hébergement, contraintes techniques ou stack existante.
                 </CardDescription>

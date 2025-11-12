@@ -21,6 +21,7 @@ import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 import { DashboardProjects } from "@/components/dashboard/dashboard-projects";
 import { ClientCreateDialog } from "@/components/admin/client-create-dialog";
@@ -365,19 +366,41 @@ async function loadDashboardData() {
     projectsData,
     highlights,
     onboardingCardProject,
-    activityItems: recentActivity
+    activityItems: recentActivity,
+    userName: user.name,
+    userEmail: user.email
   };
 }
 
 export default async function DashboardHomePage(): Promise<JSX.Element> {
-  const { role, staff, ownerOptions, projectsData, highlights, onboardingCardProject, activityItems } =
+  const { role, staff, ownerOptions, projectsData, highlights, onboardingCardProject, activityItems, userName, userEmail } =
     await loadDashboardData();
+
+  // Extraire le prénom du nom complet ou de l'email
+  const firstName = userName?.split(" ")[0] ?? userEmail?.split("@")[0] ?? "Bienvenue";
 
   return (
     <>
+      {/* Message de bienvenue avec avatar */}
+      <div className="mb-6 flex items-center gap-4 rounded-2xl border border-border/70 bg-gradient-to-r from-accent/5 to-accent/10 p-6">
+        <Avatar className="h-14 w-14 ring-2 ring-accent/20">
+          <AvatarFallback className="bg-accent/10 text-lg font-semibold text-accent">
+            {(userName ?? userEmail ?? "U").slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground">
+            Bonjour {firstName} 👋
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Suivez en un coup d'oeil l'avancement de vos projets Orylis.
+          </p>
+        </div>
+      </div>
+
       <PageHeader
         title="Tableau de bord"
-        description="Suivez en un coup d'oeil l'avancement de vos projets Orylis."
+        description=""
         actions={
           <div className="flex items-center gap-3">
             {staff && (

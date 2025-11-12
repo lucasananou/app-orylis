@@ -58,10 +58,10 @@ export function Sidebar({ className }: SidebarProps) {
               key={item.href}
               href={{ pathname: item.href }}
               className={cn(
-                "inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                "inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 active
                   ? "bg-accent/10 text-accent"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-[rgba(0,0,0,0.03)] hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4" />

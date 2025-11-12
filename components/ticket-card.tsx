@@ -20,11 +20,11 @@ export interface TicketCardProps {
 
 const statusMap: Record<
   TicketCardProps["status"],
-  { label: string; variant: "default" | "secondary" | "success" | "warning" }
+  { label: string; variant: "default" | "secondary" | "success" | "warning"; icon: string; color: string }
 > = {
-  open: { label: "Ouvert", variant: "warning" },
-  in_progress: { label: "En cours", variant: "secondary" },
-  done: { label: "Résolu", variant: "success" }
+  open: { label: "Ouvert", variant: "warning", icon: "🟢", color: "text-green-600" },
+  in_progress: { label: "En cours", variant: "secondary", icon: "🟠", color: "text-orange-600" },
+  done: { label: "Résolu", variant: "success", icon: "⚪", color: "text-muted-foreground" }
 };
 
 export function TicketCard({
@@ -59,7 +59,7 @@ export function TicketCard({
   const card = (
     <Card
       className={cn(
-        "h-full transition hover:shadow-lg",
+        "group h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1",
         onSelect && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       )}
       onClick={onSelect}
@@ -79,7 +79,10 @@ export function TicketCard({
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{projectName}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+          <Badge variant={statusConfig.variant} className="flex items-center gap-1.5">
+            <span className="text-xs">{statusConfig.icon}</span>
+            {statusConfig.label}
+          </Badge>
           {categoryConfig ? (
             <Badge variant={categoryConfig.variant} className="text-[11px] uppercase">
               {categoryConfig.label}

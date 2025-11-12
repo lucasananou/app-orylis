@@ -84,7 +84,7 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
         throw new Error(payload.error ?? "Impossible d’uploader le fichier.");
       }
 
-      toast.success("Fichier uploadé avec succès.");
+      toast.success("📁 Fichier ajouté avec succès.");
       setOpen(false);
       router.refresh();
     } catch (error) {
@@ -114,7 +114,7 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="rounded-2xl border border-dashed border-border/80 bg-muted/40 p-6 text-center">
+          <div className="rounded-2xl border-2 border-dashed border-border/60 bg-gradient-to-br from-muted/60 to-muted/40 p-8 text-center transition-colors hover:border-accent/40 hover:bg-muted/70">
             <p className="text-sm text-muted-foreground">
               Projet sélectionné :{" "}
               <span className="font-medium text-foreground">

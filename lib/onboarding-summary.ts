@@ -45,13 +45,13 @@ export function summarizeOnboardingPayload(
     {
       id: "identity",
       title: "Identité & contact",
-      description: "Coordonnées complètes du contact principal.",
+      description: "Informations sur ton entreprise et coordonnées de contact.",
       completed: identityComplete
     },
     {
       id: "objectives",
       title: "Objectifs",
-      description: "Objectifs prioritaires et vision stratégique.",
+      description: "Tes objectifs prioritaires et ta vision stratégique.",
       completed: objectivesComplete
     },
     {
@@ -84,12 +84,26 @@ export function summarizeOnboardingPayload(
   const totalCount = items.length;
   const completionRatio = totalCount > 0 ? completedCount / totalCount : 0;
   const nextIncompleteItem = items.find((item) => !item.completed);
+  
+  // Texte plus naturel pour la prochaine action
+  const getNaturalNextAction = (item: OnboardingChecklistItem | undefined): string | null => {
+    if (!item) return null;
+    const actionMap: Record<string, string> = {
+      "Identité & contact": "informations sur ton entreprise",
+      "Objectifs": "définir tes objectifs",
+      "Structure du site": "structurer ton site",
+      "Inspirations": "partager tes inspirations",
+      "Technique": "configurer les aspects techniques",
+      "Validation finale": "valider l'onboarding"
+    };
+    return actionMap[item.title] ?? item.title.toLowerCase();
+  };
 
   return {
     items,
     completedCount,
     totalCount,
     completionRatio,
-    nextAction: nextIncompleteItem ? nextIncompleteItem.title : null
+    nextAction: getNaturalNextAction(nextIncompleteItem)
   };
 }
