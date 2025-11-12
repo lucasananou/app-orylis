@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { projects, profiles } from "@/lib/schema";
 import { assertStaff, isStaff, parseISODate, safeJson } from "@/lib/utils";
 import { projectCreateSchema } from "@/lib/zod-schemas";
+import { sendProjectCreatedEmail } from "@/lib/emails";
 
 export async function GET(_: NextRequest) {
   const session = await auth();
@@ -109,6 +110,11 @@ export async function POST(request: NextRequest) {
       dueDate: projects.dueDate,
       ownerId: projects.ownerId
     });
+
+  // Envoyer un email au client pour l'inviter à remplir son onboarding
+  sendProjectCreatedEmail(created.id, created.name, ownerProfile.id).catch((error) => {
+    console.error("[Email] Failed to send project created email:", error);
+  });
 
   return safeJson(
     {

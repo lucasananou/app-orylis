@@ -415,9 +415,20 @@ const customPagesArray = useFieldArray({
       return;
     }
 
-    if (skipNextAutoSaveRef.current) {
+    // Vérifier si les valeurs ont changé avant de décider de skip
+    const payload = normalizeDraftPayload(watchedValues as OnboardingFormState);
+    const signature = JSON.stringify(payload);
+    const hasChanged = signature !== draftSignatureRef.current;
+
+    // Si skipNextAutoSaveRef est true mais que les valeurs ont changé, on enregistre quand même
+    if (skipNextAutoSaveRef.current && !hasChanged) {
       skipNextAutoSaveRef.current = false;
       return;
+    }
+
+    // Réinitialiser le flag si on passe ici
+    if (skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false;
     }
 
     if (debounceRef.current) {
@@ -425,10 +436,10 @@ const customPagesArray = useFieldArray({
     }
 
     debounceRef.current = setTimeout(async () => {
-      const payload = normalizeDraftPayload(watchedValues as OnboardingFormState);
-      const signature = JSON.stringify(payload);
+      const currentPayload = normalizeDraftPayload(watchedValues as OnboardingFormState);
+      const currentSignature = JSON.stringify(currentPayload);
 
-      if (signature === draftSignatureRef.current) {
+      if (currentSignature === draftSignatureRef.current) {
         return;
       }
 
@@ -440,20 +451,20 @@ const customPagesArray = useFieldArray({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectId,
-            payload
+            payload: currentPayload
           })
         });
 
         if (!response.ok) {
           const data = (await response.json().catch(() => ({}))) as { error?: string };
-          throw new Error(data.error ?? "Impossible d’enregistrer le brouillon.");
+          throw new Error(data.error ?? "Impossible d'enregistrer le brouillon.");
         }
 
-        draftSignatureRef.current = signature;
+        draftSignatureRef.current = currentSignature;
         setLastSavedAt(new Date());
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Erreur lors de l’autosauvegarde.";
+          error instanceof Error ? error.message : "Erreur lors de l'autosauvegarde.";
         setSavingError(message);
       } finally {
         setIsSavingDraft(false);

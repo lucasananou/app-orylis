@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, tickets, profiles } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
-import { sendTicketCreatedEmail } from "@/lib/emails";
+import { sendTicketCreatedEmailToAdmin } from "@/lib/emails";
 import { ticketCreateSchema } from "@/lib/zod-schemas";
 import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
 
@@ -150,25 +150,16 @@ export async function POST(request: NextRequest) {
     console.error("[Notifications] Échec de la création de notification ticket_created:", error);
   }
 
-  // Envoyer un email au staff si c'est un client qui a créé le ticket
+  // Envoyer un email à l'admin si c'est un client qui a créé le ticket
   if (!isStaff(session.user.role) && project) {
-    const staffProfiles = await db.query.profiles.findMany({
-      where: (p, { eq }) => eq(p.role, "staff"),
-      columns: { id: true }
+    sendTicketCreatedEmailToAdmin(
+      created.id,
+      title,
+      project.name,
+      creatorName
+    ).catch((error) => {
+      console.error("[Email] Failed to send ticket created email:", error);
     });
-
-    // Envoyer un email à chaque membre du staff (en arrière-plan)
-    for (const staff of staffProfiles) {
-      sendTicketCreatedEmail(
-        created.id,
-        title,
-        project.name,
-        creatorName,
-        staff.id
-      ).catch((error) => {
-        console.error("[Email] Failed to send ticket created email:", error);
-      });
-    }
   }
 
   return NextResponse.json({ ok: true, id: created.id }, { status: 201 });

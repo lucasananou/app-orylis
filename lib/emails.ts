@@ -12,6 +12,8 @@ import { eq } from "drizzle-orm";
 
 export type EmailTemplateType =
   | "welcome"
+  | "welcome_with_credentials"
+  | "project_created"
   | "ticket_created"
   | "ticket_reply"
   | "ticket_updated"
@@ -20,8 +22,10 @@ export type EmailTemplateType =
   | "project_updated";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const emailFrom = process.env.EMAIL_FROM ?? "noreply@orylis.fr";
+const emailFromAddress = process.env.EMAIL_FROM ?? "noreply@orylis.fr";
+const emailFrom = `Orylis.fr <${emailFromAddress}>`;
 const appUrl = process.env.NEXTAUTH_URL ?? "https://app.orylis.fr";
+const ADMIN_EMAIL = "contact@orylis.fr";
 
 interface EmailOptions {
   to: string;
@@ -266,7 +270,82 @@ export async function sendWelcomeEmail(userId: string, projectName?: string) {
 }
 
 /**
- * Email de notification : nouveau ticket créé
+ * Email de bienvenue avec identifiants (création de compte client)
+ */
+export async function sendWelcomeEmailWithCredentials(
+  email: string,
+  password: string,
+  fullName?: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const displayName = fullName ?? "Bonjour";
+  
+  // Template par défaut
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">{{userName}}, bienvenue sur Orylis Hub 👋</h2>
+    <p>Votre compte a été créé par l'équipe Orylis. Voici vos identifiants de connexion :</p>
+    <div style="background: #F1F5F9; border-radius: 12px; padding: 16px; margin: 16px 0;">
+      <p style="margin: 0; color: #0F172A;"><strong>Email :</strong> {{userEmail}}</p>
+      <p style="margin: 8px 0 0 0; color: #0F172A;"><strong>Mot de passe :</strong> {{userPassword}}</p>
+    </div>
+    <p>Vous pouvez vous connecter dès maintenant via <a href="{{loginUrl}}" style="color: #43b2b9;">Orylis Hub</a>.</p>
+    <p style="color: #64748B; font-size: 13px;">Pour des raisons de sécurité, pensez à modifier votre mot de passe après la première connexion.</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Accéder à mon espace",
+    `${appUrl}/login`
+  );
+
+  // Récupérer le template depuis la DB ou utiliser le fallback
+  const template = await getTemplateFromDB(
+    "welcome_with_credentials",
+    "Votre accès à Orylis Hub",
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName: displayName,
+    userEmail: email,
+    userPassword: password,
+    loginUrl: `${appUrl}/login`
+  });
+
+  return sendEmail({
+    to: email,
+    subject: replaceTemplateVariables(template.subject, { userName: displayName }),
+    html
+  });
+}
+
+/**
+ * Email de notification : nouveau ticket créé (envoyé à l'admin)
+ */
+export async function sendTicketCreatedEmailToAdmin(
+  ticketId: string,
+  ticketTitle: string,
+  projectName: string,
+  authorName: string
+) {
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Nouveau ticket créé</h2>
+    <p><strong>${authorName}</strong> a créé un nouveau ticket pour le projet <strong>${projectName}</strong>.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0; font-weight: 600;">${ticketTitle}</p>
+    </div>
+    <p>Connectez-vous pour voir les détails et y répondre.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Nouveau ticket : ${ticketTitle}`,
+    html: getEmailTemplate(content, "Voir le ticket", `${appUrl}/tickets/${ticketId}`)
+  });
+}
+
+/**
+ * Email de notification : nouveau ticket créé (version avec userId pour compatibilité)
+ * @deprecated Utilisez sendTicketCreatedEmailToAdmin à la place
  */
 export async function sendTicketCreatedEmail(
   ticketId: string,
@@ -360,7 +439,32 @@ export async function sendTicketUpdatedEmail(
 }
 
 /**
- * Email de notification : fichier uploadé
+ * Email de notification : fichier uploadé (envoyé à l'admin)
+ */
+export async function sendFileUploadedEmailToAdmin(
+  fileName: string,
+  projectName: string,
+  uploaderName: string
+) {
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Nouveau fichier ajouté</h2>
+    <p><strong>${uploaderName}</strong> a ajouté un nouveau fichier au projet <strong>${projectName}</strong>.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;">📄 ${fileName}</p>
+    </div>
+    <p>Connectez-vous pour télécharger le fichier.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Nouveau fichier : ${fileName}`,
+    html: getEmailTemplate(content, "Voir les fichiers", `${appUrl}/files`)
+  });
+}
+
+/**
+ * Email de notification : fichier uploadé (version avec userId pour compatibilité)
+ * @deprecated Utilisez sendFileUploadedEmailToAdmin à la place
  */
 export async function sendFileUploadedEmail(
   fileName: string,
@@ -390,7 +494,28 @@ export async function sendFileUploadedEmail(
 }
 
 /**
- * Email de notification : onboarding complété
+ * Email de notification : onboarding complété (envoyé à l'admin)
+ */
+export async function sendOnboardingCompletedEmailToAdmin(
+  projectId: string,
+  projectName: string
+) {
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Onboarding complété ! 🎉</h2>
+    <p>L'onboarding du projet <strong>${projectName}</strong> a été complété avec succès.</p>
+    <p>Vous pouvez maintenant commencer la phase de design.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Onboarding complété : ${projectName}`,
+    html: getEmailTemplate(content, "Voir le projet", `${appUrl}/projects/${projectId}`)
+  });
+}
+
+/**
+ * Email de notification : onboarding complété (version avec userId pour compatibilité)
+ * @deprecated Utilisez sendOnboardingCompletedEmailToAdmin à la place
  */
 export async function sendOnboardingCompletedEmail(
   projectId: string,
@@ -413,6 +538,55 @@ export async function sendOnboardingCompletedEmail(
     to: user.email,
     subject: `Onboarding complété : ${projectName}`,
     html: getEmailTemplate(content, "Voir le projet", `${appUrl}/projects/${projectId}`)
+  });
+}
+
+/**
+ * Email de notification : projet créé
+ */
+export async function sendProjectCreatedEmail(
+  projectId: string,
+  projectName: string,
+  recipientUserId: string
+) {
+  const user = await getUserInfo(recipientUserId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  // Template par défaut
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">Bonjour {{userName}} 👋</h2>
+    <p>Votre projet <strong>{{projectName}}</strong> a été créé avec succès !</p>
+    <p>Pour démarrer, nous avons besoin que vous remplissiez votre onboarding. Cela nous permettra de mieux comprendre vos besoins et vos objectifs.</p>
+    <p>L'onboarding ne prend que quelques minutes et nous aidera à créer un site web qui correspond parfaitement à vos attentes.</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Commencer l'onboarding",
+    `${appUrl}/onboarding?projectId=${projectId}`
+  );
+
+  // Récupérer le template depuis la DB ou utiliser le fallback
+  const template = await getTemplateFromDB(
+    "project_created",
+    `Votre projet ${projectName} a été créé`,
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName,
+    projectName,
+    onboardingUrl: `${appUrl}/onboarding?projectId=${projectId}`
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: replaceTemplateVariables(template.subject, { userName, projectName }),
+    html
   });
 }
 

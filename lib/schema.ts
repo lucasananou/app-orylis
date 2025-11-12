@@ -55,6 +55,8 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 
 export const emailTemplateTypeEnum = pgEnum("email_template_type", [
   "welcome",
+  "welcome_with_credentials",
+  "project_created",
   "ticket_created",
   "ticket_reply",
   "ticket_updated",

@@ -173,7 +173,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     }),
     EmailProvider({
-      from: process.env.EMAIL_FROM ?? "noreply@orylis.fr",
+      from: `Orylis.fr <${process.env.EMAIL_FROM ?? "noreply@orylis.fr"}>`,
       server: {
         host: process.env.EMAIL_HOST ?? "localhost",
         port: Number(process.env.EMAIL_PORT ?? 2525),
@@ -201,7 +201,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const resend = new Resend(process.env.RESEND_API_KEY!);
           await resend.emails.send({
             to: identifier,
-            from: process.env.EMAIL_FROM ?? "noreply@orylis.fr",
+            from: `Orylis.fr <${process.env.EMAIL_FROM ?? "noreply@orylis.fr"}>`,
             subject: "Votre lien de connexion",
             html: `<p>Connectez-vous : <a href="${url}">${url}</a></p>`,
           });
@@ -222,7 +222,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           await transport.sendMail({
             to: identifier,
-            from: process.env.EMAIL_FROM ?? "noreply@orylis.fr",
+            from: `Orylis.fr <${process.env.EMAIL_FROM ?? "noreply@orylis.fr"}>`,
             subject: "Votre lien de connexion",
             text: `Connectez-vous : ${url}`,
           });
