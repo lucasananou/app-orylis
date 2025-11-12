@@ -57,27 +57,27 @@ export function ProjectCard({
 
   return (
     <Card className="group h-full border border-border/70 bg-white shadow-subtle transition-all duration-200 hover:shadow-md hover:-translate-y-1">
-      <CardHeader className="space-y-2 pb-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-2">
-            <CardTitle className="line-clamp-1 text-lg font-semibold text-foreground">{name}</CardTitle>
+      <CardHeader className="space-y-1.5 pb-3 sm:space-y-2 sm:pb-4">
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
+          <div className="space-y-1.5 min-w-0 flex-1 sm:space-y-2">
+            <CardTitle className="line-clamp-2 text-base font-semibold text-foreground sm:text-lg">{name}</CardTitle>
             {roleLabel ? (
-              <p className="text-xs uppercase tracking-wide text-muted-foreground/80">{roleLabel}</p>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">{roleLabel}</p>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={`capitalize ${statusColor}`}>
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <Badge variant="secondary" className={`capitalize text-[10px] sm:text-xs ${statusColor}`}>
               {statusLabels[status] ?? status}
             </Badge>
             {editTrigger}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         <div>
           <ProgressBadge value={safeProgress} showLabel={safeProgress < 100} />
           {safeProgress < 100 && (
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-[10px] text-muted-foreground sm:mt-2 sm:text-xs">
               {dueDate ? `Échéance ${formatDate(dueDate)}` : ""}
             </p>
           )}
@@ -85,7 +85,7 @@ export function ProjectCard({
         <button
           type="button"
           onClick={handleViewDetails}
-          className="group/btn flex items-center gap-2 text-left text-sm font-medium text-accent transition-colors hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="group/btn flex min-h-[44px] items-center gap-2 text-left text-xs font-medium text-accent transition-colors hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 sm:text-sm"
         >
           Voir les détails
           <span className="opacity-0 transition-all group-hover/btn:translate-x-1 group-hover/btn:opacity-100">

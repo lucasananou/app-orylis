@@ -38,7 +38,7 @@ const config: Config = {
         },
         muted: {
           DEFAULT: "hsl(214 32% 94%)",
-          foreground: "hsl(215 20% 40%)"
+          foreground: "hsl(215 20% 32%)"
         },
         destructive: {
           DEFAULT: "hsl(0 84% 60%)",

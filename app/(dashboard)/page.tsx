@@ -382,17 +382,17 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
   return (
     <>
       {/* Message de bienvenue avec avatar */}
-      <div className="mb-6 flex items-center gap-4 rounded-2xl border border-border/70 bg-gradient-to-r from-accent/5 to-accent/10 p-6">
-        <Avatar className="h-14 w-14 ring-2 ring-accent/20">
-          <AvatarFallback className="bg-accent/10 text-lg font-semibold text-accent">
+      <div className="mb-4 flex items-center gap-3 rounded-xl border border-border/70 bg-gradient-to-r from-accent/5 to-accent/10 p-4 sm:mb-6 sm:gap-4 sm:rounded-2xl sm:p-6">
+        <Avatar className="h-12 w-12 ring-2 ring-accent/20 sm:h-14 sm:w-14">
+          <AvatarFallback className="bg-accent/10 text-base font-semibold text-accent sm:text-lg">
             {(userName ?? userEmail ?? "U").slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl md:text-2xl">
             Bonjour {firstName} 👋
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Suivez en un coup d'oeil l'avancement de vos projets Orylis.
           </p>
         </div>
@@ -402,12 +402,13 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
         title="Tableau de bord"
         description=""
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {staff && (
               <ClientCreateDialog
                 trigger={
-                  <Button variant="outline" size="lg" className="rounded-full">
-                    Nouveau client
+                  <Button variant="outline" size="sm" className="min-h-[44px] rounded-full sm:size-lg">
+                    <span className="hidden sm:inline">Nouveau client</span>
+                    <span className="sm:hidden">Client</span>
                   </Button>
                 }
               />
@@ -417,14 +418,16 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                 mode="create"
                 owners={ownerOptions}
                 trigger={
-                  <Button size="lg" className="rounded-full">
-                    Nouveau projet
+                  <Button size="sm" className="min-h-[44px] rounded-full sm:size-lg">
+                    <span className="hidden sm:inline">Nouveau projet</span>
+                    <span className="sm:hidden">Projet</span>
                   </Button>
                 }
               />
             )}
-            <Button size="lg" variant="outline" className="rounded-full">
-              Planifier un point
+            <Button size="sm" variant="outline" className="min-h-[44px] rounded-full sm:size-lg">
+              <span className="hidden md:inline">Planifier un point</span>
+              <span className="md:hidden">Point</span>
             </Button>
           </div>
         }
@@ -448,7 +451,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
         </Card>
       </section>
 
-      <section className="mt-6 grid gap-6 xl:grid-cols-[2fr_1fr]">
+      <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[2fr_1fr]">
         <DashboardOnboardingCard project={onboardingCardProject} role={role} />
 
         <Card className="border border-border/70">

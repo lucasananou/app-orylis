@@ -41,8 +41,8 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
   const segments = pathname.split("/").filter(Boolean);
 
   return (
-    <header className="flex h-20 items-center justify-between border-b border-border bg-background/70 px-8 backdrop-blur">
-      <div className="flex flex-1 items-center gap-8">
+    <header className="flex min-h-[64px] items-center justify-between border-b border-border bg-background/70 px-4 backdrop-blur sm:min-h-[72px] sm:px-6 md:h-20 md:px-8">
+      <div className="flex flex-1 items-center gap-3 overflow-hidden sm:gap-6 md:gap-8">
         <Breadcrumb className="hidden md:flex">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -69,33 +69,33 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
         <ProjectSwitcher projects={projects} role={role} />
       </div>
 
-      <div className="flex items-center gap-3">
-        <Badge variant="secondary" className="uppercase tracking-wide">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <Badge variant="secondary" className="hidden text-xs uppercase tracking-wide sm:inline-flex">
           {role}
         </Badge>
-        <div className="hidden flex-col text-right text-sm leading-tight md:flex">
+        <div className="hidden flex-col text-right text-xs leading-tight lg:flex lg:text-sm">
           <span className="font-medium text-foreground">{userName ?? userEmail}</span>
           <span className="text-muted-foreground">{userEmail}</span>
         </div>
-        <Avatar>
-          <AvatarFallback>{(userName ?? userEmail).slice(0, 2).toUpperCase()}</AvatarFallback>
+        <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10">
+          <AvatarFallback className="text-xs sm:text-sm">{(userName ?? userEmail).slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         <NotificationMenu />
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="hidden sm:inline-flex"
+          className="hidden min-h-[44px] sm:inline-flex"
           onClick={() => signOut({ callbackUrl: "/login" })}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Se déconnecter
+          <span className="hidden md:inline">Se déconnecter</span>
         </Button>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="sm:hidden"
+          className="h-[44px] w-[44px] sm:hidden"
           onClick={() => signOut({ callbackUrl: "/login" })}
           aria-label="Se déconnecter"
         >

@@ -68,8 +68,8 @@ export default async function DashboardLayout({
           userName={data.userName}
           projects={data.accessibleProjects}
         />
-        <main className="flex-1 bg-gradient-to-b from-[#F7F9FB] via-white to-white px-8 py-10">
-          <div className="mx-auto w-full max-w-6xl space-y-10">{children}</div>
+        <main className="flex-1 bg-gradient-to-b from-[#F7F9FB] via-white to-white px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10">
+          <div className="mx-auto w-full max-w-6xl space-y-6 sm:space-y-8 md:space-y-10">{children}</div>
         </main>
       </div>
     </div>

@@ -14,8 +14,8 @@ export default async function LoginPage(): Promise<JSX.Element> {
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-6 py-16 md:grid-cols-[0.9fr_1fr] md:px-20">
-      <section className="hidden flex-col justify-center gap-8 text-slate-800 md:flex">
+    <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-4 py-8 sm:px-6 sm:py-12 md:grid-cols-[0.9fr_1fr] md:px-12 md:py-16 lg:px-20">
+      <section className="hidden flex-col justify-center gap-6 text-slate-800 md:flex md:gap-8">
         <div className="flex items-center gap-3">
           <Image
             src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
@@ -26,17 +26,17 @@ export default async function LoginPage(): Promise<JSX.Element> {
             priority
           />
         </div>
-        <div className="space-y-4">
-          <h1 className="text-4xl font-semibold leading-tight tracking-tight text-slate-900">
+        <div className="space-y-3 md:space-y-4">
+          <h1 className="text-3xl font-semibold leading-tight tracking-tight text-slate-900 md:text-4xl">
             Bienvenue sur votre espace client Orylis 🌐
           </h1>
-          <p className="max-w-lg text-lg text-slate-600">
+          <p className="max-w-lg text-base text-slate-600 md:text-lg">
             Suivez la création et la gestion de votre site internet en toute simplicité.
           </p>
         </div>
-        <div className="space-y-3">
-          <p className="text-base text-slate-700">Cet espace vous permet de :</p>
-          <ul className="space-y-2.5 text-sm text-slate-600">
+        <div className="space-y-2 md:space-y-3">
+          <p className="text-sm text-slate-700 md:text-base">Cet espace vous permet de :</p>
+          <ul className="space-y-2 text-sm text-slate-600 md:space-y-2.5">
             <li className="flex items-start gap-2">
               <span className="mt-1 text-slate-400">•</span>
               <span>Suivre l'avancement de votre projet en temps réel.</span>
@@ -55,25 +55,25 @@ export default async function LoginPage(): Promise<JSX.Element> {
             </li>
           </ul>
         </div>
-        <p className="text-base text-slate-700">
+        <p className="text-sm text-slate-700 md:text-base">
           Vous êtes entre de bonnes mains 🤝
         </p>
-        <p className="text-sm text-slate-600">
+        <p className="text-xs text-slate-600 md:text-sm">
           Connectez-vous pour découvrir l'avancement de votre site.
         </p>
       </section>
-      <section className="mx-auto w-full max-w-md rounded-3xl border border-border bg-[#F9FAFB] p-10 shadow-subtle">
-        <div className="mb-8 space-y-3 text-center">
-          <h2 className="text-2xl font-semibold text-foreground">Connexion</h2>
+      <section className="mx-auto w-full max-w-md rounded-2xl border border-border bg-[#F9FAFB] p-6 shadow-subtle sm:rounded-3xl sm:p-8 md:p-10">
+        <div className="mb-6 space-y-2 text-center sm:mb-8 sm:space-y-3">
+          <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Connexion</h2>
         </div>
         <PasswordLoginForm />
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p className="mt-4 text-center text-xs text-muted-foreground sm:mt-6">
           Besoin d'aide ? Écrivez-nous à{" "}
           <Link href="mailto:hello@orylis.fr" className="font-medium text-accent hover:underline">
             hello@orylis.fr
           </Link>
         </p>
-        <p className="mt-4 text-center text-xs text-muted-foreground/70">
+        <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground/80 sm:mt-4 sm:text-xs">
           🔐 Connexion sécurisée – Vos données sont protégées et utilisées uniquement pour le suivi
           de votre projet.
         </p>

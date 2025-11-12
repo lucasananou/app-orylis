@@ -125,27 +125,29 @@ export function TicketsClient({
     <>
       <div className="space-y-6">
         <Card className="border border-border/70 bg-white/90">
-        <CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
+        <CardContent className="flex flex-col gap-3 py-4 sm:gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2">
             {statusOptions.map((option) => (
               <Button
                 key={option.value}
                 type="button"
                 variant={statusFilter === option.value ? "default" : "ghost"}
+                size="sm"
+                className="min-h-[44px] text-xs sm:text-sm"
                 onClick={() => handleStatusChange(option.value)}
               >
                 {option.label}
               </Button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Projet</span>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-xs text-muted-foreground sm:text-sm">Projet</span>
             <Select
               value={selectValue}
               onValueChange={handleProjectChange}
               disabled={!ready || !hasProjects}
             >
-              <SelectTrigger className="w-56">
+              <SelectTrigger className="h-[44px] w-full sm:w-56">
                 <SelectValue placeholder="Sélectionnez un projet" />
               </SelectTrigger>
               <SelectContent>
@@ -207,11 +209,11 @@ export function TicketsClient({
       <Button
         asChild
         size="lg"
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl md:bottom-8 md:right-8"
+        className="fixed bottom-4 right-4 z-50 h-[56px] w-[56px] rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl sm:bottom-6 sm:right-6 sm:h-14 sm:w-14 md:bottom-8 md:right-8"
         aria-label="Créer un nouveau ticket"
       >
         <Link href="/tickets/new">
-          <Plus className="h-6 w-6" />
+          <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
         </Link>
       </Button>
     </>

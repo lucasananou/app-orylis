@@ -51,26 +51,26 @@ export function FileCard({
 
   return (
     <Card className="group flex h-full flex-col justify-between border border-border/70 bg-white/90 transition-all duration-200 hover:shadow-md hover:-translate-y-1">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
-        <div className="space-y-2 flex-1">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-2xl">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 gap-2 pb-3 sm:gap-3">
+        <div className="space-y-1.5 flex-1 min-w-0 sm:space-y-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-xl sm:h-12 sm:w-12 sm:rounded-2xl sm:text-2xl">
               {emoji}
             </span>
             <div className="flex-1 min-w-0">
-              <CardTitle className="line-clamp-1 text-base font-semibold">{label}</CardTitle>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">{projectName}</p>
+              <CardTitle className="line-clamp-2 text-sm font-semibold sm:text-base">{label}</CardTitle>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs mt-0.5">{projectName}</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] text-muted-foreground sm:text-xs">
             Stockage : <span className="font-medium">{storageProvider}</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <Button
             size="sm"
             variant="ghost"
-            className="opacity-0 transition-opacity group-hover:opacity-100"
+            className="h-[44px] w-[44px] p-0 opacity-0 transition-opacity group-hover:opacity-100 sm:h-auto sm:w-auto sm:p-2"
             asChild
           >
             <a href={url} target="_blank" rel="noopener noreferrer" aria-label="Ouvrir dans un nouvel onglet">
@@ -80,16 +80,18 @@ export function FileCard({
           <Button
             size="sm"
             variant="outline"
+            className="min-h-[44px] text-xs sm:text-sm"
             asChild
           >
             <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
-              <Download className="mr-2 h-4 w-4" />
-              Télécharger
+              <Download className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Télécharger</span>
+              <span className="sm:hidden">DL</span>
             </a>
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex items-center justify-between text-xs text-muted-foreground/80">
+      <CardContent className="flex items-center justify-between text-[10px] text-muted-foreground sm:text-xs">
         <span>
           Ajouté le {formatDate(createdAt, { dateStyle: "medium", timeStyle: "short" })}
         </span>
@@ -97,16 +99,17 @@ export function FileCard({
           type="button"
           size="sm"
           variant="ghost"
-          className="text-destructive"
+          className="min-h-[44px] text-destructive text-xs sm:text-sm"
           onClick={handleDelete}
           disabled={!canDelete || isDeleting}
         >
           {isDeleting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
           ) : (
             <>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              <Trash2 className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Supprimer</span>
+              <span className="sm:hidden">Suppr.</span>
             </>
           )}
         </Button>

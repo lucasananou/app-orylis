@@ -58,7 +58,23 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     );
   }
 
-  const updates = parsed.data;
+  const rawUpdates = parsed.data;
+
+  // Filtrer les valeurs undefined pour éviter les erreurs Drizzle
+  const updates: {
+    title?: string;
+    description?: string;
+    status?: "open" | "in_progress" | "done";
+    category?: "request" | "feedback" | "issue" | "general";
+  } = {};
+  if (rawUpdates.title !== undefined) updates.title = rawUpdates.title;
+  if (rawUpdates.description !== undefined) updates.description = rawUpdates.description;
+  if (rawUpdates.status !== undefined) updates.status = rawUpdates.status;
+  if (rawUpdates.category !== undefined) updates.category = rawUpdates.category;
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: "Aucun changement détecté." }, { status: 400 });
+  }
 
   const existing = await db
     .select({

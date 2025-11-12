@@ -73,30 +73,30 @@ export function TicketCard({
         }
       }}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-        <div className="space-y-1">
-          <CardTitle className="text-base font-semibold text-foreground">{title}</CardTitle>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{projectName}</p>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 gap-2 pb-3 sm:gap-3 sm:pb-4">
+        <div className="space-y-1 min-w-0 flex-1">
+          <CardTitle className="text-sm font-semibold text-foreground sm:text-base line-clamp-2">{title}</CardTitle>
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">{projectName}</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <Badge variant={statusConfig.variant} className="flex items-center gap-1.5">
-            <span className="text-xs">{statusConfig.icon}</span>
+        <div className="flex shrink-0 flex-col items-end gap-1.5 sm:gap-2">
+          <Badge variant={statusConfig.variant} className="flex items-center gap-1 text-[10px] sm:gap-1.5 sm:text-xs">
+            <span className="text-[10px] sm:text-xs">{statusConfig.icon}</span>
             {statusConfig.label}
           </Badge>
           {categoryConfig ? (
-            <Badge variant={categoryConfig.variant} className="text-[11px] uppercase">
+            <Badge variant={categoryConfig.variant} className="text-[9px] uppercase sm:text-[11px]">
               {categoryConfig.label}
             </Badge>
           ) : null}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm text-muted-foreground">
+      <CardContent className="space-y-3 text-xs text-muted-foreground sm:space-y-4 sm:text-sm">
         {description ? (
           <p className="line-clamp-3 text-muted-foreground">{description}</p>
         ) : (
           <p className="italic text-muted-foreground/80">Aucune description</p>
         )}
-        <div className="text-xs text-muted-foreground/80">
+        <div className="text-[10px] text-muted-foreground sm:text-xs">
           {createdLabel && <p>Créé le {createdLabel}</p>}
           {updatedLabel && <p>Mis à jour le {updatedLabel}</p>}
         </div>
