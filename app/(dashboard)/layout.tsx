@@ -60,7 +60,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar />
+      <Sidebar role={data.role} />
       <div className="flex flex-1 flex-col">
         <Navbar
           role={data.role}

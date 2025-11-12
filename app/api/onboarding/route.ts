@@ -6,7 +6,9 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { onboardingResponses, projects } from "@/lib/schema";
-import { assertUserCanAccessProject } from "@/lib/utils";
+import { notifyProjectParticipants } from "@/lib/notifications";
+import { sendOnboardingCompletedEmail } from "@/lib/emails";
+import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
 import {
   OnboardingFinalSchema,
   OnboardingPayloadSchema,
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
     where: eq(projects.id, projectId),
     columns: {
       id: true,
+      name: true,
       ownerId: true,
       progress: true
     }
@@ -147,6 +150,38 @@ export async function POST(req: NextRequest) {
       progress: progressToStore
     })
     .where(eq(projects.id, projectId));
+
+  // Si l'onboarding est complété, envoyer un email au staff
+  if (completed && project) {
+    try {
+      await notifyProjectParticipants({
+        projectId,
+        excludeUserIds: [session.user.id],
+        includeOwner: false,
+        includeStaff: true,
+        type: "onboarding_update",
+        title: "Onboarding complété",
+        body: `L'onboarding du projet "${project.name}" a été complété.`,
+        metadata: {
+          projectId
+        }
+      });
+    } catch (error) {
+      console.error("[Notifications] Échec de la notification onboarding_completed:", error);
+    }
+
+    // Envoyer un email au staff
+    const staffProfiles = await db.query.profiles.findMany({
+      where: (p, { eq }) => eq(p.role, "staff"),
+      columns: { id: true }
+    });
+
+    for (const staff of staffProfiles) {
+      sendOnboardingCompletedEmail(projectId, project.name, staff.id).catch((error) => {
+        console.error("[Email] Failed to send onboarding completed email:", error);
+      });
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

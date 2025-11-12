@@ -53,6 +53,16 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "system"
 ]);
 
+export const emailTemplateTypeEnum = pgEnum("email_template_type", [
+  "welcome",
+  "ticket_created",
+  "ticket_reply",
+  "ticket_updated",
+  "file_uploaded",
+  "onboarding_completed",
+  "project_updated"
+]);
+
 export const profiles = createTable(
   "profiles",
   {
@@ -298,6 +308,28 @@ export const userCredentials = createTable(
   },
   (credentials) => ({
     userIdx: index("user_credentials_user_id_idx").on(credentials.userId)
+  })
+);
+
+export const emailTemplates = createTable(
+  "email_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    type: emailTemplateTypeEnum("type").notNull().unique(),
+    subject: text("subject").notNull(),
+    htmlContent: text("html_content").notNull(),
+    textContent: text("text_content"),
+    variables: jsonb("variables"), // Ex: ["userName", "projectName", "ticketTitle"]
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (template) => ({
+    typeIdx: index("email_templates_type_idx").on(template.type)
   })
 );
 

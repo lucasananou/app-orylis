@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { ProjectSwitcher } from "@/components/project/project-switcher";
+import { MobileMenu } from "@/components/mobile-menu";
 import { Button } from "@/components/ui/button";
 import { NotificationMenu } from "@/components/notifications/notification-menu";
 
@@ -43,6 +44,7 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
   return (
     <header className="flex min-h-[64px] items-center justify-between border-b border-border bg-background/70 px-4 backdrop-blur sm:min-h-[72px] sm:px-6 md:h-20 md:px-8">
       <div className="flex flex-1 items-center gap-3 overflow-hidden sm:gap-6 md:gap-8">
+        <MobileMenu role={role} />
         <Breadcrumb className="hidden md:flex">
           <BreadcrumbList>
             <BreadcrumbItem>

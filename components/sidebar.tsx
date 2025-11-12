@@ -9,7 +9,8 @@ import {
   Ticket,
   FolderOpen,
   CreditCard,
-  UserRound
+  UserRound,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,11 +23,16 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/profile", label: "Profil", icon: UserRound }
 ];
 
+const adminNavItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
+  { href: "/admin/emails", label: "Gestion des emails", icon: Settings }
+];
+
 export interface SidebarProps {
   className?: string;
+  role?: "client" | "staff";
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, role = "client" }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -69,6 +75,31 @@ export function Sidebar({ className }: SidebarProps) {
             </Link>
           );
         })}
+        {role === "staff" && (
+          <>
+            <div className="my-2 border-t border-border" />
+            {adminNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={{ pathname: item.href }}
+                  className={cn(
+                    "inline-flex min-h-[44px] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:px-4 lg:py-3",
+                    isActive
+                      ? "bg-accent/10 text-accent"
+                      : "text-muted-foreground hover:bg-[rgba(0,0,0,0.03)] hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </>
+        )}
       </nav>
       <footer className="mt-auto pt-6 text-xs text-muted-foreground lg:pt-8">
         Version MVP · {new Date().getFullYear()}

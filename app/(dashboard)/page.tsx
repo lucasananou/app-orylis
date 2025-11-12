@@ -376,8 +376,15 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
   const { role, staff, ownerOptions, projectsData, highlights, onboardingCardProject, activityItems, userName, userEmail } =
     await loadDashboardData();
 
-  // Extraire le prénom du nom complet ou de l'email
-  const firstName = userName?.split(" ")[0] ?? userEmail?.split("@")[0] ?? "Bienvenue";
+  // Pour les clients non-staff, utiliser le nom du premier projet s'il existe
+  // Sinon, utiliser le prénom comme fallback
+  let greetingName: string;
+  if (!staff && projectsData.length > 0) {
+    greetingName = projectsData[0].name;
+  } else {
+    const firstName = userName?.split(" ")[0] ?? userEmail?.split("@")[0] ?? "Bienvenue";
+    greetingName = firstName;
+  }
 
   return (
     <>
@@ -390,7 +397,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
         </Avatar>
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold text-foreground sm:text-xl md:text-2xl">
-            Bonjour {firstName} 👋
+            Bonjour {greetingName} 👋
           </h2>
           <p className="text-xs text-muted-foreground sm:text-sm">
             Suivez en un coup d'oeil l'avancement de vos projets Orylis.

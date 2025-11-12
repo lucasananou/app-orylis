@@ -4,6 +4,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
 import { auth } from "@/auth";
+import { notifyProjectParticipants } from "@/lib/notifications";
+import { sendProjectUpdatedEmail } from "@/lib/emails";
+import { isStaff } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +48,82 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
   }
 
+  // Récupérer le projet avant la mise à jour
+  const projectBefore = await db.query.projects.findFirst({
+    where: eq(projects.id, id),
+    columns: {
+      name: true,
+      ownerId: true,
+      status: true,
+      progress: true
+    }
+  });
+
+  if (!projectBefore) {
+    return NextResponse.json({ error: "Projet introuvable." }, { status: 404 });
+  }
+
   await db.update(projects).set(update).where(eq(projects.id, id));
+
+  // Récupérer le projet après la mise à jour
+  const projectAfter = await db.query.projects.findFirst({
+    where: eq(projects.id, id),
+    columns: {
+      name: true,
+      status: true,
+      progress: true
+    }
+  });
+
+  // Construire le message de mise à jour
+  const updateMessages: string[] = [];
+  if (update.status && update.status !== projectBefore.status) {
+    const statusLabels: Record<string, string> = {
+      onboarding: "Onboarding",
+      design: "Design",
+      build: "Build",
+      review: "Review",
+      delivered: "Livré"
+    };
+    updateMessages.push(
+      `Statut : ${statusLabels[projectBefore.status] ?? projectBefore.status} → ${statusLabels[update.status as string] ?? update.status}`
+    );
+  }
+  if (update.progress && typeof update.progress === "number" && update.progress !== projectBefore.progress) {
+    updateMessages.push(`Progression : ${projectBefore.progress}% → ${update.progress}%`);
+  }
+  if (update.name && update.name !== projectBefore.name) {
+    updateMessages.push(`Nom : ${projectBefore.name} → ${update.name}`);
+  }
+
+  const updateMessage = updateMessages.length > 0 ? updateMessages.join(", ") : "Mise à jour du projet";
+
+  // Notifier dans l'app
+  try {
+    await notifyProjectParticipants({
+      projectId: id,
+      excludeUserIds: [session.user.id],
+      includeOwner: true,
+      includeStaff: false,
+      type: "onboarding_update",
+      title: "Projet mis à jour",
+      body: updateMessage,
+      metadata: {
+        projectId: id
+      }
+    });
+  } catch (error) {
+    console.error("[Notifications] Échec de la notification project_updated:", error);
+  }
+
+  // Envoyer un email au client si c'est le staff qui a mis à jour
+  if (isStaff(session.user.role) && projectAfter && updateMessages.length > 0) {
+    sendProjectUpdatedEmail(id, projectAfter.name, updateMessage, projectBefore.ownerId).catch(
+      (error) => {
+        console.error("[Email] Failed to send project updated email:", error);
+      }
+    );
+  }
+
   return NextResponse.json({ ok: true });
 }

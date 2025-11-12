@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { files, profiles, projects } from "@/lib/schema";
+import { notifyProjectParticipants } from "@/lib/notifications";
+import { sendFileUploadedEmail } from "@/lib/emails";
 import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -134,6 +136,42 @@ export async function POST(req: NextRequest) {
       label: files.label,
       createdAt: files.createdAt
     });
+
+  const uploaderName = session.user.name ?? session.user.email ?? "Un utilisateur";
+  const fileName = created.label ?? created.path;
+
+  // Notifier dans l'app
+  try {
+    await notifyProjectParticipants({
+      projectId,
+      excludeUserIds: [session.user.id],
+      includeOwner: !isStaff(session.user.role),
+      includeStaff: true,
+      type: "file_uploaded",
+      title: "Nouveau fichier ajouté",
+      body: `${uploaderName} a ajouté le fichier "${fileName}".`,
+      metadata: {
+        fileId: created.id,
+        projectId
+      }
+    });
+  } catch (error) {
+    console.error("[Notifications] Échec de la notification file_uploaded:", error);
+  }
+
+  // Envoyer un email au staff si c'est un client qui a uploadé
+  if (!isStaff(session.user.role) && project) {
+    const staffProfiles = await db.query.profiles.findMany({
+      where: (p, { eq }) => eq(p.role, "staff"),
+      columns: { id: true }
+    });
+
+    for (const staff of staffProfiles) {
+      sendFileUploadedEmail(fileName, project.name, uploaderName, staff.id).catch((error) => {
+        console.error("[Email] Failed to send file uploaded email:", error);
+      });
+    }
+  }
 
   return NextResponse.json({
     ok: true,

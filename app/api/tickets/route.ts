@@ -3,10 +3,11 @@ import { and, desc, eq } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { projects, tickets } from "@/lib/schema";
+import { projects, tickets, profiles } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
+import { sendTicketCreatedEmail } from "@/lib/emails";
 import { ticketCreateSchema } from "@/lib/zod-schemas";
-import { assertUserCanAccessProject } from "@/lib/utils";
+import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
 
 type TicketStatus = "open" | "in_progress" | "done";
 
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
     where: eq(projects.id, projectId),
     columns: {
       id: true,
+      name: true,
       ownerId: true
     }
   });
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
       includeStaff: true,
       type: "ticket_created",
       title: "Nouveau ticket",
-      body: `Le ticket “${title}” a été créé par ${creatorName}.`,
+      body: `Le ticket "${title}" a été créé par ${creatorName}.`,
       metadata: {
         ticketId: created.id,
         projectId
@@ -146,6 +148,27 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Notifications] Échec de la création de notification ticket_created:", error);
+  }
+
+  // Envoyer un email au staff si c'est un client qui a créé le ticket
+  if (!isStaff(session.user.role) && project) {
+    const staffProfiles = await db.query.profiles.findMany({
+      where: (p, { eq }) => eq(p.role, "staff"),
+      columns: { id: true }
+    });
+
+    // Envoyer un email à chaque membre du staff (en arrière-plan)
+    for (const staff of staffProfiles) {
+      sendTicketCreatedEmail(
+        created.id,
+        title,
+        project.name,
+        creatorName,
+        staff.id
+      ).catch((error) => {
+        console.error("[Email] Failed to send ticket created email:", error);
+      });
+    }
   }
 
   return NextResponse.json({ ok: true, id: created.id }, { status: 201 });

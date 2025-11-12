@@ -3,10 +3,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { profiles, ticketMessages, tickets } from "@/lib/schema";
+import { profiles, ticketMessages, tickets, projects } from "@/lib/schema";
 import { auth } from "@/auth";
 import { notifyProjectParticipants } from "@/lib/notifications";
-import { assertUserCanAccessProject } from "@/lib/utils";
+import { sendTicketReplyEmail, sendTicketUpdatedEmail } from "@/lib/emails";
+import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
 import { ticketMessageSchema, ticketUpdateSchema } from "@/lib/zod-schemas";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +84,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       title: tickets.title,
       status: tickets.status,
       category: tickets.category,
+      authorId: tickets.authorId,
       ownerId: profiles.id
     })
     .from(tickets)
@@ -122,6 +124,14 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     done: "résolu"
   };
 
+  // Récupérer le nom du projet
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, existing.projectId),
+    columns: { name: true }
+  });
+
+  const newStatus = (updated?.status ?? existing.status) as "open" | "in_progress" | "done";
+
   try {
     await notifyProjectParticipants({
       projectId: existing.projectId,
@@ -130,8 +140,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       includeStaff: true,
       type: "ticket_updated",
       title: `Mise à jour du ticket`,
-      body: `Le ticket “${updated?.title ?? existing.title}” est désormais ${statusLabel[(updated?.status ??
-        existing.status) as keyof typeof statusLabel]}.`,
+      body: `Le ticket "${updated?.title ?? existing.title}" est désormais ${statusLabel[newStatus]}.`,
       metadata: {
         ticketId: existing.id,
         projectId: existing.projectId
@@ -139,6 +148,37 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     });
   } catch (error) {
     console.error("[Notifications] Échec de la création de notification ticket_updated:", error);
+  }
+
+  // Envoyer un email aux participants (en arrière-plan)
+  if (project && updates.status) {
+    const participants = await db
+      .select({ userId: profiles.id })
+      .from(profiles)
+      .innerJoin(projects, eq(projects.ownerId, profiles.id))
+      .where(eq(projects.id, existing.projectId))
+      .then((rows) => rows.map((r) => r.userId));
+
+    // Ajouter le staff
+    const staffProfiles = await db.query.profiles.findMany({
+      where: (p, { eq }) => eq(p.role, "staff"),
+      columns: { id: true }
+    });
+    const allRecipients = [
+      ...new Set([...participants, ...staffProfiles.map((s) => s.id), existing.authorId])
+    ].filter((uid) => uid !== session.user.id);
+
+    for (const recipientId of allRecipients) {
+      sendTicketUpdatedEmail(
+        id,
+        updated?.title ?? existing.title,
+        project.name,
+        newStatus,
+        recipientId
+      ).catch((error) => {
+        console.error("[Email] Failed to send ticket updated email:", error);
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });
@@ -158,6 +198,12 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   if (!ticket) {
     return NextResponse.json({ error: "Ticket introuvable." }, { status: 404 });
   }
+
+  // Récupérer le nom du projet
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, ticket.projectId),
+    columns: { name: true }
+  });
 
   // Vérifie l'accès (staff ou propriétaire du projet)
   try {
@@ -194,6 +240,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       createdAt: ticketMessages.createdAt
     });
 
+  const authorName = session.user.name ?? session.user.email ?? "Un membre";
+
   try {
     await notifyProjectParticipants({
       projectId: ticket.projectId,
@@ -201,8 +249,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       includeOwner: true,
       includeStaff: true,
       type: "ticket_updated",
-      title: `Nouvelle réponse sur le ticket` ,
-      body: `${session.user.name ?? session.user.email ?? "Un membre"} a répondu sur "${ticket.title}".` ,
+      title: `Nouvelle réponse sur le ticket`,
+      body: `${authorName} a répondu sur "${ticket.title}".`,
       metadata: {
         ticketId: ticket.id,
         projectId: ticket.projectId
@@ -210,6 +258,31 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     });
   } catch (error) {
     console.error("[Notifications] Échec de la notification ticket_message:", error);
+  }
+
+  // Envoyer un email à l'auteur du ticket si ce n'est pas lui qui répond
+  if (ticket.authorId !== session.user.id && project) {
+    sendTicketReplyEmail(id, ticket.title, project.name, authorName, ticket.authorId).catch(
+      (error) => {
+        console.error("[Email] Failed to send ticket reply email:", error);
+      }
+    );
+
+    // Si c'est le staff qui répond, envoyer aussi au client (owner du projet)
+    if (isStaff(session.user.role)) {
+      const projectOwner = await db.query.projects.findFirst({
+        where: eq(projects.id, ticket.projectId),
+        columns: { ownerId: true }
+      });
+
+      if (projectOwner?.ownerId && projectOwner.ownerId !== ticket.authorId) {
+        sendTicketReplyEmail(id, ticket.title, project.name, authorName, projectOwner.ownerId).catch(
+          (error) => {
+            console.error("[Email] Failed to send ticket reply email to owner:", error);
+          }
+        );
+      }
+    }
   }
 
   return NextResponse.json({
