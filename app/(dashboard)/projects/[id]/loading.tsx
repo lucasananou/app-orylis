@@ -7,7 +7,7 @@ export default function ProjectDetailLoading(): JSX.Element {
     <>
       <PageHeader
         title={<Skeleton className="h-8 w-48" />}
-        description={<Skeleton className="h-4 w-64" />}
+        description={<Skeleton className="h-4 w-64 mt-2" />}
       />
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
