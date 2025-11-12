@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
     where: (p, { eq }) => eq(p.id, projectId),
     columns: {
       id: true,
+      name: true,
       ownerId: true
     }
   });
