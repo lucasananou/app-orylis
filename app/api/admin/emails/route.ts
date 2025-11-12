@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { emailTemplates } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { isStaff } from "@/lib/utils";
 import type { EmailTemplateType } from "@/lib/emails";
 
@@ -61,11 +61,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Préparer les variables JSONB de manière sûre
-    let variablesJsonb: unknown = null;
+    // Utiliser sql.raw() pour éviter que Drizzle essaie de sérialiser l'objet
+    let variablesJsonbValue: ReturnType<typeof sql.raw> | null = null;
     if (variables) {
       try {
         // S'assurer que c'est un objet/array valide et le sérialiser correctement
-        // Utiliser un replacer pour convertir les dates et autres objets non sérialisables
         const serialized = JSON.stringify(variables, (key, value) => {
           // Ignorer les fonctions et undefined
           if (typeof value === "function" || value === undefined) {
@@ -77,9 +77,11 @@ export async function POST(req: NextRequest) {
           }
           return value;
         });
-        variablesJsonb = JSON.parse(serialized);
+        // Échapper les apostrophes et backslashes pour éviter les injections SQL
+        const escapedJson = serialized.replace(/'/g, "''").replace(/\\/g, "\\\\");
+        variablesJsonbValue = sql.raw(`'${escapedJson}'::jsonb`);
       } catch {
-        variablesJsonb = null;
+        variablesJsonbValue = null;
       }
     }
 
@@ -90,32 +92,37 @@ export async function POST(req: NextRequest) {
 
     let template;
     if (existingTemplate) {
-      // Mettre à jour le template existant
-      [template] = await db
-        .update(emailTemplates)
-        .set({
-          subject,
-          htmlContent,
-          textContent: textContent ?? null,
-          variables: variablesJsonb
-          // updatedAt sera mis à jour automatiquement par le trigger SQL
-        })
-        .where(eq(emailTemplates.type, type as EmailTemplateType))
-        .returning();
+      // Mettre à jour le template existant en utilisant db.execute() pour tout
+      if (variablesJsonbValue !== null) {
+        await db.execute(
+          sql`UPDATE ${emailTemplates} SET subject = ${subject}, html_content = ${htmlContent}, text_content = ${textContent ?? sql`NULL`}, variables = ${variablesJsonbValue} WHERE type = ${type}`
+        );
+      } else {
+        await db.execute(
+          sql`UPDATE ${emailTemplates} SET subject = ${subject}, html_content = ${htmlContent}, text_content = ${textContent ?? sql`NULL`}, variables = NULL WHERE type = ${type}`
+        );
+      }
     } else {
-      // Créer un nouveau template
-      [template] = await db
-        .insert(emailTemplates)
-        .values({
-          type: type as EmailTemplateType,
-          subject,
-          htmlContent,
-          textContent: textContent ?? null,
-          variables: variablesJsonb
-          // createdAt et updatedAt seront définis automatiquement par les defaults SQL
-        })
-        .returning();
+      // Créer un nouveau template en utilisant db.execute() pour tout
+      if (variablesJsonbValue !== null) {
+        await db.execute(
+          sql`INSERT INTO ${emailTemplates} (type, subject, html_content, text_content, variables) VALUES (${type}, ${subject}, ${htmlContent}, ${textContent ?? sql`NULL`}, ${variablesJsonbValue})`
+        );
+      } else {
+        await db.execute(
+          sql`INSERT INTO ${emailTemplates} (type, subject, html_content, text_content, variables) VALUES (${type}, ${subject}, ${htmlContent}, ${textContent ?? sql`NULL`}, NULL)`
+        );
+      }
     }
+    
+    // Récupérer le template créé/mis à jour
+    const result = await db.query.emailTemplates.findFirst({
+      where: (templates, { eq }) => eq(templates.type, type as EmailTemplateType)
+    });
+    if (!result) {
+      throw new Error("Failed to retrieve template");
+    }
+    template = result;
 
     return NextResponse.json({ data: template });
   } catch (error) {
