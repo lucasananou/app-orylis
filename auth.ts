@@ -8,7 +8,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { profiles, userCredentials } from "@/lib/schema";
+import { authUsers, profiles, userCredentials } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
 
 async function ensureProfile(userId: string) {
@@ -48,18 +48,22 @@ async function ensureTestUser() {
 
     if (!userId) {
       try {
-        const created = await adapterCreateUser({
-          id: randomUUID(),
+        // Utiliser db.insert directement pour éviter les erreurs toISOString de l'adapter
+        const newUserId = randomUUID();
+        await db.insert(authUsers).values({
+          id: newUserId,
           email: TEST_USER_EMAIL,
-          name: "Compte démo",
-          emailVerified: null
+          name: "Compte démo"
+          // emailVerified est omis, sera null par défaut
         });
-        userId = created.id;
+        userId = newUserId;
       } catch (error) {
         const code = (error as { code?: string } | undefined)?.code;
         if (code !== "23505") {
-          throw error;
+          // Si ce n'est pas une erreur de duplication, logger mais continuer
+          console.warn("[Auth] Failed to create test user:", error);
         }
+        // Essayer de récupérer l'utilisateur existant
         const fallback = await adapterGetUserByEmail(TEST_USER_EMAIL);
         userId = fallback?.id;
       }

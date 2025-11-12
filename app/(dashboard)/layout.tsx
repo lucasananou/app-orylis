@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { eq, asc } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -7,10 +8,16 @@ import { isStaff } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
 import { Navbar } from "@/components/navbar";
 
-export const dynamic = "force-dynamic";
+// Cache le layout pendant 10 secondes (les projets changent peu souvent)
+export const revalidate = 10;
+
+// Cache la session pour éviter les appels multiples
+const getCachedSession = cache(async () => {
+  return await auth();
+});
 
 async function loadLayoutData() {
-  const session = await auth();
+  const session = await getCachedSession();
 
   if (!session?.user) {
     redirect("/login");

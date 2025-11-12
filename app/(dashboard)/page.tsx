@@ -1,5 +1,6 @@
 import * as React from "react";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -53,8 +54,13 @@ interface DashboardProject {
   createdAt: string | null;
 }
 
+// Cache la session pour éviter les appels multiples
+const getCachedSession = cache(async () => {
+  return await auth();
+});
+
 async function loadDashboardData() {
-  const session = await auth();
+  const session = await getCachedSession();
 
   if (!session?.user) {
     redirect("/login");
@@ -63,48 +69,50 @@ async function loadDashboardData() {
   const user = session.user!;
   const staff = isStaff(user.role);
 
-  const projectRows = staff
-    ? await db
-        .select({
-          id: projects.id,
-          name: projects.name,
-          status: projects.status,
-          progress: projects.progress,
-          dueDate: projects.dueDate,
-          ownerId: projects.ownerId,
-          ownerName: profiles.fullName,
-          createdAt: projects.createdAt
+  // Charger les projets et les owners en parallèle
+  const [projectRows, rawOwners] = await Promise.all([
+    staff
+      ? db
+          .select({
+            id: projects.id,
+            name: projects.name,
+            status: projects.status,
+            progress: projects.progress,
+            dueDate: projects.dueDate,
+            ownerId: projects.ownerId,
+            ownerName: profiles.fullName,
+            createdAt: projects.createdAt
+          })
+          .from(projects)
+          .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+          .orderBy(asc(projects.createdAt))
+      : db
+          .select({
+            id: projects.id,
+            name: projects.name,
+            status: projects.status,
+            progress: projects.progress,
+            dueDate: projects.dueDate,
+            ownerId: projects.ownerId,
+            ownerName: profiles.fullName,
+            createdAt: projects.createdAt
+          })
+          .from(projects)
+          .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+          .where(eq(projects.ownerId, user.id))
+          .orderBy(asc(projects.createdAt)),
+    staff
+      ? db.query.profiles.findMany({
+          where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
+          columns: {
+            id: true,
+            fullName: true,
+            company: true
+          },
+          orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
         })
-        .from(projects)
-        .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-        .orderBy(asc(projects.createdAt))
-    : await db
-        .select({
-          id: projects.id,
-          name: projects.name,
-          status: projects.status,
-          progress: projects.progress,
-          dueDate: projects.dueDate,
-          ownerId: projects.ownerId,
-          ownerName: profiles.fullName,
-          createdAt: projects.createdAt
-        })
-        .from(projects)
-        .leftJoin(profiles, eq(projects.ownerId, profiles.id))
-        .where(eq(projects.ownerId, user.id))
-        .orderBy(asc(projects.createdAt));
-
-  const rawOwners = staff
-    ? await db.query.profiles.findMany({
-        where: (profile, { eq: eqFn }) => eqFn(profile.role, "client"),
-        columns: {
-          id: true,
-          fullName: true,
-          company: true
-        },
-        orderBy: (profile, { asc: ascFn }) => ascFn(profile.fullName)
-      })
-    : [];
+      : Promise.resolve([])
+  ]);
 
   const ownerOptions = staff
     ? rawOwners.map((owner) => ({
@@ -131,16 +139,21 @@ async function loadDashboardData() {
   let onboardingPayload: Record<string, unknown> | null = null;
   let onboardingUpdatedAt: Date | null = null;
 
-  if (onboardingProject) {
-    const responseRow = await db
-      .select({
-        payload: onboardingResponses.payload,
-        updatedAt: onboardingResponses.updatedAt
-      })
-      .from(onboardingResponses)
-      .where(eq(onboardingResponses.projectId, onboardingProject.id))
-      .then((rows) => rows.at(0) ?? null);
+  // Charger l'onboarding en parallèle avec les autres données si un projet onboarding existe
+  const onboardingPromise = onboardingProject
+    ? db
+        .select({
+          payload: onboardingResponses.payload,
+          updatedAt: onboardingResponses.updatedAt
+        })
+        .from(onboardingResponses)
+        .where(eq(onboardingResponses.projectId, onboardingProject.id))
+        .then((rows) => rows.at(0) ?? null)
+    : Promise.resolve(null);
 
+  // Attendre l'onboarding seulement si nécessaire
+  if (onboardingProject) {
+    const responseRow = await onboardingPromise;
     onboardingPayload = (responseRow?.payload as Record<string, unknown> | null) ?? null;
     onboardingUpdatedAt = responseRow?.updatedAt ?? null;
   }

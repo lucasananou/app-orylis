@@ -90,11 +90,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Type de fichier non autorisé." }, { status: 400 });
   }
 
+  // Vérifier que le token est configuré
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!blobToken) {
+    return NextResponse.json(
+      { error: "Configuration manquante : BLOB_READ_WRITE_TOKEN n'est pas défini." },
+      { status: 500 }
+    );
+  }
+
   try {
     // Upload vers Vercel Blob
     const blob = await put(`projects/${projectId}/${file.name}`, file, {
       access: "public",
-      token: process.env.BLOB_READ_WRITE_TOKEN
+      token: blobToken
     });
 
     // Créer l'entrée en base

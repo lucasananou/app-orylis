@@ -55,10 +55,15 @@ export default function TicketsPage(props: TicketsPageProps): JSX.Element {
   return <TicketsPageContent {...props} />;
 }
 
+// Cache la session pour éviter les appels multiples
+const getCachedSession = cache(async () => {
+  return await auth();
+});
+
 async function TicketsPageContent({
   searchParams
 }: TicketsPageProps): Promise<JSX.Element> {
-  const session = await auth();
+  const session = await getCachedSession();
 
   if (!session?.user) {
     redirect("/login");
@@ -71,52 +76,56 @@ async function TicketsPageContent({
     ? (requestedStatus as TicketStatusValue | "all")
     : "all";
 
-  const accessibleProjects: ProjectOption[] = staff
-    ? await db
+  // Charger les projets et les tickets en parallèle
+  const [accessibleProjects, ticketRows] = await Promise.all([
+    staff
+      ? db
+          .select({
+            id: projects.id,
+            name: projects.name
+          })
+          .from(projects)
+          .orderBy(projects.name)
+      : db.query.projects.findMany({
+          where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
+          columns: {
+            id: true,
+            name: true
+          },
+          orderBy: (project, { asc }) => asc(project.name)
+        }),
+    (async () => {
+      const conditions: Array<SQL<unknown>> = [];
+
+      if (!staff) {
+        conditions.push(eq(projects.ownerId, user.id));
+      }
+
+      if (statusFilter !== "all") {
+        conditions.push(eq(tickets.status, statusFilter));
+      }
+
+      const baseQuery = db
         .select({
-          id: projects.id,
-          name: projects.name
+          id: tickets.id,
+          title: tickets.title,
+          description: tickets.description,
+          status: tickets.status,
+          category: tickets.category,
+          createdAt: tickets.createdAt,
+          updatedAt: tickets.updatedAt,
+          projectId: tickets.projectId,
+          projectName: projects.name
         })
-        .from(projects)
-        .orderBy(projects.name)
-    : await db.query.projects.findMany({
-        where: (project, { eq: eqFn }) => eqFn(project.ownerId, user.id),
-        columns: {
-          id: true,
-          name: true
-        },
-        orderBy: (project, { asc }) => asc(project.name)
-      });
+        .from(tickets)
+        .innerJoin(projects, eq(tickets.projectId, projects.id));
 
-  const conditions: Array<SQL<unknown>> = [];
+      const whereClause = reduceConditions(conditions);
+      const ticketQuery = whereClause ? baseQuery.where(whereClause) : baseQuery;
 
-  if (!staff) {
-    conditions.push(eq(projects.ownerId, user.id));
-  }
-
-  if (statusFilter !== "all") {
-    conditions.push(eq(tickets.status, statusFilter));
-  }
-
-  const baseQuery = db
-    .select({
-      id: tickets.id,
-      title: tickets.title,
-      description: tickets.description,
-      status: tickets.status,
-      category: tickets.category,
-      createdAt: tickets.createdAt,
-      updatedAt: tickets.updatedAt,
-      projectId: tickets.projectId,
-      projectName: projects.name
-    })
-    .from(tickets)
-    .innerJoin(projects, eq(tickets.projectId, projects.id));
-
-  const whereClause = reduceConditions(conditions);
-  const ticketQuery = whereClause ? baseQuery.where(whereClause) : baseQuery;
-
-  const ticketRows = await ticketQuery.orderBy(desc(tickets.createdAt));
+      return ticketQuery.orderBy(desc(tickets.createdAt));
+    })()
+  ]);
 
   const ticketsData: TicketItem[] = ticketRows.map((ticket) => ({
     id: ticket.id,

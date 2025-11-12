@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
@@ -14,8 +15,13 @@ import { BookOpen, Plus } from "lucide-react";
 // Cache les articles pendant 60 secondes (contenu qui change peu souvent)
 export const revalidate = 60;
 
+// Cache la session pour éviter les appels multiples
+const getCachedSession = cache(async () => {
+  return await auth();
+});
+
 async function loadGuideData() {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user) {
     redirect("/login");
   }
@@ -58,7 +64,7 @@ async function loadGuideData() {
 }
 
 export default async function GuidePage(): Promise<JSX.Element> {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user) {
     redirect("/login");
   }

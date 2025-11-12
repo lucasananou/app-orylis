@@ -101,13 +101,18 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
 
   // Supprimer le blob si c'est Vercel Blob
   if (fileRow.storageProvider === "blob") {
-    try {
-      await del(fileRow.path, {
-        token: process.env.BLOB_READ_WRITE_TOKEN
-      });
-    } catch (error) {
-      console.error("[Files] Failed to delete blob:", error);
-      // On continue quand même pour supprimer l'entrée DB
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    if (blobToken) {
+      try {
+        await del(fileRow.path, {
+          token: blobToken
+        });
+      } catch (error) {
+        console.error("[Files] Failed to delete blob:", error);
+        // On continue quand même pour supprimer l'entrée DB
+      }
+    } else {
+      console.warn("[Files] BLOB_READ_WRITE_TOKEN not configured, skipping blob deletion");
     }
   }
 
