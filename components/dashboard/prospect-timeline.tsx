@@ -130,8 +130,9 @@ export function ProspectTimeline({
           <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
             <p className="text-sm font-medium text-foreground mb-1">Prochaine étape</p>
             <p className="text-sm text-muted-foreground">
-              {PHASE_LABELS[PHASE_ORDER[currentIndex + 1]]?.label} :{" "}
-              {PHASE_LABELS[PHASE_ORDER[currentIndex + 1]]?.description}
+              {currentStatus === "onboarding"
+                ? "Prenez rendez-vous pour valider votre démo"
+                : `${PHASE_LABELS[PHASE_ORDER[currentIndex + 1]]?.label} : ${PHASE_LABELS[PHASE_ORDER[currentIndex + 1]]?.description}`}
             </p>
           </div>
         )}

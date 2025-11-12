@@ -64,7 +64,7 @@ export function ProspectCTASticky({
             size="lg"
             className="shrink-0 w-full sm:w-auto"
             onClick={() => {
-              window.location.href = "mailto:contact@orylis.fr?subject=Activation de mon accès client";
+              window.location.href = "https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p";
             }}
           >
             {statusMessage.cta}

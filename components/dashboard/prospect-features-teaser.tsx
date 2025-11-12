@@ -85,7 +85,7 @@ export function ProspectFeaturesTeaser({
             className="w-full"
             size="lg"
             onClick={() => {
-              window.location.href = "mailto:contact@orylis.fr?subject=Activation de mon accès client";
+              window.location.href = "https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p";
             }}
           >
             Devenir client maintenant

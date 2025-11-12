@@ -63,7 +63,9 @@ export function DashboardOnboardingCard({ project, role }: DashboardOnboardingCa
         </CardTitle>
         <CardDescription>
           {summary.nextAction
-            ? `Étape suivante : informations sur ton entreprise`
+            ? role === "prospect"
+              ? "Prochaine Étape : Prenez rendez-vous pour valider votre démo"
+              : `Étape suivante : informations sur ton entreprise`
             : "✅ Onboarding terminé ! Nous pouvons maintenant démarrer la création."}
         </CardDescription>
       </CardHeader>
