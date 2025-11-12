@@ -3,7 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { billingLinks, projects } from "@/lib/schema";
-import { isStaff } from "@/lib/utils";
+import { isStaff, isProspect } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { BillingLinksManager } from "@/components/billing/billing-links-manager";
@@ -68,6 +68,32 @@ async function loadBillingData() {
 
 export default async function BillingPage(): Promise<JSX.Element> {
   const { role, accessibleProjects, links } = await loadBillingData();
+  const isProspectUser = isProspect(role);
+
+  // Si c'est un prospect, afficher un message explicatif
+  if (isProspectUser) {
+    return (
+      <>
+        <PageHeader
+          title="Facturation"
+          description="Centralisez vos liens de paiement, devis et documents comptables."
+        />
+        <Card className="border border-border/70">
+          <CardContent className="py-12 text-center">
+            <p className="text-lg font-medium text-foreground mb-2">
+              Cette section est réservée aux clients
+            </p>
+            <p className="text-muted-foreground mb-4">
+              Pour accéder à la facturation, tickets et fichiers, contactez-nous pour activer votre accès complet.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              En tant que prospect, vous pouvez actuellement remplir votre onboarding et suivre l'avancement de votre projet.
+            </p>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
 
   return (
     <>

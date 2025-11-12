@@ -79,13 +79,13 @@ export async function POST(request: NextRequest) {
     // Insérer le profil sans les champs avec valeurs par défaut
     const profileValues: {
       id: string;
-      role: "client";
+      role: "prospect";
       fullName?: string | null;
       company?: string | null;
       phone?: string | null;
     } = {
       id: userId,
-      role: "client"
+      role: "prospect"
     };
     
     if (fullName) {

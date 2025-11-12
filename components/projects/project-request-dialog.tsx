@@ -34,6 +34,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { canRequestModifications, type UserRole } from "@/lib/utils";
 
 const REQUEST_KINDS = [
   {
@@ -79,9 +80,11 @@ type ProjectRequestFormValues = z.infer<typeof projectRequestSchema>;
 interface ProjectRequestDialogProps {
   projectId: string;
   projectName: string;
+  role?: UserRole;
 }
 
-export function ProjectRequestDialog({ projectId, projectName }: ProjectRequestDialogProps) {
+export function ProjectRequestDialog({ projectId, projectName, role = "client" }: ProjectRequestDialogProps) {
+  const canAccess = canRequestModifications(role);
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSubmitting, startTransition] = React.useTransition();
@@ -146,6 +149,15 @@ export function ProjectRequestDialog({ projectId, projectName }: ProjectRequestD
       }
     });
   };
+
+  if (!canAccess) {
+    return (
+      <Button type="button" size="sm" disabled title="Réservé aux clients">
+        <Plus className="mr-2 h-4 w-4" />
+        Demander une modification
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

@@ -5,10 +5,38 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type UserRole = "client" | "staff";
+export type UserRole = "prospect" | "client" | "staff";
 
 export function isStaff(role: UserRole | undefined | null): role is "staff" {
   return role === "staff";
+}
+
+export function isProspect(role: UserRole | undefined | null): role is "prospect" {
+  return role === "prospect";
+}
+
+export function isClient(role: UserRole | undefined | null): role is "client" {
+  return role === "client";
+}
+
+export function canAccessTickets(role: UserRole | undefined | null): boolean {
+  return role === "client" || role === "staff";
+}
+
+export function canAccessFiles(role: UserRole | undefined | null): boolean {
+  return role === "client" || role === "staff";
+}
+
+export function canAccessBilling(role: UserRole | undefined | null): boolean {
+  return role === "client" || role === "staff";
+}
+
+export function canRequestModifications(role: UserRole | undefined | null): boolean {
+  return role === "client" || role === "staff";
+}
+
+export function canGiveFeedback(role: UserRole | undefined | null): boolean {
+  return role === "client" || role === "staff";
 }
 
 export function userCanAccessProject(params: {

@@ -14,6 +14,7 @@ export type EmailTemplateType =
   | "welcome"
   | "welcome_with_credentials"
   | "project_created"
+  | "prospect_promoted"
   | "ticket_created"
   | "ticket_reply"
   | "ticket_updated"
@@ -586,6 +587,56 @@ export async function sendProjectCreatedEmail(
   return sendEmail({
     to: user.email,
     subject: replaceTemplateVariables(template.subject, { userName, projectName }),
+    html
+  });
+}
+
+/**
+ * Email de notification : prospect promu en client
+ */
+export async function sendProspectPromotedEmail(recipientUserId: string) {
+  const user = await getUserInfo(recipientUserId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  // Template par défaut
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">Félicitations {{userName}} ! 🎉</h2>
+    <p>Votre accès à l'espace client Orylis a été activé.</p>
+    <p>Vous pouvez maintenant accéder à toutes les fonctionnalités :</p>
+    <ul>
+      <li>📋 Créer et suivre vos tickets</li>
+      <li>📁 Uploader et gérer vos fichiers</li>
+      <li>💳 Accéder à vos factures</li>
+      <li>💬 Demander des modifications et donner votre feedback</li>
+    </ul>
+    <p>Connectez-vous dès maintenant pour découvrir toutes les fonctionnalités disponibles.</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Accéder à mon espace",
+    `${appUrl}/`
+  );
+
+  // Récupérer le template depuis la DB ou utiliser le fallback
+  const template = await getTemplateFromDB(
+    "prospect_promoted",
+    "Votre accès client a été activé",
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName,
+    loginUrl: `${appUrl}/`
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: replaceTemplateVariables(template.subject, { userName }),
     html
   });
 }

@@ -7,7 +7,7 @@ import { projects, tickets, profiles } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
 import { sendTicketCreatedEmailToAdmin } from "@/lib/emails";
 import { ticketCreateSchema } from "@/lib/zod-schemas";
-import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
+import { assertUserCanAccessProject, isStaff, canAccessTickets, isProspect } from "@/lib/utils";
 
 type TicketStatus = "open" | "in_progress" | "done";
 
@@ -27,6 +27,14 @@ export async function GET(request: NextRequest) {
 
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  }
+
+  // Vérifier que l'utilisateur n'est pas un prospect
+  if (isProspect(session.user.role)) {
+    return NextResponse.json(
+      { error: "Cette fonctionnalité est réservée aux clients. Contactez-nous pour activer votre accès complet." },
+      { status: 403 }
+    );
   }
 
   const url = new URL(request.url);
@@ -76,6 +84,14 @@ export async function POST(request: NextRequest) {
 
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  }
+
+  // Vérifier que l'utilisateur n'est pas un prospect
+  if (isProspect(session.user.role)) {
+    return NextResponse.json(
+      { error: "Cette fonctionnalité est réservée aux clients. Contactez-nous pour activer votre accès complet." },
+      { status: 403 }
+    );
   }
 
   const parsedBody = await request.json().catch(() => null);
@@ -133,11 +149,13 @@ export async function POST(request: NextRequest) {
   const creatorName = session.user.name ?? session.user.email ?? "Un utilisateur";
 
   try {
+    // Si c'est un client qui crée le ticket, notifier le staff
+    // Si c'est le staff qui crée le ticket, notifier le client (propriétaire)
     await notifyProjectParticipants({
       projectId,
       excludeUserIds: [session.user.id],
-      includeOwner: session.user.role === "staff",
-      includeStaff: true,
+      includeOwner: isStaff(session.user.role), // Notifier le client si c'est le staff qui crée
+      includeStaff: !isStaff(session.user.role), // Notifier le staff si c'est un client qui crée
       type: "ticket_created",
       title: "Nouveau ticket",
       body: `Le ticket "${title}" a été créé par ${creatorName}.`,

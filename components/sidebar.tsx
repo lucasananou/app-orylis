@@ -13,7 +13,7 @@ import {
   UserRound,
   Settings
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, canAccessTickets, canAccessFiles, canAccessBilling, type UserRole } from "@/lib/utils";
 
 const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -25,12 +25,13 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
 ];
 
 const adminNavItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
+  { href: "/admin/clients", label: "Gestion des clients", icon: UserRound },
   { href: "/admin/emails", label: "Gestion des emails", icon: Settings }
 ];
 
 export interface SidebarProps {
   className?: string;
-  role?: "client" | "staff";
+  role?: UserRole;
 }
 
 export function Sidebar({ className, role = "client" }: SidebarProps) {
@@ -66,19 +67,39 @@ export function Sidebar({ className, role = "client" }: SidebarProps) {
             (pathname === item.href || pathname?.startsWith(`${item.href}/`));
           const active = isRoot ? isActive : isNested;
 
-          return (
-            <Link
-              key={item.href}
-              href={{ pathname: item.href }}
+          // Vérifier les permissions pour tickets, files, billing
+          const isRestricted =
+            (item.href === "/tickets" && !canAccessTickets(role)) ||
+            (item.href === "/files" && !canAccessFiles(role)) ||
+            (item.href === "/billing" && !canAccessBilling(role));
+
+          const content = (
+            <div
               className={cn(
-                "inline-flex min-h-[44px] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:px-4 lg:py-3",
-                active
-                  ? "bg-accent/10 text-accent"
-                  : "text-muted-foreground hover:bg-[rgba(0,0,0,0.03)] hover:text-foreground"
+                "inline-flex min-h-[44px] w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:px-4 lg:py-3",
+                isRestricted
+                  ? "cursor-not-allowed opacity-50"
+                  : active
+                    ? "bg-accent/10 text-accent"
+                    : "text-muted-foreground hover:bg-[rgba(0,0,0,0.03)] hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>
+            </div>
+          );
+
+          if (isRestricted) {
+            return (
+              <div key={item.href} title="Réservé aux clients">
+                {content}
+              </div>
+            );
+          }
+
+          return (
+            <Link key={item.href} href={{ pathname: item.href }}>
+              {content}
             </Link>
           );
         })}

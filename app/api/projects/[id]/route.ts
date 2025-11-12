@@ -77,14 +77,16 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
   // Construire le message de mise à jour
   const updateMessages: string[] = [];
-  if (update.status && update.status !== projectBefore.status) {
-    const statusLabels: Record<string, string> = {
-      onboarding: "Onboarding",
-      design: "Design",
-      build: "Build",
-      review: "Review",
-      delivered: "Livré"
-    };
+  const statusChanged = update.status && update.status !== projectBefore.status;
+  const statusLabels: Record<string, string> = {
+    onboarding: "Onboarding",
+    design: "Design",
+    build: "Développement",
+    review: "Review",
+    delivered: "Livré"
+  };
+  
+  if (statusChanged) {
     updateMessages.push(
       `Statut : ${statusLabels[projectBefore.status] ?? projectBefore.status} → ${statusLabels[update.status as string] ?? update.status}`
     );
@@ -99,19 +101,39 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   const updateMessage = updateMessages.length > 0 ? updateMessages.join(", ") : "Mise à jour du projet";
 
   // Notifier dans l'app
+
   try {
-    await notifyProjectParticipants({
-      projectId: id,
-      excludeUserIds: [session.user.id],
-      includeOwner: true,
-      includeStaff: false,
-      type: "onboarding_update",
-      title: "Projet mis à jour",
-      body: updateMessage,
-      metadata: {
-        projectId: id
-      }
-    });
+    if (statusChanged) {
+      // Notification spéciale pour changement de statut
+      await notifyProjectParticipants({
+        projectId: id,
+        excludeUserIds: [session.user.id],
+        includeOwner: true, // Le client doit être notifié du changement de statut
+        includeStaff: false, // Le staff a fait le changement, pas besoin de le notifier
+        type: "onboarding_update",
+        title: "Projet mis à jour",
+        body: `Votre projet "${projectBefore.name}" est passé en phase ${statusLabels[update.status as string] ?? update.status}.`,
+        metadata: {
+          projectId: id,
+          status: update.status,
+          previousStatus: projectBefore.status
+        }
+      });
+    } else if (updateMessages.length > 0) {
+      // Notification pour autres mises à jour (progression, nom, etc.)
+      await notifyProjectParticipants({
+        projectId: id,
+        excludeUserIds: [session.user.id],
+        includeOwner: true,
+        includeStaff: false,
+        type: "onboarding_update",
+        title: "Projet mis à jour",
+        body: updateMessage,
+        metadata: {
+          projectId: id
+        }
+      });
+    }
   } catch (error) {
     console.error("[Notifications] Échec de la notification project_updated:", error);
   }

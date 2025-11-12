@@ -11,17 +11,19 @@ import {
   onboardingResponses,
   projects,
   profiles,
+  projectMessages,
   tickets
 } from "@/lib/schema";
 import { summarizeOnboardingPayload } from "@/lib/onboarding-summary";
 import { countUnreadNotifications } from "@/lib/notifications";
-import { formatDate, formatProgress, isStaff } from "@/lib/utils";
+import { formatDate, formatProgress, isStaff, isProspect } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 import { DashboardProjects } from "@/components/dashboard/dashboard-projects";
 import { ClientCreateDialog } from "@/components/admin/client-create-dialog";
@@ -34,6 +36,10 @@ import {
   type DashboardActivityItem
 } from "@/components/dashboard/dashboard-activity";
 import { DashboardOnboardingCard } from "@/components/dashboard/dashboard-onboarding-card";
+import { ProspectTimeline } from "@/components/dashboard/prospect-timeline";
+import { ProspectStaffMessages } from "@/components/dashboard/prospect-staff-messages";
+import { ProspectFeaturesTeaser } from "@/components/dashboard/prospect-features-teaser";
+import { ProspectCTASticky } from "@/components/dashboard/prospect-cta-sticky";
 
 // Cache les données du dashboard pendant 30 secondes pour améliorer les performances
 export const revalidate = 30;
@@ -295,6 +301,57 @@ async function loadDashboardData() {
 
   unreadNotifications = await countUnreadNotifications(user.id);
 
+  // Charger les messages staff pour les prospects
+  let staffMessages: Array<{
+    id: string;
+    message: string;
+    authorName: string | null;
+    createdAt: string;
+  }> = [];
+
+  if (isProspectUser && projectsData.length > 0) {
+    const projectIds = projectsData.map((p) => p.id);
+    const messagesRows = await db
+      .select({
+        id: projectMessages.id,
+        message: projectMessages.message,
+        authorName: profiles.fullName,
+        createdAt: projectMessages.createdAt
+      })
+      .from(projectMessages)
+      .innerJoin(profiles, eq(projectMessages.authorId, profiles.id))
+      .where(inArray(projectMessages.projectId, projectIds))
+      .orderBy(desc(projectMessages.createdAt))
+      .limit(5);
+
+    staffMessages = messagesRows.map((msg) => ({
+      id: msg.id,
+      message: msg.message,
+      authorName: msg.authorName,
+      createdAt: msg.createdAt.toISOString()
+    }));
+  }
+
+  // Compter les fichiers et tickets pour le teaser (si client)
+  let filesCount = 0;
+  let ticketsCount = 0;
+
+  if (!isProspectUser && projectsData.length > 0) {
+    const projectIds = projectsData.map((p) => p.id);
+    const [filesRows, ticketsRows] = await Promise.all([
+      db
+        .select({ id: files.id })
+        .from(files)
+        .where(inArray(files.projectId, projectIds)),
+      db
+        .select({ id: tickets.id })
+        .from(tickets)
+        .where(inArray(tickets.projectId, projectIds))
+    ]);
+    filesCount = filesRows.length;
+    ticketsCount = ticketsRows.length;
+  }
+
   const totalProjects = projectsData.length;
   const deliveredProjects = projectsData.filter((project) => project.status === "delivered").length;
   const activeProjects = totalProjects - deliveredProjects;
@@ -362,19 +419,36 @@ async function loadDashboardData() {
   return {
     role: user.role,
     staff,
+    isProspectUser,
     ownerOptions,
     projectsData,
     highlights,
     onboardingCardProject,
     activityItems: recentActivity,
     userName: user.name,
-    userEmail: user.email
+    userEmail: user.email,
+    staffMessages,
+    filesCount,
+    ticketsCount
   };
 }
 
 export default async function DashboardHomePage(): Promise<JSX.Element> {
-  const { role, staff, ownerOptions, projectsData, highlights, onboardingCardProject, activityItems, userName, userEmail } =
-    await loadDashboardData();
+  const {
+    role,
+    staff,
+    isProspectUser,
+    ownerOptions,
+    projectsData,
+    highlights,
+    onboardingCardProject,
+    activityItems,
+    userName,
+    userEmail,
+    staffMessages,
+    filesCount,
+    ticketsCount
+  } = await loadDashboardData();
 
   // Pour les clients non-staff, utiliser le nom du premier projet s'il existe
   // Sinon, utiliser le prénom comme fallback
@@ -386,6 +460,63 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
     greetingName = firstName;
   }
 
+  // Vue spéciale pour les prospects
+  if (isProspectUser && projectsData.length > 0) {
+    const mainProject = projectsData[0];
+    return (
+      <>
+        {/* Message de bienvenue avec badge prospect */}
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-border/70 bg-gradient-to-r from-accent/5 to-accent/10 p-4 sm:mb-6 sm:gap-4 sm:rounded-2xl sm:p-6">
+          <Avatar className="h-12 w-12 ring-2 ring-accent/20 sm:h-14 sm:w-14">
+            <AvatarFallback className="bg-accent/10 text-base font-semibold text-accent sm:text-lg">
+              {(userName ?? userEmail ?? "U").slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-lg font-semibold text-foreground sm:text-xl md:text-2xl">
+                Bonjour {greetingName} 👋
+              </h2>
+              <Badge variant="secondary" className="text-xs">Prospect</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              Votre projet {mainProject.name} est en cours. Suivez son avancement ci-dessous.
+            </p>
+          </div>
+        </div>
+
+        {/* Timeline et progression */}
+        <div className="mb-6">
+          <ProspectTimeline
+            projectName={mainProject.name}
+            currentStatus={mainProject.status}
+            progress={mainProject.progress}
+            createdAt={mainProject.createdAt}
+          />
+        </div>
+
+        {/* Messages staff */}
+        {staffMessages.length > 0 && (
+          <div className="mb-6">
+            <ProspectStaffMessages messages={staffMessages} projectName={mainProject.name} />
+          </div>
+        )}
+
+        {/* Teaser fonctionnalités client */}
+        <div className="mb-6">
+          <ProspectFeaturesTeaser filesCount={filesCount} ticketsCount={ticketsCount} />
+        </div>
+
+        {/* CTA Sticky */}
+        <ProspectCTASticky
+          projectStatus={mainProject.status}
+          projectProgress={mainProject.progress}
+        />
+      </>
+    );
+  }
+
+  // Vue normale pour clients et staff
   return (
     <>
       {/* Message de bienvenue avec avatar */}

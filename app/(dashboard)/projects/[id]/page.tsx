@@ -169,8 +169,8 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
               <div className="flex flex-wrap gap-3">
                 {canCreateRequest ? (
                   <>
-                    <ProjectRequestDialog projectId={projectRow.id} projectName={projectRow.name} />
-                    <ProjectFeedbackDialog projectId={projectRow.id} projectName={projectRow.name} />
+                    <ProjectRequestDialog projectId={projectRow.id} projectName={projectRow.name} role={user.role} />
+                    <ProjectFeedbackDialog projectId={projectRow.id} projectName={projectRow.name} role={user.role} />
                   </>
                 ) : null}
                 <Button asChild variant="outline">

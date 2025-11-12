@@ -6,10 +6,11 @@ import type { SQL } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, tickets } from "@/lib/schema";
-import { isStaff } from "@/lib/utils";
+import { isStaff, isProspect } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { TicketsClient } from "@/components/tickets/tickets-client";
+import { Card, CardContent } from "@/components/ui/card";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Tous" },
@@ -72,7 +73,33 @@ async function TicketsPageContent({
 
   const user = session.user!;
   const staff = isStaff(user.role);
+  const isProspectUser = isProspect(user.role);
   const requestedStatus = searchParams.status;
+
+  // Si c'est un prospect, afficher un message explicatif
+  if (isProspectUser) {
+    return (
+      <>
+        <PageHeader
+          title="Tickets"
+          description="Créez des demandes pour suivre vos besoins produit & design avec l'équipe Orylis."
+        />
+        <Card className="border border-border/70">
+          <CardContent className="py-12 text-center">
+            <p className="text-lg font-medium text-foreground mb-2">
+              Cette section est réservée aux clients
+            </p>
+            <p className="text-muted-foreground mb-4">
+              Pour accéder aux tickets, fichiers et facturation, contactez-nous pour activer votre accès complet.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              En tant que prospect, vous pouvez actuellement remplir votre onboarding et suivre l'avancement de votre projet.
+            </p>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
   const statusFilter = STATUS_OPTIONS.some((option) => option.value === requestedStatus)
     ? (requestedStatus as TicketStatusValue | "all")
     : "all";

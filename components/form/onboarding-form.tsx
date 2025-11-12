@@ -597,7 +597,9 @@ const customPagesArray = useFieldArray({
   const inspirationFields = inspirationsArray.fields;
   const competitorFields = competitorsArray.fields;
 
-  const isLocked = isCompleted && !isStaffRole;
+  // Permettre l'édition même si l'onboarding est complété
+  // Le client peut vouloir corriger ou mettre à jour ses informations
+  const isLocked = false;
 
   return (
     <div className="space-y-6">
@@ -657,23 +659,22 @@ const customPagesArray = useFieldArray({
         </CardContent>
       </Card>
 
-      {isLocked && (
-        <Card className="border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100/80 text-emerald-900 shadow-lg">
+      {isCompleted && !isStaffRole && (
+        <Card className="border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100/80 text-blue-900 shadow-lg">
           <CardHeader className="flex-row items-center gap-3 space-y-0 pb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-white">
               <CheckCircle2 className="h-7 w-7" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg font-semibold">✅ Onboarding terminé !</CardTitle>
-              <p className="text-sm text-emerald-800/90 mt-1">
-                Nous pouvons maintenant démarrer la création de votre projet.
+              <p className="text-sm text-blue-800/90 mt-1">
+                Vous pouvez toujours modifier vos informations si nécessaire.
               </p>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-emerald-900/80">
-              Les informations ont été transmises à l'équipe Orylis. Contactez-nous si vous devez
-              effectuer une modification.
+            <p className="text-sm text-blue-900/80">
+              Les informations ont été transmises à l'équipe Orylis. Vous pouvez mettre à jour vos réponses à tout moment.
             </p>
           </CardContent>
         </Card>
@@ -1289,17 +1290,17 @@ const customPagesArray = useFieldArray({
                 <Button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isLocked || isSubmitting || !form.watch("confirm")}
+                  disabled={isSubmitting || !form.watch("confirm")}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Validation…
+                      {isCompleted ? "Mise à jour…" : "Validation…"}
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Valider l’onboarding
+                      {isCompleted ? "Mettre à jour l'onboarding" : "Valider l'onboarding"}
                     </>
                   )}
                 </Button>
@@ -1320,6 +1321,7 @@ interface OnboardingCompletedViewProps {
   lastSavedAt: Date | null;
   projectId: string;
   isStaffRole: boolean;
+  role: UserRole;
   onEdit: () => void;
 }
 
@@ -1331,6 +1333,7 @@ function OnboardingCompletedView({
   lastSavedAt,
   projectId,
   isStaffRole,
+  role,
   onEdit
 }: OnboardingCompletedViewProps) {
   const statusLabels: Record<string, string> = {
@@ -1387,8 +1390,8 @@ function OnboardingCompletedView({
           </div>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <ProjectRequestDialog projectId={projectId} projectName={projectName} />
-          <ProjectFeedbackDialog projectId={projectId} projectName={projectName} />
+          <ProjectRequestDialog projectId={projectId} projectName={projectName} role={role} />
+          <ProjectFeedbackDialog projectId={projectId} projectName={projectName} role={role} />
           <Button type="button" variant="outline" onClick={onEdit}>
             {editLabel}
           </Button>

@@ -151,14 +151,14 @@ export async function POST(req: NextRequest) {
     })
     .where(eq(projects.id, projectId));
 
-  // Si l'onboarding est complété, envoyer un email au staff
+  // Si l'onboarding est complété, notifier le staff ET le client
   if (completed && project) {
     try {
       await notifyProjectParticipants({
         projectId,
         excludeUserIds: [session.user.id],
-        includeOwner: false,
-        includeStaff: true,
+        includeOwner: true, // Notifier le client que son onboarding est complété
+        includeStaff: true, // Notifier le staff qu'un onboarding est complété
         type: "onboarding_update",
         title: "Onboarding complété",
         body: `L'onboarding du projet "${project.name}" a été complété.`,

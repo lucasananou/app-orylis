@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { files, profiles, projects } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
 import { sendFileUploadedEmailToAdmin } from "@/lib/emails";
-import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
+import { assertUserCanAccessProject, isStaff, canAccessFiles, isProspect } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,14 @@ export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  }
+
+  // Vérifier que l'utilisateur n'est pas un prospect
+  if (isProspect(session.user.role)) {
+    return NextResponse.json(
+      { error: "Cette fonctionnalité est réservée aux clients. Contactez-nous pour activer votre accès complet." },
+      { status: 403 }
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -80,6 +88,14 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  }
+
+  // Vérifier que l'utilisateur n'est pas un prospect
+  if (isProspect(session.user.role)) {
+    return NextResponse.json(
+      { error: "Cette fonctionnalité est réservée aux clients. Contactez-nous pour activer votre accès complet." },
+      { status: 403 }
+    );
   }
 
   const body = await req.json().catch(() => null);

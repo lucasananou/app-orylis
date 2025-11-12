@@ -27,6 +27,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
+import { canGiveFeedback, type UserRole } from "@/lib/utils";
 
 const feedbackSchema = z.object({
   title: z
@@ -44,9 +45,11 @@ type FeedbackFormValues = z.infer<typeof feedbackSchema>;
 interface ProjectFeedbackDialogProps {
   projectId: string;
   projectName: string;
+  role?: UserRole;
 }
 
-export function ProjectFeedbackDialog({ projectId, projectName }: ProjectFeedbackDialogProps) {
+export function ProjectFeedbackDialog({ projectId, projectName, role = "client" }: ProjectFeedbackDialogProps) {
+  const canAccess = canGiveFeedback(role);
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSubmitting, startTransition] = React.useTransition();
@@ -103,6 +106,15 @@ export function ProjectFeedbackDialog({ projectId, projectName }: ProjectFeedbac
       }
     });
   };
+
+  if (!canAccess) {
+    return (
+      <Button type="button" size="sm" variant="outline" disabled title="Réservé aux clients">
+        <MessageSquarePlus className="mr-2 h-4 w-4" />
+        Partager un feedback
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

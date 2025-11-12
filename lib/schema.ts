@@ -23,7 +23,7 @@ export const authUsers = pgTable("user", {
   image: text("image")
 });
 
-export const profileRoleEnum = pgEnum("profile_role", ["client", "staff"]);
+export const profileRoleEnum = pgEnum("profile_role", ["prospect", "client", "staff"]);
 export const projectStatusEnum = pgEnum("project_status", [
   "onboarding",
   "design",
@@ -57,6 +57,7 @@ export const emailTemplateTypeEnum = pgEnum("email_template_type", [
   "welcome",
   "welcome_with_credentials",
   "project_created",
+  "prospect_promoted",
   "ticket_created",
   "ticket_reply",
   "ticket_updated",
@@ -71,7 +72,7 @@ export const profiles = createTable(
     id: text("id")
       .primaryKey()
       .references(() => authUsers.id, { onDelete: "cascade" }),
-    role: profileRoleEnum("role").notNull().default("client"),
+    role: profileRoleEnum("role").notNull().default("prospect"),
     fullName: text("full_name"),
     company: text("company"),
     phone: text("phone"),
@@ -242,6 +243,28 @@ export const notifications = createTable(
     userIdx: index("notifications_user_id_idx").on(notification.userId),
     projectIdx: index("notifications_project_id_idx").on(notification.projectId),
     readIdx: index("notifications_read_at_idx").on(notification.readAt)
+  })
+);
+
+export const projectMessages = createTable(
+  "project_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+  },
+  (message) => ({
+    projectIdx: index("project_messages_project_id_idx").on(message.projectId),
+    authorIdx: index("project_messages_author_id_idx").on(message.authorId),
+    createdAtIdx: index("project_messages_created_at_idx").on(message.createdAt)
   })
 );
 
