@@ -60,6 +60,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid template type" }, { status: 400 });
     }
 
+    // Préparer les variables JSONB de manière sûre
+    let variablesJsonb: unknown = null;
+    if (variables) {
+      try {
+        // S'assurer que c'est un objet/array valide et le sérialiser correctement
+        const serialized = JSON.stringify(variables);
+        variablesJsonb = JSON.parse(serialized);
+      } catch {
+        variablesJsonb = null;
+      }
+    }
+
     // Upsert le template
     const [template] = await db
       .insert(emailTemplates)
@@ -68,7 +80,7 @@ export async function POST(req: NextRequest) {
         subject,
         htmlContent,
         textContent: textContent ?? null,
-        variables: variables ? JSON.parse(JSON.stringify(variables)) : null
+        variables: variablesJsonb
       })
       .onConflictDoUpdate({
         target: emailTemplates.type,
@@ -76,8 +88,8 @@ export async function POST(req: NextRequest) {
           subject,
           htmlContent,
           textContent: textContent ?? null,
-          variables: variables ? JSON.parse(JSON.stringify(variables)) : null,
-          updatedAt: new Date()
+          variables: variablesJsonb
+          // updatedAt sera mis à jour automatiquement par le trigger SQL
         }
       })
       .returning();
