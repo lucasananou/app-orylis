@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
-import { Navbar } from "@/components/navbar";
+import { NavbarWrapper } from "@/components/navbar-wrapper";
 
 // Cache le layout pendant 10 secondes (les projets changent peu souvent)
 export const revalidate = 10;
@@ -62,14 +62,14 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen bg-background">
       <Sidebar role={data.role} />
       <div className="flex flex-1 flex-col">
-        <Navbar
+        <NavbarWrapper
           role={data.role}
           userEmail={data.userEmail}
           userName={data.userName}
           projects={data.accessibleProjects}
         />
-        <main className="flex-1 bg-gradient-to-b from-[#F7F9FB] via-white to-white px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10">
-          <div className="mx-auto w-full max-w-6xl space-y-6 sm:space-y-8 md:space-y-10">{children}</div>
+        <main className="flex-1 bg-gradient-to-b from-[#F7F9FB] via-white to-white px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6">
+          <div className="mx-auto w-full max-w-6xl space-y-4">{children}</div>
         </main>
       </div>
     </div>

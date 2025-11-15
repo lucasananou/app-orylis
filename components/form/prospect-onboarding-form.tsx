@@ -58,7 +58,7 @@ const STYLE_OPTIONS = [
 type ProspectOnboardingFormState = {
   companyName: string;
   activity: string;
-  siteGoal: "present_services" | "get_contacts" | "sell_online" | "optimize_image" | "other" | "" | undefined;
+  siteGoal: string[];
   siteGoalOther: string;
   inspirationUrls: string[];
   preferredStyles: string[];
@@ -132,7 +132,7 @@ const buildDefaultValues = (
   return {
     companyName: ensureString(payload.companyName),
     activity: ensureString(payload.activity),
-    siteGoal: (payload.siteGoal as ProspectOnboardingFormState["siteGoal"]) ?? "",
+    siteGoal: ensureStringArray(payload.siteGoal),
     siteGoalOther: ensureString(payload.siteGoalOther),
     inspirationUrls: inspirationUrls.length > 0 ? inspirationUrls : ["", "", ""],
     preferredStyles: ensureStringArray(payload.preferredStyles),
@@ -158,9 +158,9 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
     draft.activity = trimmed(values.activity);
   }
 
-  if (values.siteGoal) {
+  if (values.siteGoal && values.siteGoal.length > 0) {
     draft.siteGoal = values.siteGoal as ProspectOnboardingDraftPayload["siteGoal"];
-    if (values.siteGoal === "other" && values.siteGoalOther.trim().length > 0) {
+    if (values.siteGoal.includes("other") && values.siteGoalOther.trim().length > 0) {
       draft.siteGoalOther = trimmed(values.siteGoalOther);
     }
   }
@@ -209,7 +209,7 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
 const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnboardingPayload => {
   const trimmed = (input: string) => input.trim();
 
-  if (!values.siteGoal) {
+  if (!values.siteGoal || values.siteGoal.length === 0) {
     throw new Error("siteGoal est requis");
   }
 
@@ -221,7 +221,7 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
     companyName: values.companyName.trim().length > 0 ? trimmed(values.companyName) : undefined,
     activity: trimmed(values.activity),
     siteGoal: values.siteGoal as ProspectOnboardingPayload["siteGoal"],
-    siteGoalOther: values.siteGoal === "other" ? trimmed(values.siteGoalOther) : undefined,
+    siteGoalOther: values.siteGoal.includes("other") ? trimmed(values.siteGoalOther) : undefined,
     inspirationUrls: values.inspirationUrls
       .map((url) => trimmed(url))
       .filter((url) => url.length > 0),
@@ -455,7 +455,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       stepPayload = {
         companyName: values.companyName,
         activity: values.activity,
-        siteGoal: values.siteGoal ? values.siteGoal : undefined,
+        siteGoal: values.siteGoal.length > 0 ? values.siteGoal : undefined,
         siteGoalOther: values.siteGoalOther
       };
     } else if (index === 1) {
@@ -668,17 +668,21 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                         <div className="space-y-3">
                           {SITE_GOAL_OPTIONS.map((option) => (
                             <div key={option.value} className="flex items-center space-x-2">
-                              <input
-                                type="radio"
+                              <Checkbox
                                 id={option.value}
-                                value={option.value}
-                                checked={field.value === option.value}
-                                onChange={() => field.onChange(option.value)}
-                                className="h-4 w-4 border-primary text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                checked={field.value?.includes(option.value)}
+                                onCheckedChange={(checked) => {
+                                  const current = field.value || [];
+                                  if (checked) {
+                                    field.onChange([...current, option.value]);
+                                  } else {
+                                    field.onChange(current.filter((v) => v !== option.value));
+                                  }
+                                }}
                               />
                               <label
                                 htmlFor={option.value}
-                                className="text-sm font-medium leading-none cursor-pointer"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                               >
                                 {option.label}
                               </label>
@@ -691,7 +695,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   )}
                 />
 
-                {watch("siteGoal") === "other" && (
+                {watch("siteGoal")?.includes("other") && (
                   <FormField
                     control={control}
                     name="siteGoalOther"

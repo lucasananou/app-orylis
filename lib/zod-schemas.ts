@@ -462,12 +462,9 @@ export const ProspectOnboardingStep1Schema = z.object({
     .string()
     .min(2, { message: "Merci d'indiquer votre activité principale." })
     .max(200, { message: "200 caractères maximum." }),
-  siteGoal: z.enum(
-    ["present_services", "get_contacts", "sell_online", "optimize_image", "other"],
-    {
-      errorMap: () => ({ message: "Sélectionnez un objectif pour votre site." })
-    }
-  ),
+  siteGoal: z
+    .array(z.enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"]))
+    .min(1, { message: "Sélectionnez au moins un objectif pour votre site." }),
   siteGoalOther: z.string().max(200).optional()
 });
 
@@ -519,9 +516,7 @@ export const ProspectOnboardingStep4Schema = z.object({
 export const ProspectOnboardingDraftSchema = z.object({
   companyName: z.string().optional(),
   activity: z.string().optional(),
-  siteGoal: z
-    .enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"])
-    .optional(),
+  siteGoal: z.array(z.enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"])).optional(),
   siteGoalOther: z.string().optional(),
   inspirationUrls: z.array(z.string()).optional(),
   preferredStyles: z.array(z.string()).optional(),
@@ -541,8 +536,8 @@ export const ProspectOnboardingFinalSchema = ProspectOnboardingStep1Schema.merge
   .merge(ProspectOnboardingStep4Schema)
   .refine(
     (data) => {
-      // Si siteGoal est "other", siteGoalOther doit être rempli
-      if (data.siteGoal === "other" && (!data.siteGoalOther || data.siteGoalOther.trim().length === 0)) {
+      // Si siteGoal contient "other", siteGoalOther doit être rempli
+      if (data.siteGoal?.includes("other") && (!data.siteGoalOther || data.siteGoalOther.trim().length === 0)) {
         return false;
       }
       return true;
