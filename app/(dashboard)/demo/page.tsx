@@ -116,103 +116,104 @@ export default async function DemoPage(): Promise<JSX.Element> {
 
           {/* Bloc 2 : Options d'action */}
           <div className="space-y-4 sm:space-y-6 w-full">
-          {/* Message FOMO */}
-          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md w-full">
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <span className="text-xl sm:text-2xl shrink-0">⚡</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-orange-900 sm:text-base break-words">
-                    Validez votre site aujourd&apos;hui et réservez votre créneau de mise en ligne.
-                  </p>
-                  <p className="mt-1 text-xs text-orange-700 sm:text-sm break-words">
-                    Les projets validés aujourd&apos;hui passent en priorité pour une mise en ligne rapide.
-                  </p>
+            {/* Message FOMO */}
+            <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md w-full">
+              <CardContent className="pt-4 sm:pt-6">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <span className="text-xl sm:text-2xl shrink-0">⚡</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-orange-900 sm:text-base break-words">
+                      Validez votre site aujourd&apos;hui et réservez votre créneau de mise en ligne.
+                    </p>
+                    <p className="mt-1 text-xs text-orange-700 sm:text-sm break-words">
+                      Les projets validés aujourd&apos;hui passent en priorité pour une mise en ligne rapide.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="border border-border/70 bg-white shadow-subtle w-full">
-            <CardHeader className="pb-3 sm:pb-4">
-              <CardTitle className="text-base sm:text-lg break-words">Prochaines étapes</CardTitle>
-              <CardDescription className="text-xs sm:text-sm break-words">
-                Choisissez comment vous souhaitez avancer avec votre projet
-              </CardDescription>
-              <p className="mt-2 text-xs text-muted-foreground sm:text-sm break-words">
-                Choisissez comment vous souhaitez avancer, vous gardez la main sur la suite du projet.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
-              <Button
-                size="lg"
-                className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-lg hover:-translate-y-[1px] text-sm sm:text-base"
-                asChild
-              >
-                <a
-                  href="https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p"
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <Card className="border border-border/70 bg-white shadow-subtle w-full">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-base sm:text-lg break-words">Prochaines étapes</CardTitle>
+                <CardDescription className="text-xs sm:text-sm break-words">
+                  Choisissez comment vous souhaitez avancer avec votre projet
+                </CardDescription>
+                <p className="mt-2 text-xs text-muted-foreground sm:text-sm break-words">
+                  Choisissez comment vous souhaitez avancer, vous gardez la main sur la suite du projet.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4">
+                <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
+                <Button
+                  size="lg"
+                  className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-lg hover:-translate-y-[1px] text-sm sm:text-base"
+                  asChild
                 >
-                  <CreditCard className="mr-2 h-4 w-4 shrink-0" />
-                  Valider mon site et passer à la suite
-                </a>
-              </Button>
-              <Button size="lg" variant="outline" className="w-full text-sm sm:text-base" asChild>
-                <a
-                  href="https://calendly.com/lucas-orylis/30min"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Calendar className="mr-2 h-4 w-4 shrink-0" />
-                  Prendre rendez-vous avec Lucas
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                  <a
+                    href="https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <CreditCard className="mr-2 h-4 w-4 shrink-0" />
+                    Valider mon site et passer à la suite
+                  </a>
+                </Button>
+                <Button size="lg" variant="outline" className="w-full text-sm sm:text-base" asChild>
+                  <a
+                    href="https://calendly.com/lucas-orylis/30min"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Calendar className="mr-2 h-4 w-4 shrink-0" />
+                    Prendre rendez-vous avec Lucas
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
 
-          {/* Bloc 3 : Informations */}
-          <Card className="border border-accent/30 bg-accent/5 w-full">
-            <CardHeader className="pb-3 sm:pb-4">
-              <CardTitle className="text-base sm:text-lg break-words">Ce qui est inclus</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent shrink-0">✓</span>
-                  <span className="break-words flex-1">
-                    <strong className="text-foreground">Suivi de projet complet</strong> – Accès à
-                    votre espace client pour suivre l&apos;avancement
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent shrink-0">✓</span>
-                  <span className="break-words flex-1">
-                    <strong className="text-foreground">Système de tickets</strong> – Échangez
-                    directement avec l&apos;équipe Orylis
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent shrink-0">✓</span>
-                  <span className="break-words flex-1">
-                    <strong className="text-foreground">Gestion de fichiers</strong> – Partagez vos
-                    contenus et ressources facilement
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent shrink-0">✓</span>
-                  <span className="break-words flex-1">
-                    <strong className="text-foreground">Support dédié</strong> – Accompagnement
-                    personnalisé tout au long du projet
-                  </span>
-                </li>
-              </ul>
-              <p className="mt-4 text-xs text-muted-foreground sm:text-sm break-words">
-                Tout est centralisé dans votre espace Orylis, vous n&apos;avez plus à courir après les infos.
-              </p>
-            </CardContent>
-          </Card>
+            {/* Bloc 3 : Informations */}
+            <Card className="border border-accent/30 bg-accent/5 w-full">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-base sm:text-lg break-words">Ce qui est inclus</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-accent shrink-0">✓</span>
+                    <span className="break-words flex-1">
+                      <strong className="text-foreground">Suivi de projet complet</strong> – Accès à
+                      votre espace client pour suivre l&apos;avancement
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-accent shrink-0">✓</span>
+                    <span className="break-words flex-1">
+                      <strong className="text-foreground">Système de tickets</strong> – Échangez
+                      directement avec l&apos;équipe Orylis
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-accent shrink-0">✓</span>
+                    <span className="break-words flex-1">
+                      <strong className="text-foreground">Gestion de fichiers</strong> – Partagez vos
+                      contenus et ressources facilement
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-accent shrink-0">✓</span>
+                    <span className="break-words flex-1">
+                      <strong className="text-foreground">Support dédié</strong> – Accompagnement
+                      personnalisé tout au long du projet
+                    </span>
+                  </li>
+                </ul>
+                <p className="mt-4 text-xs text-muted-foreground sm:text-sm break-words">
+                  Tout est centralisé dans votre espace Orylis, vous n&apos;avez plus à courir après les infos.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </>
