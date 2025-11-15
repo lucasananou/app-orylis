@@ -118,9 +118,12 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       throw new Error("BLOB_READ_WRITE_TOKEN n'est pas défini");
     }
 
+    // Convertir Uint8Array en Buffer pour Vercel Blob
+    const pdfBuffer = Buffer.from(signedPdfBytes);
+
     // Upload le PDF signé sur Vercel Blob
     const fileName = `quotes/quote-signed-${id}-${Date.now()}.pdf`;
-    const blob = await put(fileName, signedPdfBytes, {
+    const blob = await put(fileName, pdfBuffer, {
       access: "public",
       contentType: "application/pdf",
       token: blobToken
