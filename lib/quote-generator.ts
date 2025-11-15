@@ -3,8 +3,8 @@
  */
 
 import PDFDocument from "pdfkit";
+import type PDFKit from "pdfkit";
 import { put } from "@vercel/blob";
-import { Readable } from "stream";
 
 export interface QuoteData {
   prospectName: string;
@@ -72,7 +72,7 @@ export async function generateQuotePDF(data: QuoteData): Promise<string> {
   });
 }
 
-function generatePDFContent(doc: PDFDocument, data: QuoteData) {
+function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   const orylisColor = hexToRgb("#005eff");
   const grayColor = hexToRgb("#666666");
   const darkGrayColor = hexToRgb("#333333");
