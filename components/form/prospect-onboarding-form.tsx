@@ -562,7 +562,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
   }));
 
   return (
-    <div className="w-full overflow-x-hidden space-y-3 sm:space-y-4 min-w-0">
+    <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
       {/* Titre optimisé pour la conversion */}
       <div className="space-y-1.5 sm:space-y-2">
         <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl break-words">
@@ -574,8 +574,8 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       </div>
 
       {/* Barre de progression */}
-      <Card className="border border-border/80 bg-white/90 min-w-0">
-        <CardHeader className="gap-2 space-y-0 pb-2 sm:pb-3 md:flex md:flex-row md:items-center md:justify-between min-w-0">
+      <Card className="border border-border/80 bg-white/90">
+        <CardHeader className="gap-2 space-y-0 pb-2 sm:pb-3 md:flex md:flex-row md:items-center md:justify-between">
           <div className="space-y-0.5">
             <CardTitle className="text-sm font-semibold text-foreground sm:text-base">{projectName}</CardTitle>
             <CardDescription className="text-xs">
@@ -613,7 +613,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
         <div className="space-y-3 sm:space-y-4">
           {/* Étape 1 : Votre activité */}
           {currentStepIndex === 0 && (
-            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
+            <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>📋</span>
@@ -716,7 +716,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
           {/* Étape 2 : Style & inspirations */}
           {currentStepIndex === 1 && (
-            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
+            <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>🎨</span>
@@ -794,7 +794,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
           {/* Étape 3 : Identité visuelle */}
           {currentStepIndex === 2 && (
-            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
+            <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>🎨</span>
@@ -811,7 +811,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Couleur principale souhaitée (optionnel)</FormLabel>
-                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <FormControl>
                           <Input
                             type="color"
@@ -861,7 +861,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             </Button>
                           </div>
                         )}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                           <Input
                             type="file"
                             accept="image/*"
@@ -984,7 +984,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
           {/* Étape 4 : Contenu / message */}
           {currentStepIndex === 3 && (
-            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
+            <Card className="border border-border/70 bg-white shadow-subtle">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>✍️</span>
@@ -1055,11 +1055,11 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
             </Card>
           )}
 
-          <div className="flex flex-col gap-2.5 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 min-w-0">
+          <div className="flex flex-col gap-2.5 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div className="text-xs text-muted-foreground sm:text-sm shrink-0">
               Étape {currentStepIndex + 1} sur {stepDefinitions.length}
             </div>
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3 min-w-0 w-full sm:w-auto">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3 w-full sm:w-auto">
               <Button
                 type="button"
                 variant="ghost"

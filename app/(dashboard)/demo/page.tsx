@@ -73,7 +73,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
-    <div className="w-full max-w-screen-md mx-auto space-y-6 sm:max-w-screen-lg">
+    <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Titre + sous-titre */}
       <div className="space-y-2 text-center sm:text-left">
         <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl md:text-3xl">

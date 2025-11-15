@@ -14,7 +14,7 @@ export default async function LoginPage(): Promise<JSX.Element> {
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-4 py-8 sm:px-6 sm:py-12 md:grid-cols-[0.9fr_1fr] md:px-12 md:py-16 lg:px-20">
+    <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-4 py-8 sm:px-6 sm:py-12 md:grid-cols-[0.9fr_1fr] md:px-8 md:py-16 lg:px-8">
       <section className="hidden flex-col justify-center gap-6 text-slate-800 md:flex md:gap-8">
         <div className="flex items-center gap-3">
           <Image

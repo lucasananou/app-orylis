@@ -32,12 +32,13 @@ export function QuoteViewer({ pdfUrl, createdAt }: QuoteViewerProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6">
-        <div className="w-full rounded-lg sm:rounded-xl border border-border/50 bg-muted/5 shadow-md">
+        <div className="w-full rounded-lg sm:rounded-xl border border-border/50 bg-muted/5 shadow-md overflow-hidden">
           <div className="relative w-full" style={{ minHeight: "300px", maxHeight: "60vh" }}>
             <iframe
               src={pdfUrl}
-              className="absolute inset-0 w-full h-full border-0"
+              className="w-full h-full border-0"
               title="Aperçu du devis"
+              style={{ minHeight: "300px", maxHeight: "60vh" }}
             />
           </div>
         </div>
