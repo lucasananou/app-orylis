@@ -1016,7 +1016,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                       <FormLabel>Informations importantes (optionnel)</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder='Ex : "Je veux un site simple", "J'ai déjà un site", "Je veux un système de réservation"'
+                          placeholder='Ex : "Je veux un site simple", "J&apos;ai déjà un site", "Je veux un système de réservation"'
                           className="min-h-[100px]"
                           {...field}
                         />
