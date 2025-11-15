@@ -224,7 +224,6 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
