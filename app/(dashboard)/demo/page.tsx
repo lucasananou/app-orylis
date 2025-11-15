@@ -67,9 +67,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         {/* Bloc 1 : Aperçu de la démo */}
-        <Card className="border border-border/70 bg-white shadow-subtle">
+        <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl">
               <ExternalLink className="h-5 w-5" />
@@ -80,7 +80,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 p-6 pt-0">
-            <div className="relative w-full max-w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "500px" }}>
+            <div className="relative w-full max-w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "450px" }}>
               <iframe
                 src={demoUrl}
                 className="h-full w-full border-0"
@@ -100,7 +100,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
         </Card>
 
         {/* Bloc 2 : Options d'action */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {/* Message FOMO */}
           <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md">
             <CardContent className="pt-6">
