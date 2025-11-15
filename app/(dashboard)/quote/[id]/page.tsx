@@ -1,0 +1,125 @@
+import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { quotes, projects } from "@/lib/schema";
+import { isProspect } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { QuoteSignForm } from "@/components/quote/quote-sign-form";
+import { QuoteViewer } from "@/components/quote/quote-viewer";
+import { CheckCircle2, Download } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+async function loadQuoteData(id: string) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user!;
+
+  if (!isProspect(user.role)) {
+    redirect("/");
+  }
+
+  // Récupérer le devis
+  const quote = await db.query.quotes.findFirst({
+    where: eq(quotes.id, id),
+    columns: {
+      id: true,
+      projectId: true,
+      pdfUrl: true,
+      signedPdfUrl: true,
+      status: true,
+      signedAt: true
+    }
+  });
+
+  if (!quote) {
+    redirect("/demo");
+  }
+
+  // Vérifier que le devis appartient au prospect
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, quote.projectId),
+    columns: {
+      ownerId: true,
+      name: true
+    }
+  });
+
+  if (!project || project.ownerId !== user.id) {
+    redirect("/demo");
+  }
+
+  return {
+    quote,
+    projectName: project.name
+  };
+}
+
+export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
+  const { id } = await ctx.params;
+  const { quote, projectName } = await loadQuoteData(id);
+
+  const isSigned = quote.status === "signed";
+
+  return (
+    <>
+      <PageHeader
+        title="Devis – Création de site internet"
+        description={`Devis pour le projet ${projectName}`}
+      />
+
+      {isSigned ? (
+        <Card className="border border-green-200 bg-green-50/50">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div>
+                <CardTitle className="text-lg text-green-900">Devis signé !</CardTitle>
+                <CardDescription className="text-green-700">
+                  Votre devis a été signé le{" "}
+                  {quote.signedAt
+                    ? new Date(quote.signedAt).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                      })
+                    : "—"}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild className="text-sm sm:text-base">
+                <a href={quote.signedPdfUrl!} target="_blank" rel="noopener noreferrer">
+                  <Download className="mr-2 h-4 w-4" />
+                  Télécharger le devis signé
+                </a>
+              </Button>
+              <Button variant="outline" asChild className="text-sm sm:text-base">
+                <a href="/demo">
+                  Retour à la démo
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <QuoteViewer pdfUrl={quote.pdfUrl} />
+          <QuoteSignForm quoteId={id} />
+        </>
+      )}
+    </>
+  );
+}
+

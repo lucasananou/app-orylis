@@ -2,12 +2,13 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { projects } from "@/lib/schema";
+import { projects, quotes } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, CreditCard } from "lucide-react";
+import { GenerateQuoteButton } from "@/components/quote/generate-quote-button";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,16 @@ async function loadDemoData() {
     orderBy: (projects, { asc }) => [asc(projects.createdAt)]
   });
 
+  // Vérifier si un devis existe déjà
+  const existingQuote = project
+    ? await db.query.quotes.findFirst({
+        where: eq(quotes.projectId, project.id),
+        columns: {
+          id: true
+        }
+      })
+    : null;
+
   if (!project) {
     redirect("/onboarding");
   }
@@ -53,12 +64,14 @@ async function loadDemoData() {
 
   return {
     projectName: project.name,
-    demoUrl: project.demoUrl
+    demoUrl: project.demoUrl,
+    projectId: project.id,
+    existingQuoteId: existingQuote?.id ?? null
   };
 }
 
 export default async function DemoPage(): Promise<JSX.Element> {
-  const { projectName, demoUrl } = await loadDemoData();
+  const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -150,6 +163,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   Prendre rendez-vous avec Lucas
                 </a>
               </Button>
+              <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
             </CardContent>
           </Card>
 

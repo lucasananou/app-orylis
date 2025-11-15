@@ -362,6 +362,33 @@ export const emailTemplates = createTable(
   })
 );
 
+export const quoteStatusEnum = pgEnum("quote_status", ["pending", "signed", "cancelled"]);
+
+export const quotes = createTable(
+  "quotes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    pdfUrl: text("pdf_url").notNull(), // URL du PDF non signé
+    signedPdfUrl: text("signed_pdf_url"), // URL du PDF signé
+    status: quoteStatusEnum("status").notNull().default("pending"),
+    signedAt: timestamp("signed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (quote) => ({
+    projectIdx: index("quotes_project_id_idx").on(quote.projectId),
+    statusIdx: index("quotes_status_idx").on(quote.status)
+  })
+);
+
 export const profilesRelations = relations(profiles, ({ many, one }) => ({
   projects: many(projects),
   tickets: many(tickets),
@@ -384,7 +411,8 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   ticketMessages: many(ticketMessages),
   files: many(files),
   billingLinks: many(billingLinks),
-  notifications: many(notifications)
+  notifications: many(notifications),
+  quotes: many(quotes)
 }));
 
 export const ticketsRelations = relations(tickets, ({ one, many }) => ({
@@ -446,5 +474,12 @@ export const authUsersRelations = relations(authUsers, ({ one }) => ({
   credentials: one(userCredentials, {
     fields: [authUsers.id],
     references: [userCredentials.userId]
+  })
+}));
+
+export const quotesRelations = relations(quotes, ({ one }) => ({
+  project: one(projects, {
+    fields: [quotes.projectId],
+    references: [projects.id]
   })
 }));
