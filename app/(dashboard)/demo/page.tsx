@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projects, quotes } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
-import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, CreditCard } from "lucide-react";
@@ -74,20 +73,23 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#F7F9FB] via-white to-white py-6">
-      <div className="w-full max-w-screen-md mx-auto px-4 space-y-6 sm:px-6 lg:max-w-screen-lg">
-        {/* Titre + sous-titre */}
-        <PageHeader
-          title="Votre démo est prête !"
-          description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
-        />
+    <div className="w-full max-w-screen-md mx-auto space-y-6 sm:max-w-screen-lg">
+      {/* Titre + sous-titre */}
+      <div className="space-y-2 text-center sm:text-left">
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
+          Votre démo est prête !
+        </h1>
+        <p className="text-xs text-slate-600 sm:text-sm md:text-base">
+          Découvrez votre site de démonstration personnalisé et passez à l&apos;étape suivante.
+        </p>
+      </div>
 
         {/* Layout desktop : colonnes à partir de lg */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr,2fr]">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[3fr,2fr]">
           {/* Colonne gauche : Aperçu de la démo */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 w-full">
             {/* Carte "Aperçu de votre démo" */}
-            <div className="w-full rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+            <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
               <div className="space-y-4">
                 <div>
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl">
@@ -122,9 +124,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
           </div>
 
           {/* Colonne droite : Actions et informations */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 w-full">
             {/* Bandeau orange (FOMO) */}
-            <div className="w-full rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 p-4 sm:p-6 shadow-sm">
+            <div className="w-full rounded-2xl sm:rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 p-4 sm:p-6 shadow-sm">
               <div className="flex items-start gap-2 sm:gap-3">
                 <span className="text-xl sm:text-2xl shrink-0">⚡</span>
                 <div className="flex-1 min-w-0">
@@ -139,7 +141,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </div>
 
             {/* Carte "Prochaines étapes" */}
-            <div className="w-full rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+            <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
               <div className="space-y-4">
                 <div>
                   <h2 className="text-base font-semibold text-slate-900 sm:text-lg">Prochaines étapes</h2>
@@ -182,7 +184,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </div>
 
             {/* Carte "Ce qui est inclus" */}
-            <div className="w-full rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+            <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
               <div className="space-y-4">
                 <h2 className="text-base font-semibold text-slate-900 sm:text-lg">Ce qui est inclus</h2>
                 <ul className="space-y-2 text-xs text-slate-600 sm:text-sm">
