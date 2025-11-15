@@ -16,15 +16,18 @@ import { Loader2, Save, Mail } from "lucide-react";
 import type { EmailTemplateType } from "@/lib/emails";
 
 const templateTypeLabels: Record<EmailTemplateType, string> = {
-  welcome: "Email de bienvenue",
+  welcome: "Email de bienvenue (client)",
   project_created: "Projet créé",
   prospect_promoted: "Prospect promu en client",
   ticket_created: "Nouveau ticket créé",
   ticket_reply: "Réponse sur un ticket",
   ticket_updated: "Ticket mis à jour",
   file_uploaded: "Fichier uploadé",
-  onboarding_completed: "Onboarding complété",
-  project_updated: "Projet mis à jour"
+  onboarding_completed: "Onboarding complété (client)",
+  project_updated: "Projet mis à jour",
+  prospect_welcome: "Email de bienvenue (prospect)",
+  prospect_onboarding_completed: "Onboarding complété (prospect)",
+  prospect_demo_ready: "Démo prête (prospect)"
 };
 
 const templateVariables: Record<EmailTemplateType, string[]> = {
@@ -36,7 +39,10 @@ const templateVariables: Record<EmailTemplateType, string[]> = {
   ticket_updated: ["ticketTitle", "projectName", "status", "ticketUrl"],
   file_uploaded: ["uploaderName", "fileName", "projectName", "filesUrl"],
   onboarding_completed: ["projectName", "projectUrl"],
-  project_updated: ["projectName", "updateMessage", "projectUrl"]
+  project_updated: ["projectName", "updateMessage", "projectUrl"],
+  prospect_welcome: ["userName", "projectName", "onboardingUrl"],
+  prospect_onboarding_completed: ["userName", "projectName", "dashboardUrl"],
+  prospect_demo_ready: ["userName", "projectName", "demoUrl"]
 };
 
 const templateSchema = z.object({
@@ -49,7 +55,10 @@ const templateSchema = z.object({
     "ticket_updated",
     "file_uploaded",
     "onboarding_completed",
-    "project_updated"
+    "project_updated",
+    "prospect_welcome",
+    "prospect_onboarding_completed",
+    "prospect_demo_ready"
   ]),
   subject: z.string().min(1, "Le sujet est requis"),
   htmlContent: z.string().min(1, "Le contenu HTML est requis")

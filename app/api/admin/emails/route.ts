@@ -55,7 +55,10 @@ export async function POST(req: NextRequest) {
       "ticket_updated",
       "file_uploaded",
       "onboarding_completed",
-      "project_updated"
+      "project_updated",
+      "prospect_welcome",
+      "prospect_onboarding_completed",
+      "prospect_demo_ready"
     ];
 
     if (!validTypes.includes(type as EmailTemplateType)) {

@@ -19,7 +19,10 @@ export type EmailTemplateType =
   | "ticket_updated"
   | "file_uploaded"
   | "onboarding_completed"
-  | "project_updated";
+  | "project_updated"
+  | "prospect_welcome"
+  | "prospect_onboarding_completed"
+  | "prospect_demo_ready";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const emailFromAddress = process.env.EMAIL_FROM ?? "noreply@orylis.fr";
@@ -530,7 +533,7 @@ export async function sendProspectWelcomeEmail(userId: string, projectName: stri
   );
 
   const template = await getTemplateFromDB(
-    "welcome",
+    "prospect_welcome",
     "Bienvenue sur Orylis - Commencez votre onboarding",
     defaultHtml
   );
@@ -582,7 +585,7 @@ export async function sendProspectOnboardingCompletedEmail(
   );
 
   const template = await getTemplateFromDB(
-    "onboarding_completed",
+    "prospect_onboarding_completed",
     `Votre démo est en préparation - ${projectName}`,
     defaultHtml
   );
@@ -636,7 +639,7 @@ export async function sendProspectDemoReadyEmail(
   );
 
   const template = await getTemplateFromDB(
-    "project_created",
+    "prospect_demo_ready",
     `Votre démo ${projectName} est prête !`,
     defaultHtml
   );
