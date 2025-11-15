@@ -115,7 +115,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     // Vérifier que le token est configuré
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
     if (!blobToken) {
-      throw new Error("BLOB_READ_WRITE_TOKEN n'est pas défini");
+      throw new Error(
+        "BLOB_READ_WRITE_TOKEN n'est pas défini. " +
+        "Pour configurer : Vercel Dashboard → Settings → Environment Variables → Ajouter BLOB_READ_WRITE_TOKEN. " +
+        "Générer le token avec : vercel blob tokens create"
+      );
     }
 
     // Convertir Uint8Array en Buffer pour Vercel Blob
