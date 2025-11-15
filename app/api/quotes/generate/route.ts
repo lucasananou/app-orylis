@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     const prospectName = profile?.fullName ?? authUser?.name ?? "Client";
     const prospectEmail = authUser?.email ?? "";
-    const companyName = profile?.company;
+    const companyName = profile?.company ?? null;
 
     // Générer le numéro de devis (format: Q-YYYYMMDD-XXX)
     const quoteNumber = `Q-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
