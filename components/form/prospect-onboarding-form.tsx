@@ -158,7 +158,7 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
     draft.activity = trimmed(values.activity);
   }
 
-  if (values.siteGoal && values.siteGoal !== "" && values.siteGoal !== undefined) {
+  if (values.siteGoal) {
     draft.siteGoal = values.siteGoal as ProspectOnboardingDraftPayload["siteGoal"];
     if (values.siteGoal === "other" && values.siteGoalOther.trim().length > 0) {
       draft.siteGoalOther = trimmed(values.siteGoalOther);
@@ -184,7 +184,7 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
     draft.logoUrl = trimmed(values.logoUrl);
   }
 
-  if (values.hasVisualIdentity && values.hasVisualIdentity !== "") {
+  if (values.hasVisualIdentity) {
     draft.hasVisualIdentity = values.hasVisualIdentity as ProspectOnboardingDraftPayload["hasVisualIdentity"];
   }
 
@@ -209,11 +209,11 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
 const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnboardingPayload => {
   const trimmed = (input: string) => input.trim();
 
-  if (!values.siteGoal || values.siteGoal === "" || values.siteGoal === undefined) {
+  if (!values.siteGoal) {
     throw new Error("siteGoal est requis");
   }
 
-  if (!values.hasVisualIdentity || values.hasVisualIdentity === "" || values.hasVisualIdentity === undefined) {
+  if (!values.hasVisualIdentity) {
     throw new Error("hasVisualIdentity est requis");
   }
 
@@ -470,7 +470,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       stepPayload = {
         primaryColor: values.primaryColor,
         logoUrl: values.logoUrl,
-        hasVisualIdentity: values.hasVisualIdentity && values.hasVisualIdentity !== "" ? values.hasVisualIdentity : undefined
+        hasVisualIdentity: values.hasVisualIdentity ? values.hasVisualIdentity : undefined
       };
     } else if (index === 3) {
       // Étape 4 : contenu
