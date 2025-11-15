@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type Control, type FieldArrayPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Upload, X } from "lucide-react";
@@ -290,13 +290,13 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
   const { control, watch } = form;
 
   const inspirationUrlsArray = useFieldArray({
-    control,
-    name: "inspirationUrls" as const
+    control: control as Control<ProspectOnboardingFormState>,
+    name: "inspirationUrls"
   });
 
   const mainServicesArray = useFieldArray({
-    control,
-    name: "mainServices" as const
+    control: control as Control<ProspectOnboardingFormState>,
+    name: "mainServices"
   });
 
   const watchedValues = watch();
