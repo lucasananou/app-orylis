@@ -34,7 +34,7 @@ export function GenerateQuoteButton({ projectId, existingQuoteId }: GenerateQuot
         throw new Error(data.error ?? "Erreur lors de la génération du devis");
       }
 
-      toast.success("Devis généré avec succès !");
+      toast.success("Votre devis personnalisé est prêt !");
       router.push(`/quote/${data.quoteId}`);
     } catch (error) {
       console.error("[GenerateQuote] Error:", error);
@@ -57,12 +57,12 @@ export function GenerateQuoteButton({ projectId, existingQuoteId }: GenerateQuot
       {isGenerating ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Génération...
+          Préparation...
         </>
       ) : (
         <>
           <FileText className="mr-2 h-4 w-4" />
-          {existingQuoteId ? "Voir mon devis" : "Générer un devis"}
+          {existingQuoteId ? "Voir mon devis" : "Recevoir mon devis personnalisé"}
         </>
       )}
     </Button>

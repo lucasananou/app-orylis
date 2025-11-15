@@ -2,7 +2,8 @@
  * Service de génération de devis PDF
  */
 
-import PDFDocument from "pdfkit";
+// Utiliser la version standalone de pdfkit qui inclut les polices standard
+import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 import type PDFKit from "pdfkit";
 import { put } from "@vercel/blob";
 
@@ -21,10 +22,16 @@ const ORYLIS_LOGO_URL = "https://orylis.fr/wp-content/uploads/2023/08/Frame-4545
  */
 export async function generateQuotePDF(data: QuoteData): Promise<string> {
   return new Promise((resolve, reject) => {
+    // Créer le document sans initialiser les polices par défaut
+    // Les polices standard PDF (Helvetica, Times-Roman, Courier) sont intégrées
     const doc = new PDFDocument({
       size: "A4",
       margins: { top: 50, bottom: 50, left: 50, right: 50 }
     });
+    
+    // Utiliser directement les polices standard PDF intégrées
+    // Ces polices ne nécessitent pas de fichiers AFM externes
+    doc.font("Helvetica");
 
     const chunks: Buffer[] = [];
 
@@ -61,6 +68,9 @@ export async function generateQuotePDF(data: QuoteData): Promise<string> {
 }
 
 function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
+  // Utiliser la police standard Helvetica (pas besoin de fichiers AFM)
+  doc.font("Helvetica");
+  
   // Header avec logo (placeholder pour le logo)
   doc
     .fontSize(24)
