@@ -36,6 +36,7 @@ import { Loader2, Plus, Save } from "lucide-react";
 
 const PROJECT_STATUSES = [
   { value: "onboarding", label: "Onboarding" },
+  { value: "demo_in_progress", label: "Démo en création" },
   { value: "design", label: "Design" },
   { value: "build", label: "Build" },
   { value: "review", label: "Review" },
@@ -51,7 +52,7 @@ const dueDateSchema = z
 const createProjectSchema = z.object({
   ownerId: z.string().uuid({ message: "Client invalide." }),
   name: z.string().min(3, { message: "Le nom doit contenir au moins 3 caractères." }).max(120),
-  status: z.enum(["onboarding", "design", "build", "review", "delivered"]).default("onboarding"),
+  status: z.enum(["onboarding", "demo_in_progress", "design", "build", "review", "delivered"]).default("onboarding"),
   progress: z.coerce
     .number()
     .int()
@@ -63,13 +64,14 @@ const createProjectSchema = z.object({
 
 const editProjectSchema = z.object({
   name: z.string().min(3, { message: "Le nom doit contenir au moins 3 caractères." }).max(120),
-  status: z.enum(["onboarding", "design", "build", "review", "delivered"]),
+  status: z.enum(["onboarding", "demo_in_progress", "design", "build", "review", "delivered"]),
   progress: z.coerce
     .number()
     .int()
     .min(0, { message: "Progression minimale 0%." })
     .max(100, { message: "Progression maximale 100%." }),
-  dueDate: dueDateSchema
+  dueDate: dueDateSchema,
+  demoUrl: z.string().url({ message: "URL invalide." }).or(z.literal("")).optional()
 });
 
 type CreateProjectFormValues = z.infer<typeof createProjectSchema>;
@@ -87,6 +89,7 @@ type ExistingProject = {
   progress: number;
   dueDate: string | null;
   ownerId: string;
+  demoUrl?: string | null;
 };
 
 interface ProjectEditorDialogProps {
@@ -118,7 +121,8 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           name: project?.name ?? "",
           status: (project?.status as EditProjectFormValues["status"]) ?? "onboarding",
           progress: project?.progress ?? 0,
-          dueDate: project?.dueDate ? project.dueDate.slice(0, 10) : ""
+          dueDate: project?.dueDate ? project.dueDate.slice(0, 10) : "",
+          demoUrl: project?.demoUrl ?? ""
         }
   });
 
@@ -174,6 +178,13 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             updates.dueDate = normalizedDueDate;
           } else if (normalizedDueDate === "" && currentDueDate) {
             // suppression non supportée
+          }
+
+          const normalizedDemoUrl = editValues.demoUrl && editValues.demoUrl !== "" ? editValues.demoUrl : null;
+          const currentDemoUrl = project.demoUrl ?? null;
+
+          if (normalizedDemoUrl !== currentDemoUrl) {
+            updates.demoUrl = normalizedDemoUrl;
           }
 
           if (Object.keys(updates).length === 0) {
@@ -305,19 +316,42 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             />
 
             {!isCreateMode && (
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date d'échéance (optionnel)</FormLabel>
-                    <FormControl>
-                      <Input type="date" disabled={isSubmitting} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <>
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date d'échéance (optionnel)</FormLabel>
+                      <FormControl>
+                        <Input type="date" disabled={isSubmitting} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="demoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL de la démo (optionnel)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="url"
+                          placeholder="https://demo.example.com"
+                          disabled={isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-xs text-muted-foreground">
+                        Renseignez l'URL de la démo pour permettre au prospect de la consulter.
+                      </p>
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
           </div>
           <DialogFooter>

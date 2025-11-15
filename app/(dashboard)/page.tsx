@@ -56,6 +56,7 @@ interface DashboardProject {
   status: string;
   progress: number;
   dueDate: string | null;
+  demoUrl: string | null;
   ownerId: string;
   ownerName: string | null;
   createdAt: string | null;
@@ -87,6 +88,7 @@ async function loadDashboardData() {
             status: projects.status,
             progress: projects.progress,
             dueDate: projects.dueDate,
+            demoUrl: projects.demoUrl,
             ownerId: projects.ownerId,
             ownerName: profiles.fullName,
             createdAt: projects.createdAt
@@ -101,6 +103,7 @@ async function loadDashboardData() {
             status: projects.status,
             progress: projects.progress,
             dueDate: projects.dueDate,
+            demoUrl: projects.demoUrl,
             ownerId: projects.ownerId,
             ownerName: profiles.fullName,
             createdAt: projects.createdAt
@@ -139,10 +142,34 @@ async function loadDashboardData() {
     status: project.status,
     progress: project.progress,
     dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
+    demoUrl: project.demoUrl ?? null,
     ownerId: project.ownerId,
     ownerName: project.ownerName ?? null,
     createdAt: project.createdAt ? project.createdAt.toISOString() : null
   }));
+
+  // Pour les prospects, gérer les redirections selon le statut du projet
+  if (isProspectUser && projectsData.length > 0) {
+    const mainProject = projectsData[0];
+    
+    // Utiliser directement le demoUrl chargé dans projectsData
+    const projectWithDemo = mainProject;
+
+    // Si onboarding non complété, rediriger vers l'onboarding
+    if (mainProject.status === "onboarding") {
+      redirect("/onboarding");
+    }
+
+    // Si démo en cours mais pas encore prête, rediriger vers la page d'attente
+    if (mainProject.status === "demo_in_progress" && !mainProject.demoUrl) {
+      redirect("/demo-in-progress");
+    }
+
+    // Si démo prête, rediriger vers la page de conversion
+    if (mainProject.demoUrl) {
+      redirect("/demo");
+    }
+  }
 
   const onboardingProject = projectsData.find((project) => project.status === "onboarding") ?? null;
 

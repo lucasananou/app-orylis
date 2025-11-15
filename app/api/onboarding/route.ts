@@ -5,10 +5,10 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { onboardingResponses, projects } from "@/lib/schema";
+import { onboardingResponses, projects, profiles } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
 import { sendOnboardingCompletedEmailToAdmin } from "@/lib/emails";
-import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
+import { assertUserCanAccessProject, isStaff, isProspect } from "@/lib/utils";
 import {
   OnboardingFinalSchema,
   OnboardingPayloadSchema,
@@ -144,10 +144,22 @@ export async function POST(req: NextRequest) {
   const computedProgress = Math.max(10, Math.round(summary.completionRatio * 100));
   const progressToStore = completed ? 100 : Math.max(project.progress ?? 10, computedProgress);
 
+  // Récupérer le rôle de l'utilisateur pour déterminer le nouveau statut
+  const userProfile = await db.query.profiles.findFirst({
+    where: eq(profiles.id, session.user.id),
+    columns: { role: true }
+  });
+
+  const isProspectUser = isProspect(userProfile?.role);
+  
+  // Si l'onboarding est complété et que l'utilisateur est un prospect, passer à demo_in_progress
+  const newStatus = completed && isProspectUser ? "demo_in_progress" : undefined;
+
   await db
     .update(projects)
     .set({
-      progress: progressToStore
+      progress: progressToStore,
+      ...(newStatus ? { status: newStatus } : {})
     })
     .where(eq(projects.id, projectId));
 

@@ -582,7 +582,11 @@ const customPagesArray = useFieldArray({
         draftSignatureRef.current = JSON.stringify(normalizeDraftPayload(form.getValues()));
         setIsCompleted(true);
         setLastSavedAt(new Date());
-        toast.success("Onboarding validé. L’équipe démarre la phase design.");
+        // Le message dépend du rôle : pour les prospects, on indique que la démo est en création
+        const successMessage = isStaffRole
+          ? "Onboarding validé. L'équipe démarre la phase design."
+          : "Onboarding complété ! Votre démo est en cours de création.";
+        toast.success(successMessage);
         setShowEditor(false);
         router.replace("/" as Route);
       } catch (error) {

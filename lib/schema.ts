@@ -26,6 +26,7 @@ export const authUsers = pgTable("user", {
 export const profileRoleEnum = pgEnum("profile_role", ["prospect", "client", "staff"]);
 export const projectStatusEnum = pgEnum("project_status", [
   "onboarding",
+  "demo_in_progress",
   "design",
   "build",
   "review",
@@ -95,6 +96,7 @@ export const projects = createTable(
     status: projectStatusEnum("status").notNull().default("onboarding"),
     progress: integer("progress").notNull().default(10),
     dueDate: date("due_date"),
+    demoUrl: text("demo_url"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`)

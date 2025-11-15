@@ -33,9 +33,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   const { id } = await ctx.params;
   const body = (await req.json()) as Partial<{
     name: string;
-    status: "onboarding" | "design" | "build" | "review" | "delivered";
+    status: "onboarding" | "demo_in_progress" | "design" | "build" | "review" | "delivered";
     progress: number;
     dueDate: string | null;
+    demoUrl: string | null;
   }>;
 
   const update: Record<string, unknown> = {};
@@ -43,6 +44,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   if (typeof body.status === "string") update.status = body.status;
   if (typeof body.progress === "number") update.progress = body.progress;
   if (body.dueDate !== undefined) update.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+  if (body.demoUrl !== undefined) update.demoUrl = body.demoUrl || null;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
@@ -80,6 +82,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   const statusChanged = update.status && update.status !== projectBefore.status;
   const statusLabels: Record<string, string> = {
     onboarding: "Onboarding",
+    demo_in_progress: "Démo en création",
     design: "Design",
     build: "Développement",
     review: "Review",
