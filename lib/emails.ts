@@ -65,26 +65,26 @@ async function sendEmail(options: EmailOptions): Promise<{ success: boolean; err
 }
 
 /**
- * Récupère les informations d'un utilisateur pour les emails
+ * Récupère les informations d'un utilisateur pour les emails (optimisé avec une seule requête)
  */
 async function getUserInfo(userId: string) {
-  const profile = await db.query.profiles.findFirst({
-    where: eq(profiles.id, userId),
-    columns: {
-      fullName: true,
-      id: true
-    }
-  });
-
-  // Récupérer l'email depuis auth_users (la table user)
-  const { authUsers } = await import("@/lib/schema");
-  const authUser = await db.query.authUsers.findFirst({
-    where: eq(authUsers.id, userId),
-    columns: {
-      email: true,
-      name: true
-    }
-  });
+  // Paralléliser les deux requêtes
+  const [profile, authUser] = await Promise.all([
+    db.query.profiles.findFirst({
+      where: eq(profiles.id, userId),
+      columns: {
+        fullName: true,
+        id: true
+      }
+    }),
+    db.query.authUsers.findFirst({
+      where: eq(authUsers.id, userId),
+      columns: {
+        email: true,
+        name: true
+      }
+    })
+  ]);
 
   return {
     name: profile?.fullName ?? authUser?.name ?? null,

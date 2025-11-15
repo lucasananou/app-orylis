@@ -173,55 +173,52 @@ export async function POST(req: NextRequest) {
   const computedProgress = Math.max(10, Math.round(summary.completionRatio * 100));
   const progressToStore = completed ? 100 : Math.max(project.progress ?? 10, computedProgress);
 
-  // Récupérer le rôle de l'utilisateur pour déterminer le nouveau statut
-  const userProfile = await db.query.profiles.findFirst({
-    where: eq(profiles.id, session.user.id),
-    columns: { role: true }
-  });
+  // Récupérer le rôle de l'utilisateur pour déterminer le nouveau statut (en parallèle avec le calcul du summary)
+  const [userProfile] = await Promise.all([
+    db.query.profiles.findFirst({
+      where: eq(profiles.id, session.user.id),
+      columns: { role: true }
+    }),
+    // Mettre à jour le projet immédiatement
+    db
+      .update(projects)
+      .set({
+        progress: progressToStore,
+        ...(completed && isProspect(session.user.role) ? { status: "demo_in_progress" } : {})
+      })
+      .where(eq(projects.id, projectId))
+  ]);
 
-  const isProspectUser = isProspect(userProfile?.role);
-  
-  // Si l'onboarding est complété et que l'utilisateur est un prospect, passer à demo_in_progress
-  const newStatus = completed && isProspectUser ? "demo_in_progress" : undefined;
+  const isProspectUser = isProspect(userProfile?.role ?? session.user.role);
 
-  await db
-    .update(projects)
-    .set({
-      progress: progressToStore,
-      ...(newStatus ? { status: newStatus } : {})
-    })
-    .where(eq(projects.id, projectId));
-
-  // Si l'onboarding est complété, notifier le staff ET le client
+  // Ne pas attendre les notifications et emails (fire and forget)
   if (completed && project) {
-    try {
-      await notifyProjectParticipants({
+    Promise.all([
+      notifyProjectParticipants({
         projectId,
         excludeUserIds: [session.user.id],
-        includeOwner: true, // Notifier le client que son onboarding est complété
-        includeStaff: true, // Notifier le staff qu'un onboarding est complété
+        includeOwner: true,
+        includeStaff: true,
         type: "onboarding_update",
         title: "Onboarding complété",
         body: `L'onboarding du projet "${project.name}" a été complété.`,
         metadata: {
           projectId
         }
-      });
-    } catch (error) {
-      console.error("[Notifications] Échec de la notification onboarding_completed:", error);
-    }
-
-    // Envoyer un email à l'admin
-    sendOnboardingCompletedEmailToAdmin(projectId, project.name).catch((error) => {
-      console.error("[Email] Failed to send onboarding completed email:", error);
+      }).catch((error) => {
+        console.error("[Notifications] Échec de la notification onboarding_completed:", error);
+      }),
+      sendOnboardingCompletedEmailToAdmin(projectId, project.name).catch((error) => {
+        console.error("[Email] Failed to send onboarding completed email:", error);
+      }),
+      isProspectUser
+        ? sendProspectOnboardingCompletedEmail(session.user.id, project.name).catch((error) => {
+            console.error("[Email] Failed to send prospect onboarding completed email:", error);
+          })
+        : Promise.resolve()
+    ]).catch(() => {
+      // Ignorer les erreurs, on ne veut pas bloquer la réponse
     });
-
-    // Si c'est un prospect, envoyer l'email 2 (démo en préparation)
-    if (isProspectUser) {
-      sendProspectOnboardingCompletedEmail(session.user.id, project.name).catch((error) => {
-        console.error("[Email] Failed to send prospect onboarding completed email:", error);
-      });
-    }
   }
 
   return NextResponse.json({ ok: true });

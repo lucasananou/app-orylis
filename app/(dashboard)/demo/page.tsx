@@ -74,8 +74,8 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50">
-      <div className="w-full max-w-screen-md mx-auto px-4 py-6 space-y-6 sm:px-6 lg:max-w-screen-lg">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#F7F9FB] via-white to-white py-6">
+      <div className="w-full max-w-screen-md mx-auto px-4 space-y-6 sm:px-6 lg:max-w-screen-lg">
         {/* Titre + sous-titre */}
         <PageHeader
           title="Votre démo est prête !"

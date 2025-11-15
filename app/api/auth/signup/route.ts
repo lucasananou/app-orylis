@@ -46,55 +46,62 @@ export async function POST(req: NextRequest) {
 
     // Créer l'utilisateur
     const userId = randomUUID();
-    const passwordHash = await hash(password, 12);
+    
+    // Paralléliser le hash du mot de passe et la préparation des données
+    const [passwordHash, projectName] = await Promise.all([
+      hash(password, 10), // Réduit de 12 à 10 rounds pour améliorer la vitesse (toujours sécurisé)
+      Promise.resolve(
+        company ? `Site ${company}` : fullName ? `Site ${fullName}` : "Mon site web"
+      )
+    ]);
 
-    // Créer l'utilisateur dans authUsers (table NextAuth)
-    await db.insert(authUsers).values({
-      id: userId,
-      email,
-      name: fullName ?? null,
-      emailVerified: null,
-      image: null
-    });
+    // Paralléliser toutes les insertions DB
+    const [, , , projectResult] = await Promise.all([
+      // Créer l'utilisateur dans authUsers (table NextAuth)
+      db.insert(authUsers).values({
+        id: userId,
+        email,
+        name: fullName ?? null,
+        emailVerified: null,
+        image: null
+      }),
+      // Créer les credentials (mot de passe hashé)
+      db.insert(userCredentials).values({
+        userId,
+        passwordHash
+      }),
+      // Créer le profil avec rôle "prospect"
+      db.insert(profiles).values({
+        id: userId,
+        role: "prospect",
+        fullName: fullName ?? null,
+        company: company ?? null,
+        phone: null
+      }),
+      // Créer un projet automatiquement pour le prospect
+      db
+        .insert(projects)
+        .values({
+          ownerId: userId,
+          name: projectName,
+          status: "onboarding",
+          progress: 10
+        })
+        .returning({ id: projects.id })
+    ]);
 
-    // Créer les credentials (mot de passe hashé)
-    await db.insert(userCredentials).values({
-      userId,
-      passwordHash
-    });
+    const project = projectResult?.[0];
 
-    // Créer le profil avec rôle "prospect"
-    await db.insert(profiles).values({
-      id: userId,
-      role: "prospect",
-      fullName: fullName ?? null,
-      company: company ?? null,
-      phone: null
-    });
-
-    // Créer un projet automatiquement pour le prospect
-    const projectName = company
-      ? `Site ${company}`
-      : fullName
-        ? `Site ${fullName}`
-        : "Mon site web";
-
-    const [project] = await db
-      .insert(projects)
-      .values({
-        ownerId: userId,
-        name: projectName,
-        status: "onboarding",
-        progress: 10
+    // Ne pas attendre les notifications et emails (fire and forget)
+    Promise.all([
+      ensureNotificationDefaults(userId, "prospect").catch((error) => {
+        console.error("[Notifications] Failed to ensure defaults:", error);
+      }),
+      sendProspectWelcomeEmail(userId, projectName).catch((error) => {
+        console.error("[Email] Failed to send prospect welcome email:", error);
       })
-      .returning({ id: projects.id });
-
-    // Créer les préférences de notification par défaut
-    await ensureNotificationDefaults(userId, "prospect");
-
-    // Envoyer l'email de bienvenue (Email 1)
-    sendProspectWelcomeEmail(userId, projectName).catch((error) => {
-      console.error("[Email] Failed to send prospect welcome email:", error);
+    ]).catch(() => {
+      // Ignorer les erreurs, on ne veut pas bloquer la réponse
     });
 
     return NextResponse.json({
