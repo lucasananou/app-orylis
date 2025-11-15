@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { quotes, projects } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
 import { put } from "@vercel/blob";
 
 export const dynamic = "force-dynamic";
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       y: signatureY - 20,
       size: 10,
       font,
-      color: { r: 0.4, g: 0.4, b: 0.4 }
+      color: rgb(0.4, 0.4, 0.4)
     });
 
     // Générer le PDF signé
