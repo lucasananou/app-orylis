@@ -67,20 +67,20 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         {/* Bloc 1 : Aperçu de la démo */}
         <Card className="border border-border/70 bg-white shadow-subtle">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl">
               <ExternalLink className="h-5 w-5" />
               Aperçu de votre démo
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               Votre site de démonstration pour le projet <strong>{projectName}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/50 bg-muted/20">
+          <CardContent className="space-y-4 p-6 pt-0">
+            <div className="relative w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "600px" }}>
               <iframe
                 src={demoUrl}
                 className="h-full w-full"
@@ -89,9 +89,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               />
             </div>
-            <Button variant="outline" className="w-full" asChild>
+            <Button variant="outline" size="lg" className="w-full" asChild>
               <a href={demoUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="mr-2 h-5 w-5" />
                 Ouvrir la démo dans un nouvel onglet
               </a>
             </Button>
