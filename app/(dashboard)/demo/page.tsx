@@ -67,7 +67,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         {/* Bloc 1 : Aperçu de la démo */}
         <Card className="border border-border/70 bg-white shadow-subtle">
           <CardHeader className="pb-4">
@@ -80,7 +80,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 p-6 pt-0">
-            <div className="relative w-full max-w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "600px" }}>
+            <div className="relative w-full max-w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "500px" }}>
               <iframe
                 src={demoUrl}
                 className="h-full w-full border-0"

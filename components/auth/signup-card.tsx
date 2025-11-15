@@ -213,7 +213,7 @@ export function SignupCard() {
         <Button
           type="submit"
           size="lg"
-          className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-lg hover:shadow-blue-500/25"
+          className="w-full bg-[#43b2b9] text-white transition-all duration-200 hover:bg-[#3a9ca3] hover:shadow-lg hover:shadow-[#43b2b9]/25"
           disabled={isSubmitting || !form.formState.isValid}
         >
           {isSubmitting ? (

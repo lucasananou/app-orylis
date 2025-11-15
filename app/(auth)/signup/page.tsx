@@ -22,7 +22,9 @@ export default async function SignupPage(): Promise<JSX.Element> {
           </div>
 
           {/* Mobile: Hero en dessous (order-2), Desktop: Hero à gauche (order-1) */}
-          <div className="order-2 lg:order-1">
+          <div className="order-2 lg:order-1 relative">
+            {/* Gradient très léger en fond du hero */}
+            <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-slate-100/50 via-transparent to-blue-50/30 lg:-left-8 lg:-right-8 lg:-top-4 lg:-bottom-4" />
             <HeroSection />
           </div>
         </div>

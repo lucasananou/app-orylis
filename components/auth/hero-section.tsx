@@ -25,6 +25,10 @@ export function HeroSection() {
           <p className="text-sm font-medium text-slate-500 md:text-base">
             Plus de 140 entrepreneurs ont déjà testé leur futur site gratuitement avant d&apos;acheter.
           </p>
+          {/* Sous-bullet point pour renforcer la valeur perçue */}
+          <p className="text-xs text-slate-400 md:text-sm">
+            💬 Nos démos sont créées à partir de vos informations, pas des templates génériques.
+          </p>
         </div>
         <p className="max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
           Créez votre espace Orylis, répondez à quelques questions, et recevez une démo de site WordPress professionnelle, adaptée à votre activité.{" "}
@@ -90,8 +94,8 @@ function SocialProof() {
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-4 pt-2">
-      <p className="text-sm font-medium text-slate-500">Ils nous font confiance :</p>
+    <div className="space-y-2 pt-2">
+      <p className="text-xs font-medium text-slate-500">Technologies maîtrisées :</p>
       <div className="flex flex-wrap items-center gap-3">
         {partnerBadges.map((partner, index) => (
           <div
