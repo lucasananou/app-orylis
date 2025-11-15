@@ -62,7 +62,7 @@ export function GenerateQuoteButton({ projectId, existingQuoteId }: GenerateQuot
       ) : (
         <>
           <FileText className="mr-2 h-4 w-4" />
-          {existingQuoteId ? "Voir mon devis" : "Recevoir mon devis personnalisé"}
+          {existingQuoteId ? "Voir mon devis personnalisé" : "Recevoir mon devis personnalisé"}
         </>
       )}
     </Button>

@@ -121,10 +121,10 @@ export default async function DemoPage(): Promise<JSX.Element> {
                 <span className="text-xl sm:text-2xl">⚡</span>
                 <div>
                   <p className="text-sm font-semibold text-orange-900 sm:text-base">
-                    Validez votre site aujourd&apos;hui et profitez de votre mise en ligne prioritaire.
+                    Validez votre site aujourd&apos;hui et réservez votre créneau de mise en ligne.
                   </p>
                   <p className="mt-1 text-xs text-orange-700 sm:text-sm">
-                    Les projets validés aujourd&apos;hui bénéficient d&apos;un traitement en priorité pour une mise en ligne rapide.
+                    Les projets validés aujourd&apos;hui passent en priorité pour une mise en ligne rapide.
                   </p>
                 </div>
               </div>
@@ -137,11 +137,15 @@ export default async function DemoPage(): Promise<JSX.Element> {
               <CardDescription className="text-xs sm:text-sm">
                 Choisissez comment vous souhaitez avancer avec votre projet
               </CardDescription>
+              <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
+                Choisissez comment vous souhaitez avancer, vous gardez la main sur la suite du projet.
+              </p>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
+              <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
               <Button
                 size="lg"
-                className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-md text-sm sm:text-base"
+                className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-lg hover:-translate-y-[1px] text-sm sm:text-base"
                 asChild
               >
                 <a
@@ -163,7 +167,6 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   Prendre rendez-vous avec Lucas
                 </a>
               </Button>
-              <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
             </CardContent>
           </Card>
 
@@ -203,6 +206,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   </span>
                 </li>
               </ul>
+              <p className="mt-4 text-xs text-muted-foreground sm:text-sm">
+                Tout est centralisé dans votre espace Orylis, vous n&apos;avez plus à courir après les infos.
+              </p>
             </CardContent>
           </Card>
         </div>
