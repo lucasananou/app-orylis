@@ -7,7 +7,8 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { ClipboardList } from "lucide-react";
 import { OnboardingForm } from "@/components/form/onboarding-form";
-import { isStaff } from "@/lib/utils";
+import { ProspectOnboardingForm } from "@/components/form/prospect-onboarding-form";
+import { isStaff, isProspect } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,22 @@ async function loadOnboardingData() {
 
   const user = session.user!;
   const staff = isStaff(user.role);
+  const isProspectUser = isProspect(user.role);
+
+  // Pour les prospects : vérifier s'ils ont un projet avec un statut autre que "onboarding"
+  // Si oui, rediriger vers le dashboard qui gère les redirections automatiques
+  if (isProspectUser) {
+    const prospectProject = await db.query.projects.findFirst({
+      where: eq(projects.ownerId, user.id),
+      columns: { id: true, status: true, demoUrl: true },
+      orderBy: (projects, { asc }) => [asc(projects.createdAt)]
+    });
+
+    // Si le prospect a un projet qui n'est plus en onboarding, rediriger vers le dashboard
+    if (prospectProject && prospectProject.status !== "onboarding") {
+      redirect("/");
+    }
+  }
 
   const projectRows = await db
     .select({
@@ -91,6 +108,12 @@ async function loadOnboardingData() {
 export default async function OnboardingPage(): Promise<JSX.Element> {
   const { staff, role, onboardingProjects, projectEntries } = await loadOnboardingData();
 
+  // Pour les prospects : si pas de projet en onboarding, rediriger vers le dashboard
+  // (le dashboard gère les redirections selon le statut)
+  if (onboardingProjects.length === 0 && isProspect(role)) {
+    redirect("/");
+  }
+
   if (onboardingProjects.length === 0) {
     return (
       <>
@@ -111,13 +134,25 @@ export default async function OnboardingPage(): Promise<JSX.Element> {
     );
   }
 
+  // Pour les prospects : afficher le formulaire simplifié
+  // Pour les clients/staff : afficher le formulaire complet
+  const isProspectUser = isProspect(role);
+
   return (
     <>
       <PageHeader
         title="Onboarding projet"
-        description="Renseignez les informations clés pour lancer sereinement votre projet Orylis."
+        description={
+          isProspectUser
+            ? "Remplissez ce formulaire rapide pour créer votre démo personnalisée."
+            : "Renseignez les informations clés pour lancer sereinement votre projet Orylis."
+        }
       />
-      <OnboardingForm projects={projectEntries} role={role} />
+      {isProspectUser ? (
+        <ProspectOnboardingForm projects={projectEntries} />
+      ) : (
+        <OnboardingForm projects={projectEntries} role={role} />
+      )}
     </>
   );
 }

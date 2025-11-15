@@ -221,18 +221,29 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
     }))
     .filter((page) => page.title.length > 0);
 
-  const draft: OnboardingDraftPayload = {
-    goals: [...values.goals],
-    pages: [...values.pages],
-    domainOwned: values.domainOwned
-  };
+  const draft: OnboardingDraftPayload = {};
 
-  if (customPages.length > 0) {
-    draft.customPages = customPages;
-  } else {
-    draft.customPages = [];
+  // Ajouter goals seulement s'il y en a
+  if (values.goals.length > 0) {
+    draft.goals = [...values.goals];
   }
 
+  // Ajouter pages seulement s'il y en a
+  if (values.pages.length > 0) {
+    draft.pages = [...values.pages];
+  }
+
+  // Ajouter domainOwned seulement s'il est défini
+  if (values.domainOwned !== undefined) {
+    draft.domainOwned = values.domainOwned;
+  }
+
+  // Ajouter customPages seulement s'il y en a
+  if (customPages.length > 0) {
+    draft.customPages = customPages;
+  }
+
+  // Champs texte - seulement s'ils ne sont pas vides
   if (values.fullName.trim().length > 0) {
     draft.fullName = trimmed(values.fullName);
   }
@@ -257,19 +268,20 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
     draft.contentsNote = trimmed(values.contentsNote);
   }
 
+  // Inspirations - seulement s'il y en a (maintenant facultatif)
   const inspirations = normalizeUrls(values.inspirations);
   if (inspirations.length > 0) {
     draft.inspirations = inspirations;
-  } else {
-    draft.inspirations = [];
   }
 
+  // Competitors - seulement s'il y en a
   const competitors = normalizeUrls(values.competitors);
   if (competitors.length > 0) {
     draft.competitors = competitors;
   }
 
-  if (values.domainOwned) {
+  // DomainName - seulement si domainOwned est true
+  if (values.domainOwned && values.domainName.trim().length > 0) {
     draft.domainName = trimmed(values.domainName);
   }
 
@@ -280,10 +292,21 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
   return draft;
 };
 
-const normalizeFinalPayload = (values: OnboardingFormState) => ({
-  ...normalizeDraftPayload(values),
-  confirm: values.confirm
-});
+const normalizeFinalPayload = (values: OnboardingFormState) => {
+  // Pour la validation finale, on doit inclure tous les champs requis, même s'ils sont vides
+  const draft = normalizeDraftPayload(values);
+  
+  // S'assurer que les champs requis sont présents (même vides) pour la validation
+  return {
+    goals: draft.goals ?? [],
+    pages: draft.pages ?? [],
+    domainOwned: draft.domainOwned ?? false,
+    customPages: draft.customPages ?? [],
+    inspirations: draft.inspirations ?? [],
+    ...draft,
+    confirm: values.confirm
+  };
+};
 
 export function OnboardingForm({ projects, role }: OnboardingFormProps) {
   const router = useRouter();

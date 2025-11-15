@@ -16,6 +16,7 @@ interface DashboardProjectsProps {
     status: string;
     progress: number;
     dueDate: string | null;
+    demoUrl?: string | null;
     ownerId: string;
     ownerName: string | null;
   }>;
@@ -118,6 +119,7 @@ export function DashboardProjects({ projects, role, ownerOptions }: DashboardPro
                     status: project.status,
                     progress: project.progress,
                     dueDate: project.dueDate,
+                    demoUrl: project.demoUrl ?? null,
                     ownerId: project.ownerId
                   }}
                   trigger={

@@ -12,8 +12,12 @@ import { assertUserCanAccessProject, isStaff, isProspect } from "@/lib/utils";
 import {
   OnboardingFinalSchema,
   OnboardingPayloadSchema,
+  OnboardingDraftSchema,
+  ProspectOnboardingFinalSchema,
+  ProspectOnboardingDraftSchema,
   type OnboardingFinalPayload,
-  type OnboardingPayload
+  type OnboardingPayload,
+  type ProspectOnboardingPayload
 } from "@/lib/zod-schemas";
 import { summarizeOnboardingPayload } from "@/lib/onboarding-summary";
 
@@ -68,9 +72,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
+  // Détecter si c'est un payload prospect ou client
+  // Les payloads prospect ont des champs spécifiques (activity, siteGoal, welcomePhrase, etc.)
+  const isProspectPayload =
+    "activity" in payload ||
+    "siteGoal" in payload ||
+    "welcomePhrase" in payload ||
+    ("mainServices" in payload && Array.isArray(payload.mainServices));
+
+  // Pour les brouillons (autosave), utiliser un schéma permissif
+  // Pour la validation finale, utiliser le schéma strict
   const validation = completed
-    ? OnboardingFinalSchema.safeParse(payload)
-    : OnboardingPayloadSchema.safeParse(payload);
+    ? isProspectPayload
+      ? ProspectOnboardingFinalSchema.safeParse(payload)
+      : OnboardingFinalSchema.safeParse(payload)
+    : isProspectPayload
+      ? ProspectOnboardingDraftSchema.safeParse(payload)
+      : OnboardingDraftSchema.safeParse(payload);
 
   if (!validation.success) {
     return NextResponse.json(
@@ -79,9 +97,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const safePayload: OnboardingPayload | OnboardingFinalPayload = completed
-    ? (validation.data as OnboardingFinalPayload)
-    : (validation.data as OnboardingPayload);
+  // Pour les brouillons, on accepte un payload partiel
+  // Pour la validation finale, on utilise le type strict
+  const safePayload:
+    | OnboardingPayload
+    | OnboardingFinalPayload
+    | ProspectOnboardingPayload
+    | Record<string, unknown> = completed
+    ? isProspectPayload
+      ? (validation.data as ProspectOnboardingPayload)
+      : (validation.data as OnboardingFinalPayload)
+    : (validation.data as Record<string, unknown>);
 
   // Sérialiser en JSON de manière sûre, en convertissant toutes les Dates en ISO strings
   const jsonPayload = JSON.stringify(safePayload, (_key, value) => {

@@ -107,8 +107,8 @@ const inspirationEntrySchema = z
 export const OnboardingStep4Schema = z.object({
   inspirations: z
     .array(inspirationEntrySchema)
-    .min(1, { message: "Fournissez au moins une source d’inspiration." })
-    .max(8, { message: "8 inspirations maximum." }),
+    .max(8, { message: "8 inspirations maximum." })
+    .optional(),
   competitors: z.array(inspirationEntrySchema).max(8, { message: "8 concurrents maximum." }).optional()
 });
 
@@ -144,6 +144,31 @@ export const OnboardingPayloadFields = OnboardingStep1Schema.merge(OnboardingSte
   .merge(OnboardingStep3Schema)
   .merge(OnboardingStep4Schema)
   .merge(OnboardingStep5Fields);
+
+// Schéma permissif pour les brouillons (autosave) - tous les champs sont optionnels
+export const OnboardingDraftSchema = z.object({
+  fullName: z.string().optional(),
+  company: z.string().optional(),
+  phone: z.string().optional(),
+  website: z.string().optional(),
+  goals: z.array(z.string()).optional(),
+  description: z.string().optional(),
+  pages: z.array(z.string()).optional(),
+  customPages: z
+    .array(
+      z.object({
+        title: z.string(),
+        description: z.string().optional()
+      })
+    )
+    .optional(),
+  contentsNote: z.string().optional(),
+  inspirations: z.array(z.string()).optional(),
+  competitors: z.array(z.string()).optional(),
+  domainOwned: z.boolean().optional(),
+  domainName: z.string().optional(),
+  hostingNotes: z.string().optional()
+});
 
 export const OnboardingPayloadSchema = OnboardingPayloadFields.superRefine((data, ctx) => {
   if (data.domainOwned && !data.domainName) {
@@ -425,6 +450,111 @@ export const notificationMarkSchema = z
       path: ["ids"]
     }
   );
+
+// ============================================
+// Schémas pour le formulaire d'onboarding PROSPECT (simplifié)
+// ============================================
+
+// Étape 1 : Votre activité
+export const ProspectOnboardingStep1Schema = z.object({
+  companyName: z.string().max(150, { message: "150 caractères maximum." }).optional(),
+  activity: z
+    .string()
+    .min(2, { message: "Merci d'indiquer votre activité principale." })
+    .max(200, { message: "200 caractères maximum." }),
+  siteGoal: z.enum(
+    ["present_services", "get_contacts", "sell_online", "optimize_image", "other"],
+    {
+      errorMap: () => ({ message: "Sélectionnez un objectif pour votre site." })
+    }
+  ),
+  siteGoalOther: z.string().max(200).optional()
+});
+
+// Étape 2 : Style & inspirations
+export const ProspectOnboardingStep2Schema = z.object({
+  inspirationUrls: z
+    .array(z.string().url({ message: "URL invalide." }).or(z.literal("")))
+    .max(3, { message: "Maximum 3 liens." })
+    .optional(),
+  preferredStyles: z
+    .array(
+      z.enum([
+        "simple_minimalist",
+        "modern_dynamic",
+        "luxury_elegant",
+        "colorful_creative",
+        "professional_serious",
+        "not_sure"
+      ])
+    )
+    .min(1, { message: "Sélectionnez au moins un style ou 'Je ne sais pas'." })
+});
+
+// Étape 3 : Identité visuelle
+export const ProspectOnboardingStep3Schema = z.object({
+  primaryColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, { message: "Couleur invalide (format hex: #RRGGBB)." })
+    .optional(),
+  logoUrl: z.string().url({ message: "URL invalide." }).optional().or(z.literal("")),
+  hasVisualIdentity: z.enum(["yes", "no", "not_yet"], {
+    errorMap: () => ({ message: "Sélectionnez une option." })
+  })
+});
+
+// Étape 4 : Contenu / message
+export const ProspectOnboardingStep4Schema = z.object({
+  welcomePhrase: z
+    .string()
+    .min(5, { message: "Au moins 5 caractères." })
+    .max(200, { message: "200 caractères maximum." }),
+  mainServices: z
+    .array(z.string().min(2, { message: "Au moins 2 caractères." }).max(100))
+    .length(3, { message: "Indiquez exactement 3 services principaux." }),
+  importantInfo: z.string().max(1000, { message: "1000 caractères maximum." }).optional()
+});
+
+// Schéma complet pour le payload prospect (brouillon - tous optionnels)
+export const ProspectOnboardingDraftSchema = z.object({
+  companyName: z.string().optional(),
+  activity: z.string().optional(),
+  siteGoal: z
+    .enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"])
+    .optional(),
+  siteGoalOther: z.string().optional(),
+  inspirationUrls: z.array(z.string()).optional(),
+  preferredStyles: z.array(z.string()).optional(),
+  primaryColor: z.string().optional(),
+  logoUrl: z.string().optional(),
+  hasVisualIdentity: z.enum(["yes", "no", "not_yet"]).optional(),
+  welcomePhrase: z.string().optional(),
+  mainServices: z.array(z.string()).optional(),
+  importantInfo: z.string().optional()
+});
+
+// Schéma complet pour la validation finale prospect
+export const ProspectOnboardingFinalSchema = ProspectOnboardingStep1Schema.merge(
+  ProspectOnboardingStep2Schema
+)
+  .merge(ProspectOnboardingStep3Schema)
+  .merge(ProspectOnboardingStep4Schema)
+  .refine(
+    (data) => {
+      // Si siteGoal est "other", siteGoalOther doit être rempli
+      if (data.siteGoal === "other" && (!data.siteGoalOther || data.siteGoalOther.trim().length === 0)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Précisez votre objectif si vous avez choisi 'Autre'.",
+      path: ["siteGoalOther"]
+    }
+  );
+
+export type ProspectOnboardingPayload = z.infer<typeof ProspectOnboardingFinalSchema>;
+export type ProspectOnboardingDraftPayload = z.infer<typeof ProspectOnboardingDraftSchema>;
 
 export const notificationPreferencesSchema = z
   .object({

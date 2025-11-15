@@ -68,6 +68,12 @@ export default async function LoginPage(): Promise<JSX.Element> {
         </div>
         <PasswordLoginForm />
         <p className="mt-4 text-center text-xs text-muted-foreground sm:mt-6">
+          Pas encore de compte ?{" "}
+          <Link href="/signup" className="font-medium text-accent hover:underline">
+            Créer un compte
+          </Link>
+        </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
           Besoin d'aide ? Écrivez-nous à{" "}
           <Link href="mailto:hello@orylis.fr" className="font-medium text-accent hover:underline">
             hello@orylis.fr
