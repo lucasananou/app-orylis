@@ -60,59 +60,61 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
   const { projectName } = await loadDemoStatus();
 
   return (
-    <>
+    <div className="w-full overflow-x-hidden min-w-0">
       <PageHeader
         title="Votre démo est en création"
         description="Nous préparons votre site de démonstration à partir de vos informations."
       />
-      <Card className="border border-border/70 bg-white shadow-subtle">
-        <CardHeader className="pb-4 sm:pb-6">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
-            <DemoInProgressAnimated />
-            <div className="flex-1 text-center sm:text-left">
-              <CardTitle className="text-xl sm:text-2xl">Votre démo est en cours de création ⚙️</CardTitle>
-              <CardDescription className="mt-2 text-sm sm:text-base">
+      <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
+        <CardHeader className="pb-4 sm:pb-6 min-w-0">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0">
+            <div className="shrink-0">
+              <DemoInProgressAnimated />
+            </div>
+            <div className="flex-1 text-center sm:text-left min-w-0">
+              <CardTitle className="text-xl sm:text-2xl break-words">Votre démo est en cours de création ⚙️</CardTitle>
+              <CardDescription className="mt-2 text-sm sm:text-base break-words">
                 Nous préparons votre site de démonstration personnalisé pour le projet{" "}
                 <span className="font-semibold text-foreground">{projectName}</span>.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 sm:space-y-6">
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-4 sm:rounded-2xl sm:p-6">
-            <h3 className="mb-3 text-base font-semibold text-foreground sm:mb-4 sm:text-lg">
+        <CardContent className="space-y-4 sm:space-y-6 min-w-0">
+          <div className="rounded-xl border border-border/50 bg-muted/30 p-4 sm:rounded-2xl sm:p-6 min-w-0">
+            <h3 className="mb-3 text-base font-semibold text-foreground sm:mb-4 sm:text-lg break-words">
               Que se passe-t-il maintenant ?
             </h3>
             <ul className="space-y-2.5 text-xs text-muted-foreground sm:space-y-3 sm:text-sm">
-              <li className="flex items-start gap-3">
-                <span className="mt-1 text-accent">✓</span>
-                <span>
+              <li className="flex items-start gap-3 min-w-0">
+                <span className="mt-1 text-accent shrink-0">✓</span>
+                <span className="break-words">
                   <strong className="text-foreground">Votre onboarding est complété</strong> – Nous
                   avons toutes les informations nécessaires pour créer votre démo.
                 </span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 text-accent">⚙️</span>
-                <span>
+              <li className="flex items-start gap-3 min-w-0">
+                <span className="mt-1 text-accent shrink-0">⚙️</span>
+                <span className="break-words">
                   <strong className="text-foreground">Notre équipe travaille sur votre démo</strong>{" "}
                   – Nous créons un site personnalisé basé sur vos réponses.
                 </span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 text-accent">📧</span>
-                <span>
+              <li className="flex items-start gap-3 min-w-0">
+                <span className="mt-1 text-accent shrink-0">📧</span>
+                <span className="break-words">
                   <strong className="text-foreground">Vous serez notifié</strong> – Dès que votre
                   démo sera prête, vous recevrez une notification et pourrez la consulter ici.
                 </span>
               </li>
             </ul>
           </div>
-          <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 sm:rounded-2xl sm:p-6">
-            <p className="text-xs text-blue-900 sm:text-sm">
-              <strong>💡 Besoin d'aide ?</strong> N'hésitez pas à nous contacter à{" "}
+          <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 sm:rounded-2xl sm:p-6 min-w-0">
+            <p className="text-xs text-blue-900 sm:text-sm break-words">
+              <strong>💡 Besoin d&apos;aide ?</strong> N&apos;hésitez pas à nous contacter à{" "}
               <a
                 href="mailto:hello@orylis.fr"
-                className="font-medium text-blue-700 underline hover:text-blue-800"
+                className="font-medium text-blue-700 underline hover:text-blue-800 break-all"
               >
                 hello@orylis.fr
               </a>{" "}
@@ -121,7 +123,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
                 href="https://calendly.com/lucas-orylis/30min"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-blue-700 underline hover:text-blue-800"
+                className="font-medium text-blue-700 underline hover:text-blue-800 break-all"
               >
                 prendre rendez-vous avec Lucas
               </a>
@@ -130,7 +132,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
           </div>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
 
