@@ -67,8 +67,6 @@ async function TicketsPageContent({
   searchParams
 }: TicketsPageProps): Promise<JSX.Element> {
   const session = await getCachedSession();
-  const user = session.user!;
-  const isProspectUser = isProspect(user.role);
 
   if (!session?.user) {
     redirect("/login");
