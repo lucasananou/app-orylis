@@ -505,6 +505,156 @@ export async function sendOnboardingCompletedEmailToAdmin(
 }
 
 /**
+ * Email 1 : Bienvenue après création de compte (prospect)
+ */
+export async function sendProspectWelcomeEmail(userId: string, projectName: string) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bienvenue";
+
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName} 👋</h2>
+    <p>Bienvenue dans votre espace Orylis ! On va vous guider étape par étape.</p>
+    <p>Votre projet <strong>${projectName}</strong> a été créé avec succès.</p>
+    <p><strong>Prochaine étape :</strong> Remplissez votre formulaire d'onboarding pour que nous puissions créer votre démo personnalisée.</p>
+    <p>L'onboarding ne prend que quelques minutes et nous permettra de mieux comprendre vos besoins.</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Commencer l'onboarding",
+    `${appUrl}/onboarding`
+  );
+
+  const template = await getTemplateFromDB(
+    "welcome",
+    "Bienvenue sur Orylis - Commencez votre onboarding",
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName,
+    projectName,
+    onboardingUrl: `${appUrl}/onboarding`
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: replaceTemplateVariables(template.subject, { userName, projectName }),
+    html
+  });
+}
+
+/**
+ * Email 2 : Après onboarding complété (prospect)
+ */
+export async function sendProspectOnboardingCompletedEmail(
+  userId: string,
+  projectName: string
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">Félicitations ${userName} ! 🎉</h2>
+    <p>Votre onboarding est complété avec succès !</p>
+    <p><strong>Votre démo est en préparation</strong> – Voici ce qui va se passer :</p>
+    <ul>
+      <li>Notre équipe analyse vos réponses et vos préférences</li>
+      <li>Nous créons un site de démonstration personnalisé basé sur vos informations</li>
+      <li>Vous recevrez une notification dès que votre démo sera prête</li>
+    </ul>
+    <p>En attendant, vous pouvez suivre l'avancement directement depuis votre espace client.</p>
+    <p>Merci pour votre confiance !</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Voir mon espace",
+    `${appUrl}/`
+  );
+
+  const template = await getTemplateFromDB(
+    "onboarding_completed",
+    `Votre démo est en préparation - ${projectName}`,
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName,
+    projectName,
+    dashboardUrl: `${appUrl}/`
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: replaceTemplateVariables(template.subject, { userName, projectName }),
+    html
+  });
+}
+
+/**
+ * Email 3 : Démo prête (prospect)
+ */
+export async function sendProspectDemoReadyEmail(
+  userId: string,
+  projectName: string,
+  demoUrl: string
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">Votre démo personnalisée est prête ! 🎉</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Excellente nouvelle : votre site de démonstration pour le projet <strong>${projectName}</strong> est maintenant disponible !</p>
+    <p>Nous avons créé une démo personnalisée basée sur toutes les informations que vous nous avez fournies lors de l'onboarding.</p>
+    <p><strong>Prochaines étapes :</strong></p>
+    <ul>
+      <li>Consultez votre démo et voyez votre site prendre vie</li>
+      <li>Validez votre site pour passer à la suite et bénéficier d'une mise en ligne prioritaire</li>
+      <li>Ou prenez rendez-vous avec Lucas pour discuter de votre projet</li>
+    </ul>
+    <p>Nous sommes impatients de recevoir votre retour !</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Voir ma démo",
+    `${appUrl}/demo`
+  );
+
+  const template = await getTemplateFromDB(
+    "project_created",
+    `Votre démo ${projectName} est prête !`,
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName,
+    projectName,
+    demoUrl: `${appUrl}/demo`
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: replaceTemplateVariables(template.subject, { userName, projectName }),
+    html
+  });
+}
+
+/**
  * Email de notification : onboarding complété (version avec userId pour compatibilité)
  * @deprecated Utilisez sendOnboardingCompletedEmailToAdmin à la place
  */

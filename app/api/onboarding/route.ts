@@ -7,7 +7,10 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { onboardingResponses, projects, profiles } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
-import { sendOnboardingCompletedEmailToAdmin } from "@/lib/emails";
+import {
+  sendOnboardingCompletedEmailToAdmin,
+  sendProspectOnboardingCompletedEmail
+} from "@/lib/emails";
 import { assertUserCanAccessProject, isStaff, isProspect } from "@/lib/utils";
 import {
   OnboardingFinalSchema,
@@ -212,6 +215,13 @@ export async function POST(req: NextRequest) {
     sendOnboardingCompletedEmailToAdmin(projectId, project.name).catch((error) => {
       console.error("[Email] Failed to send onboarding completed email:", error);
     });
+
+    // Si c'est un prospect, envoyer l'email 2 (démo en préparation)
+    if (isProspectUser) {
+      sendProspectOnboardingCompletedEmail(session.user.id, project.name).catch((error) => {
+        console.error("[Email] Failed to send prospect onboarding completed email:", error);
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });

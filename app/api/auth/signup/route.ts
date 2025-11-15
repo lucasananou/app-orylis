@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { authUsers, profiles, projects, userCredentials } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
+import { sendProspectWelcomeEmail } from "@/lib/emails";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,11 @@ export async function POST(req: NextRequest) {
 
     // Créer les préférences de notification par défaut
     await ensureNotificationDefaults(userId, "prospect");
+
+    // Envoyer l'email de bienvenue (Email 1)
+    sendProspectWelcomeEmail(userId, projectName).catch((error) => {
+      console.error("[Email] Failed to send prospect welcome email:", error);
+    });
 
     return NextResponse.json({
       ok: true,

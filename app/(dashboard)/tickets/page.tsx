@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { TicketsClient } from "@/components/tickets/tickets-client";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProspectBanner } from "@/components/prospect/prospect-banner";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Tous" },
@@ -66,6 +67,8 @@ async function TicketsPageContent({
   searchParams
 }: TicketsPageProps): Promise<JSX.Element> {
   const session = await getCachedSession();
+  const user = session.user!;
+  const isProspectUser = isProspect(user.role);
 
   if (!session?.user) {
     redirect("/login");
@@ -76,30 +79,7 @@ async function TicketsPageContent({
   const isProspectUser = isProspect(user.role);
   const requestedStatus = searchParams.status;
 
-  // Si c'est un prospect, afficher un message explicatif
-  if (isProspectUser) {
-    return (
-      <>
-        <PageHeader
-          title="Tickets"
-          description="Créez des demandes pour suivre vos besoins produit & design avec l'équipe Orylis."
-        />
-        <Card className="border border-border/70">
-          <CardContent className="py-12 text-center">
-            <p className="text-lg font-medium text-foreground mb-2">
-              Cette section est réservée aux clients
-            </p>
-            <p className="text-muted-foreground mb-4">
-              Pour accéder aux tickets, fichiers et facturation, contactez-nous pour activer votre accès complet.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              En tant que prospect, vous pouvez actuellement remplir votre onboarding et suivre l'avancement de votre projet.
-            </p>
-          </CardContent>
-        </Card>
-      </>
-    );
-  }
+  // Si c'est un prospect, afficher le bandeau et continuer (ils peuvent voir mais pas créer)
   const statusFilter = STATUS_OPTIONS.some((option) => option.value === requestedStatus)
     ? (requestedStatus as TicketStatusValue | "all")
     : "all";
@@ -173,6 +153,7 @@ async function TicketsPageContent({
         title="Tickets"
         description="Créez des demandes pour suivre vos besoins produit & design avec l'équipe Orylis."
       />
+      {isProspectUser && <ProspectBanner />}
 
       <TicketsClient
         statusOptions={STATUS_OPTIONS}

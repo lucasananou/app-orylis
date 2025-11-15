@@ -100,6 +100,23 @@ export default async function DemoPage(): Promise<JSX.Element> {
 
         {/* Bloc 2 : Options d'action */}
         <div className="space-y-6">
+          {/* Message FOMO */}
+          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <p className="font-semibold text-orange-900">
+                    Validez votre site aujourd&apos;hui et profitez de votre mise en ligne prioritaire.
+                  </p>
+                  <p className="mt-1 text-sm text-orange-700">
+                    Les projets validés aujourd&apos;hui bénéficient d&apos;un traitement en priorité pour une mise en ligne rapide.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border border-border/70 bg-white shadow-subtle">
             <CardHeader>
               <CardTitle>Prochaines étapes</CardTitle>
@@ -114,7 +131,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
                 asChild
               >
                 <a
-                  href={process.env.NEXT_PUBLIC_STRIPE_CHECKOUT_URL || "#"}
+                  href="https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -7,6 +7,7 @@ import { isStaff, isProspect } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { FilesSection } from "@/components/files/files-section";
+import { ProspectBanner } from "@/components/prospect/prospect-banner";
 
 // Cache les fichiers pendant 20 secondes
 export const revalidate = 20;
@@ -20,6 +21,7 @@ async function loadFilesPageData() {
 
   const user = session.user!;
   const staff = isStaff(user.role);
+  const isProspectUser = isProspect(user.role);
 
   const accessibleProjects = staff
     ? await db
@@ -98,37 +100,13 @@ export default async function FilesPage(): Promise<JSX.Element> {
   const { role, staff, accessibleProjects, files, userId } = await loadFilesPageData();
   const isProspectUser = isProspect(role);
 
-  // Si c'est un prospect, afficher un message explicatif
-  if (isProspectUser) {
-    return (
-      <>
-        <PageHeader
-          title="Fichiers partagés"
-          description="Tous les livrables, exports et documents de travail centralisés."
-        />
-        <Card className="border border-border/70">
-          <CardContent className="py-12 text-center">
-            <p className="text-lg font-medium text-foreground mb-2">
-              Cette section est réservée aux clients
-            </p>
-            <p className="text-muted-foreground mb-4">
-              Pour accéder aux fichiers, tickets et facturation, contactez-nous pour activer votre accès complet.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              En tant que prospect, vous pouvez actuellement remplir votre onboarding et suivre l'avancement de votre projet.
-            </p>
-          </CardContent>
-        </Card>
-      </>
-    );
-  }
-
   return (
     <>
       <PageHeader
         title="Fichiers partagés"
         description="Tous les livrables, exports et documents de travail centralisés."
       />
+      {isProspectUser && <ProspectBanner />}
       <FilesSection
         projects={accessibleProjects.map(({ id, name }) => ({ id, name }))}
         files={files}

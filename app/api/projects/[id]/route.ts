@@ -2,11 +2,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { projects } from "@/lib/schema";
+import { projects, profiles } from "@/lib/schema";
 import { auth } from "@/auth";
 import { notifyProjectParticipants } from "@/lib/notifications";
-import { sendProjectUpdatedEmail } from "@/lib/emails";
-import { isStaff } from "@/lib/utils";
+import { sendProjectUpdatedEmail, sendProspectDemoReadyEmail } from "@/lib/emails";
+import { isStaff, isProspect } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +57,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       name: true,
       ownerId: true,
       status: true,
-      progress: true
+      progress: true,
+      demoUrl: true
     }
   });
 
@@ -73,9 +74,36 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     columns: {
       name: true,
       status: true,
-      progress: true
+      progress: true,
+      demoUrl: true,
+      ownerId: true
     }
   });
+
+  // Vérifier si la démo vient d'être ajoutée (Email 3)
+  const demoJustAdded =
+    body.demoUrl &&
+    body.demoUrl !== null &&
+    body.demoUrl !== "" &&
+    (!projectBefore?.demoUrl || projectBefore.demoUrl === null);
+
+  if (demoJustAdded && projectAfter?.demoUrl && projectAfter.ownerId) {
+    // Vérifier si le propriétaire est un prospect
+    const ownerProfile = await db.query.profiles.findFirst({
+      where: eq(profiles.id, projectAfter.ownerId),
+      columns: { role: true }
+    });
+
+    if (ownerProfile && isProspect(ownerProfile.role)) {
+      sendProspectDemoReadyEmail(
+        projectAfter.ownerId,
+        projectAfter.name,
+        projectAfter.demoUrl
+      ).catch((error) => {
+        console.error("[Email] Failed to send prospect demo ready email:", error);
+      });
+    }
+  }
 
   // Construire le message de mise à jour
   const updateMessages: string[] = [];
