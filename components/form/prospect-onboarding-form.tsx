@@ -455,7 +455,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       stepPayload = {
         companyName: values.companyName,
         activity: values.activity,
-        siteGoal: values.siteGoal && values.siteGoal !== "" ? values.siteGoal : undefined,
+        siteGoal: values.siteGoal ? values.siteGoal : undefined,
         siteGoalOther: values.siteGoalOther
       };
     } else if (index === 1) {
