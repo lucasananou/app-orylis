@@ -562,28 +562,39 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Titre optimisé pour la conversion */}
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Complétez ce formulaire pour recevoir votre démo personnalisée sous 24h 🚀
+        </h1>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          3–4 minutes. Vos réponses nous permettent d&apos;adapter votre démo à votre activité.
+        </p>
+      </div>
+
+      {/* Barre de progression */}
       <Card className="border border-border/80 bg-white/90">
-        <CardHeader className="gap-3 space-y-0 md:flex md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-xl font-semibold text-foreground">{projectName}</CardTitle>
-            <CardDescription>
+        <CardHeader className="gap-2 space-y-0 pb-3 md:flex md:flex-row md:items-center md:justify-between">
+          <div className="space-y-0.5">
+            <CardTitle className="text-base font-semibold text-foreground">{projectName}</CardTitle>
+            <CardDescription className="text-xs">
               Progression <span className="font-medium text-foreground">{currentProgress}%</span>
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               {isSavingDraft && (
                 <span className="inline-flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                   Sauvegarde…
                 </span>
               )}
               {!isSavingDraft && savingError && (
-                <span className="inline-flex items-center gap-2 text-destructive">{savingError}</span>
+                <span className="inline-flex items-center gap-2 text-destructive text-xs">{savingError}</span>
               )}
               {!isSavingDraft && !savingError && (
-                <span suppressHydrationWarning>
+                <span suppressHydrationWarning className="text-xs">
                   {lastSavedAt && isHydrated
                     ? formatDate(lastSavedAt, { dateStyle: "medium", timeStyle: "short" })
                     : "À venir"}
@@ -592,27 +603,27 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <ProgressSteps steps={stepsProgress} className="grid gap-4 md:grid-cols-4" />
-          <Progress value={currentProgress} className="mt-4" />
+        <CardContent className="pt-0">
+          <ProgressSteps steps={stepsProgress} className="grid gap-2 md:grid-cols-4" />
+          <Progress value={currentProgress} className="mt-3" />
         </CardContent>
       </Card>
 
       <Form form={form} onSubmit={(event) => event.preventDefault()}>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Étape 1 : Votre activité */}
           {currentStepIndex === 0 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <span>📋</span>
                   Parlez-nous de votre activité
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Juste l'essentiel pour que nous adaptions votre démo.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <FormField
                   control={control}
                   name="companyName"
@@ -702,16 +713,16 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           {/* Étape 2 : Style & inspirations */}
           {currentStepIndex === 1 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <span>🎨</span>
                   Votre style
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Pour que la démo ressemble vraiment à ce que vous aimez.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="space-y-4">
                   <FormLabel>3 sites que vous aimez (optionnel)</FormLabel>
                   <p className="text-sm text-muted-foreground">
@@ -780,16 +791,16 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           {/* Étape 3 : Identité visuelle */}
           {currentStepIndex === 2 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <span>🎨</span>
                   Votre identité visuelle
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Ces éléments nous permettent d'adapter le design.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <FormField
                   control={control}
                   name="primaryColor"
@@ -967,16 +978,16 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           {/* Étape 4 : Contenu / message */}
           {currentStepIndex === 3 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <span>✍️</span>
                   Votre message principal
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Quelques lignes suffisent pour personnaliser la démo.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <FormField
                   control={control}
                   name="welcomePhrase"
@@ -1037,7 +1048,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
             </Card>
           )}
 
-          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-muted-foreground">
               Étape {currentStepIndex + 1} sur {stepDefinitions.length}
             </div>
@@ -1053,7 +1064,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
               </Button>
               {currentStepIndex < stepDefinitions.length - 1 && (
                 <Button type="button" onClick={handleNextStep} disabled={isSubmitting}>
-                  Continuer
+                  Étape suivante
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}

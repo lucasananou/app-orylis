@@ -140,18 +140,17 @@ export default async function OnboardingPage(): Promise<JSX.Element> {
 
   return (
     <>
-      <PageHeader
-        title="Onboarding projet"
-        description={
-          isProspectUser
-            ? "Remplissez ce formulaire rapide pour créer votre démo personnalisée."
-            : "Renseignez les informations clés pour lancer sereinement votre projet Orylis."
-        }
-      />
       {isProspectUser ? (
+        // Pour les prospects : titre optimisé directement dans le formulaire (pas de PageHeader séparé)
         <ProspectOnboardingForm projects={projectEntries} />
       ) : (
-        <OnboardingForm projects={projectEntries} role={role} />
+        <>
+          <PageHeader
+            title="Onboarding projet"
+            description="Renseignez les informations clés pour lancer sereinement votre projet Orylis."
+          />
+          <OnboardingForm projects={projectEntries} role={role} />
+        </>
       )}
     </>
   );
