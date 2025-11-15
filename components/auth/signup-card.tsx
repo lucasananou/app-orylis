@@ -104,7 +104,7 @@ export function SignupCard() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg sm:rounded-3xl sm:p-8 md:p-10 md:shadow-xl lg:sticky lg:top-8">
+    <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-4 shadow-lg sm:rounded-3xl sm:p-6 md:p-8 lg:p-10 md:shadow-xl lg:sticky lg:top-8 min-w-0">
       <div className="mb-6 space-y-1.5 sm:mb-8 sm:space-y-2">
         <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Créer votre espace Orylis</h2>
         <p className="text-xs text-slate-600 sm:text-sm">

@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="flex flex-col justify-center gap-6 text-slate-800 sm:gap-8 md:gap-10 lg:pr-8">
+    <section className="flex flex-col justify-center gap-6 text-slate-800 sm:gap-8 md:gap-10 lg:pr-8 min-w-0">
       {/* Logo */}
       <div className="flex items-center gap-3">
         <Image
@@ -19,7 +19,7 @@ export function HeroSection() {
       {/* Titre principal */}
       <div className="space-y-2 sm:space-y-3">
         <div className="space-y-1.5 sm:space-y-2">
-          <h1 className="font-poppins text-2xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-3xl md:text-4xl lg:text-5xl">
+          <h1 className="font-poppins text-2xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-3xl md:text-4xl lg:text-5xl break-words">
             Recevez une démo personnalisée de votre futur site en 24h 🚀
           </h1>
           <p className="text-xs font-medium text-slate-500 sm:text-sm md:text-base">
@@ -30,7 +30,7 @@ export function HeroSection() {
             💬 Nos démos sont créées à partir de vos informations, pas des templates génériques.
           </p>
         </div>
-        <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg lg:text-xl">
+        <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg lg:text-xl break-words">
           Créez votre espace Orylis, répondez à quelques questions, et recevez une démo de site WordPress professionnelle, adaptée à votre activité.{" "}
           <span className="font-medium text-slate-700">Gratuit, sans engagement.</span>
         </p>
@@ -48,25 +48,25 @@ export function HeroSection() {
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span>Formulaire d&apos;onboarding en 2 minutes</span>
+            <span className="break-words">Formulaire d&apos;onboarding en 2 minutes</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span>Demo de votre futur site, personnalisée</span>
+            <span className="break-words">Demo de votre futur site, personnalisée</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span>Design moderne, responsive, adapté à votre activité</span>
+            <span className="break-words">Design moderne, responsive, adapté à votre activité</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span>Accès à un espace client pour suivre votre projet</span>
+            <span className="break-words">Accès à un espace client pour suivre votre projet</span>
           </li>
         </ul>
       </div>
@@ -96,11 +96,11 @@ function SocialProof() {
   return (
     <div className="space-y-2 pt-2">
       <p className="text-xs font-medium text-slate-500">Technologies maîtrisées :</p>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         {partnerBadges.map((partner, index) => (
           <div
             key={index}
-            className={`flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold shadow-sm transition-all hover:border-slate-300 hover:shadow-md ${partner.color}`}
+            className={`flex h-8 sm:h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 sm:px-4 text-xs font-semibold shadow-sm transition-all hover:border-slate-300 hover:shadow-md shrink-0 ${partner.color}`}
             title={partner.name}
           >
             {partner.name}

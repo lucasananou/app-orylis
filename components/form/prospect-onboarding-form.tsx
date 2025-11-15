@@ -562,20 +562,20 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
   }));
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="w-full overflow-x-hidden space-y-3 sm:space-y-4 min-w-0">
       {/* Titre optimisé pour la conversion */}
       <div className="space-y-1.5 sm:space-y-2">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl break-words">
           Complétez ce formulaire pour recevoir votre démo personnalisée sous 24h 🚀
         </h1>
-        <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
+        <p className="text-xs text-muted-foreground sm:text-sm md:text-base break-words">
           3–4 minutes. Vos réponses nous permettent d&apos;adapter votre démo à votre activité.
         </p>
       </div>
 
       {/* Barre de progression */}
-      <Card className="border border-border/80 bg-white/90">
-        <CardHeader className="gap-2 space-y-0 pb-2 sm:pb-3 md:flex md:flex-row md:items-center md:justify-between">
+      <Card className="border border-border/80 bg-white/90 min-w-0">
+        <CardHeader className="gap-2 space-y-0 pb-2 sm:pb-3 md:flex md:flex-row md:items-center md:justify-between min-w-0">
           <div className="space-y-0.5">
             <CardTitle className="text-sm font-semibold text-foreground sm:text-base">{projectName}</CardTitle>
             <CardDescription className="text-xs">
@@ -613,7 +613,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
         <div className="space-y-3 sm:space-y-4">
           {/* Étape 1 : Votre activité */}
           {currentStepIndex === 0 && (
-            <Card className="border border-border/70 bg-white shadow-subtle">
+            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>📋</span>
@@ -716,7 +716,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
           {/* Étape 2 : Style & inspirations */}
           {currentStepIndex === 1 && (
-            <Card className="border border-border/70 bg-white shadow-subtle">
+            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>🎨</span>
@@ -729,8 +729,8 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
               <CardContent className="space-y-3 sm:space-y-4">
                 <div className="space-y-4">
                   <FormLabel>3 sites que vous aimez (optionnel)</FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Partagez des liens vers des sites, Instagram, Facebook ou n'importe quel lien qui
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                    Partagez des liens vers des sites, Instagram, Facebook ou n&apos;importe quel lien qui
                     vous inspire.
                   </p>
                   {inspirationUrlsArray.fields.map((field, index) => (
@@ -794,7 +794,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
           {/* Étape 3 : Identité visuelle */}
           {currentStepIndex === 2 && (
-            <Card className="border border-border/70 bg-white shadow-subtle">
+            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>🎨</span>
@@ -811,11 +811,11 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Couleur principale souhaitée (optionnel)</FormLabel>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <FormControl>
                           <Input
                             type="color"
-                            className="h-12 w-24 cursor-pointer"
+                            className="h-10 w-16 sm:h-12 sm:w-24 cursor-pointer shrink-0"
                             {...field}
                             value={field.value || "#43b2b9"}
                           />
@@ -825,6 +825,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             type="text"
                             placeholder="#43b2b9"
                             pattern="^#[0-9A-Fa-f]{6}$"
+                            className="min-w-0 flex-1"
                             {...field}
                             value={field.value || "#43b2b9"}
                           />
@@ -860,7 +861,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             </Button>
                           </div>
                         )}
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 min-w-0">
                           <Input
                             type="file"
                             accept="image/*"
@@ -878,6 +879,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             type="button"
                             variant="outline"
                             disabled={isUploadingLogo}
+                            className="shrink-0"
                             onClick={() => document.getElementById("logo-upload")?.click()}
                           >
                             {isUploadingLogo ? (
@@ -888,13 +890,14 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             ) : (
                               <>
                                 <Upload className="mr-2 h-4 w-4" />
-                                {field.value ? "Remplacer le logo" : "Uploader un logo"}
+                                <span className="hidden sm:inline">{field.value ? "Remplacer le logo" : "Uploader un logo"}</span>
+                                <span className="sm:hidden">{field.value ? "Remplacer" : "Uploader"}</span>
                               </>
                             )}
                           </Button>
                           {!field.value && (
-                            <p className="text-sm text-muted-foreground">
-                              Ou collez une URL d'image
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                              Ou collez une URL d&apos;image
                             </p>
                           )}
                         </div>
@@ -981,7 +984,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
           {/* Étape 4 : Contenu / message */}
           {currentStepIndex === 3 && (
-            <Card className="border border-border/70 bg-white shadow-subtle">
+            <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>✍️</span>
@@ -1052,11 +1055,11 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
             </Card>
           )}
 
-          <div className="flex flex-col gap-2.5 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="text-xs text-muted-foreground sm:text-sm">
+          <div className="flex flex-col gap-2.5 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 min-w-0">
+            <div className="text-xs text-muted-foreground sm:text-sm shrink-0">
               Étape {currentStepIndex + 1} sur {stepDefinitions.length}
             </div>
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3 min-w-0 w-full sm:w-auto">
               <Button
                 type="button"
                 variant="ghost"
