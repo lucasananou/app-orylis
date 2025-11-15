@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -71,9 +70,14 @@ export default async function SignupPage(): Promise<JSX.Element> {
         <SignupForm />
         <p className="mt-4 text-center text-xs text-muted-foreground sm:mt-6">
           En créant un compte, vous acceptez nos{" "}
-          <Link href="/terms" className="font-medium text-accent hover:underline">
+          <a
+            href="https://orylis.fr/mentions-legales"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-accent hover:underline"
+          >
             conditions d'utilisation
-          </Link>
+          </a>
         </p>
         <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground/80 sm:mt-4 sm:text-xs">
           🔐 Inscription sécurisée – Vos données sont protégées et utilisées uniquement pour le suivi
