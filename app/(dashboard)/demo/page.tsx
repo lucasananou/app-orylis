@@ -80,7 +80,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full min-w-0">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto">
         {/* Bloc 1 : Aperçu de la démo */}
         <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
           <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">

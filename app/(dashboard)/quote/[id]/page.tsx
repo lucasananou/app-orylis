@@ -79,13 +79,13 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
       />
 
       {isSigned ? (
-        <Card className="border border-green-200 bg-green-50/50">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-              <div>
-                <CardTitle className="text-lg text-green-900">Devis signé !</CardTitle>
-                <CardDescription className="text-green-700">
+        <Card className="border border-green-200 bg-green-50/50 w-full min-w-0 max-w-screen-lg mx-auto">
+          <CardHeader className="w-full min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 w-full min-w-0">
+              <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg text-green-900 break-words">Devis signé !</CardTitle>
+                <CardDescription className="text-green-700 break-words">
                   Votre devis a été signé le{" "}
                   {quote.signedAt
                     ? new Date(quote.signedAt).toLocaleDateString("fr-FR", {
@@ -98,16 +98,16 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild className="text-sm sm:text-base">
-                <a href={quote.signedPdfUrl!} target="_blank" rel="noopener noreferrer">
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger le devis signé
+          <CardContent className="w-full min-w-0">
+            <div className="flex flex-col gap-3 sm:flex-row w-full min-w-0">
+              <Button asChild className="text-sm sm:text-base w-full sm:w-auto min-w-0">
+                <a href={quote.signedPdfUrl!} target="_blank" rel="noopener noreferrer" className="break-words">
+                  <Download className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="break-words">Télécharger le devis signé</span>
                 </a>
               </Button>
-              <Button variant="outline" asChild className="text-sm sm:text-base">
-                <a href="/demo">
+              <Button variant="outline" asChild className="text-sm sm:text-base w-full sm:w-auto min-w-0">
+                <a href="/demo" className="break-words">
                   Retour à la démo
                 </a>
               </Button>
@@ -115,59 +115,59 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto">
           {/* Colonne de gauche : Aperçu du devis */}
-          <div>
+          <div className="w-full min-w-0">
             <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />
           </div>
 
           {/* Colonne de droite : Signature + Bloc "après validation" */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4 w-full min-w-0 sm:space-y-6">
             <QuoteSignForm quoteId={id} />
-            <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30">
-              <CardHeader className="pb-4 sm:pb-6">
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <span>✨</span>
+            <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30 w-full min-w-0">
+              <CardHeader className="pb-4 sm:pb-6 w-full min-w-0">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
+                  <span className="shrink-0">✨</span>
                   Après validation…
                 </CardTitle>
-                <CardDescription className="text-sm sm:text-base">
+                <CardDescription className="text-sm sm:text-base break-words">
                   Voici ce que nous allons faire :
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 sm:space-y-6">
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">🚀</span>
-                    <div>
-                      <p className="text-sm sm:text-base font-semibold text-foreground">Nous lançons immédiatement la préparation de votre site final</p>
-                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+              <CardContent className="space-y-4 sm:space-y-6 w-full min-w-0">
+                <div className="space-y-4 sm:space-y-6 w-full">
+                  <div className="flex items-start gap-2 sm:gap-3 w-full min-w-0">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl shrink-0">🚀</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm sm:text-base font-semibold text-foreground break-words">Nous lançons immédiatement la préparation de votre site final</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground break-words">
                         Votre projet passe en phase de développement dès validation du devis.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">📅</span>
-                    <div>
-                      <p className="text-sm sm:text-base font-semibold text-foreground">Vous recevez une date estimée de livraison</p>
-                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2 sm:gap-3 w-full min-w-0">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl shrink-0">📅</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm sm:text-base font-semibold text-foreground break-words">Vous recevez une date estimée de livraison</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground break-words">
                         Nous vous communiquons un planning précis dans les 24h suivant la validation.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">💬</span>
-                    <div>
-                      <p className="text-sm sm:text-base font-semibold text-foreground">Vous accédez au système de tickets et échanges avec Lucas</p>
-                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                        Communication directe et suivi en temps réel de l'avancement de votre projet.
+                  <div className="flex items-start gap-2 sm:gap-3 w-full min-w-0">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl shrink-0">💬</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm sm:text-base font-semibold text-foreground break-words">Vous accédez au système de tickets et échanges avec Lucas</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground break-words">
+                        Communication directe et suivi en temps réel de l&apos;avancement de votre projet.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">📁</span>
-                    <div>
-                      <p className="text-sm sm:text-base font-semibold text-foreground">Vous pouvez envoyer vos contenus (photos, textes…)</p>
-                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2 sm:gap-3 w-full min-w-0">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl shrink-0">📁</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm sm:text-base font-semibold text-foreground break-words">Vous pouvez envoyer vos contenus (photos, textes…)</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground break-words">
                         Partagez facilement tous vos éléments via votre espace client sécurisé.
                       </p>
                     </div>
