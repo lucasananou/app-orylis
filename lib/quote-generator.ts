@@ -10,6 +10,7 @@ import { put } from "@vercel/blob";
 export interface QuoteData {
   prospectName: string;
   prospectEmail: string;
+  prospectPhone?: string | null;
   companyName: string | null;
   projectName: string;
   quoteNumber: string;
@@ -72,110 +73,182 @@ export async function generateQuotePDF(data: QuoteData): Promise<string> {
 }
 
 function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
-  // Utiliser la police standard Helvetica (pas besoin de fichiers AFM)
-  doc.font("Helvetica");
-  
-  // Header avec logo (placeholder pour le logo)
-  doc
-    .fontSize(24)
-    .fillColor("#005eff")
-    .text("Orylis", 50, 50, { align: "left" })
-    .fontSize(10)
-    .fillColor("#666666")
-    .text("Création de sites internet professionnels", 50, 75, { align: "left" });
+  const pageWidth = doc.page.width;
+  const pageHeight = doc.page.height;
+  const margin = 50;
+  let y = margin;
 
-  // Informations du prospect
+  // Logo Orylis en haut à gauche
+  doc
+    .fontSize(28)
+    .fillColor("#005eff")
+    .text("Orylis", margin, y, { align: "left" });
+  
+  // Numéro de devis et date en haut à droite
+  const today = new Date().toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+  
+  doc
+    .fontSize(10)
+    .fillColor("#000000")
+    .text(`DEVIS: ${data.quoteNumber}`, pageWidth - margin, y, { align: "right" })
+    .text(`DATE: ${today}`, pageWidth - margin, y + 15, { align: "right" });
+
+  y = 100;
+
+  // Section CLIENT à gauche
+  doc
+    .fontSize(11)
+    .fillColor("#000000")
+    .text("CLIENT:", margin, y, { align: "left" });
+  
+  y += 20;
+  doc
+    .fontSize(10)
+    .fillColor("#333333")
+    .text(`Name: ${data.prospectName}`, margin, y, { align: "left" });
+  
+  y += 15;
+  doc.text(`Email: ${data.prospectEmail}`, margin, y, { align: "left" });
+  
+  if (data.prospectPhone) {
+    y += 15;
+    doc.text(`Phone: ${data.prospectPhone}`, margin, y, { align: "left" });
+  }
+  
+  if (data.companyName) {
+    y += 15;
+    doc.text(`Company: ${data.companyName}`, margin, y, { align: "left" });
+  }
+
+  // Section PRESTATAIRE à droite
+  let yPrestataire = 100;
+  doc
+    .fontSize(11)
+    .fillColor("#000000")
+    .text("PRESTATAIRE :", pageWidth - margin, yPrestataire, { align: "right" });
+  
+  yPrestataire += 20;
+  doc
+    .fontSize(10)
+    .fillColor("#333333")
+    .text("Name: Orylis", pageWidth - margin, yPrestataire, { align: "right" });
+  
+  yPrestataire += 15;
+  doc.text("Email: orylisfrance@gmail.com", pageWidth - margin, yPrestataire, { align: "right" });
+
+  // Section services avec encadré
+  y = Math.max(y, yPrestataire) + 50;
+  
+  // Encadré gris pour les services
+  const servicesBoxY = y;
+  const servicesBoxHeight = 280;
+  const servicesBoxX = margin;
+  const servicesBoxWidth = pageWidth - (margin * 2);
+  
+  // Fond gris clair
+  doc
+    .rect(servicesBoxX, servicesBoxY, servicesBoxWidth, servicesBoxHeight)
+    .fillColor("#f5f5f5")
+    .fill();
+
+  // Bordure
+  doc
+    .rect(servicesBoxX, servicesBoxY, servicesBoxWidth, servicesBoxHeight)
+    .strokeColor("#e0e0e0")
+    .lineWidth(1)
+    .stroke();
+
+  // Contenu des services
+  let servicesY = servicesBoxY + 20;
+  
+  // Service 1: Site internet optimisé Orylis
+  doc
+    .fontSize(11)
+    .fillColor("#000000")
+    .text("Site internet optimisé Orylis", servicesBoxX + 15, servicesY, { align: "left" });
+  
+  servicesY += 20;
+  doc
+    .fontSize(9)
+    .fillColor("#666666")
+    .text("• Branding et design sur-mesure", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Responsive PC, Tablette et Smartphone", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Référencement Google optimisé", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Intégration de plugin premium gratuitement (valeur 290,90 € /an)", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  // Prix du service 1 à droite (site internet)
+  doc
+    .fontSize(10)
+    .fillColor("#000000")
+    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 20, servicesBoxY + 20, { align: "right" });
+
+  servicesY += 30;
+
+  // Service 2: Service de maintenance
+  doc
+    .fontSize(11)
+    .fillColor("#000000")
+    .text("Service de maintenance", servicesBoxX + 15, servicesY, { align: "left" });
+  
+  servicesY += 20;
+  doc
+    .fontSize(9)
+    .fillColor("#666666")
+    .text("• Hébergement optimisé sur serveur dédié inclus (valeur 19,90 € /mois)", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Nom de domaine (.fr ou .com) inclus (valeur 9,90 € /an)", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Mise à jour, maintenance et sécurité inclus", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Modification site internet illimitées inclus", servicesBoxX + 20, servicesY, { align: "left" });
+  
+  servicesY += 15;
+  doc.text("• Suivi et accompagnement pour la prise en main", servicesBoxX + 20, servicesY, { align: "left" });
+
+  // Total HT à droite
+  const totalY = servicesBoxY + servicesBoxHeight - 30;
   doc
     .fontSize(12)
     .fillColor("#000000")
-    .moveDown(2)
-    .text(data.prospectName, { align: "left" })
-    .text(data.prospectEmail, { align: "left" });
+    .text("Total HT :", servicesBoxX + servicesBoxWidth - 100, totalY, { align: "right" })
+    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 20, totalY, { align: "right" });
+
+  // Section paiement en bas
+  y = servicesBoxY + servicesBoxHeight + 30;
   
-  if (data.companyName) {
-    doc.text(data.companyName, { align: "left" });
-  }
-
-  // Titre du devis
   doc
-    .moveDown(1)
-    .fontSize(20)
-    .fillColor("#005eff")
-    .text("Devis – Création de site internet", { align: "center" })
     .fontSize(10)
-    .fillColor("#666666")
-    .text(`Devis n° ${data.quoteNumber}`, { align: "center" })
-    .moveDown(1);
-
-  // Services inclus
-  doc
-    .fontSize(14)
     .fillColor("#000000")
-    .text("Services inclus :", { underline: true })
-    .moveDown(0.5);
-
-  doc.fontSize(11).fillColor("#333333");
-
-  // Site internet optimisé Orylis
-  doc.text("Site internet optimisé Orylis", { continued: false });
-  doc.fontSize(10).fillColor("#666666");
-  doc.text("• Branding et design sur-mesure", { indent: 20 });
-  doc.text("• Responsive PC, Tablette et Smartphone", { indent: 20 });
-  doc.text("• Référencement Google optimisé", { indent: 20 });
-  doc.text("• Intégration de plugin premium gratuitement (valeur 290,90 € /an)", { indent: 20 });
-
-  doc.moveDown(0.5).fontSize(11).fillColor("#333333");
-  doc.text("Service de maintenance", { continued: false });
-  doc.fontSize(10).fillColor("#666666");
-  doc.text("• Hébergement optimisé sur serveur dédié inclus (valeur 19,90 € /mois)", { indent: 20 });
-  doc.text("• Nom de domaine (.fr ou .com) inclus (valeur 9,90 € /an)", { indent: 20 });
-  doc.text("• Mise à jour, maintenance et sécurité inclus", { indent: 20 });
-  doc.text("• Modification site internet illimitées inclus", { indent: 20 });
-  doc.text("• Suivi et accompagnement pour la prise en main", { indent: 20 });
-
-  // Prix
+    .text("MOYEN DE PAIEMENT :", margin, y, { align: "left" });
+  
+  y += 20;
   doc
-    .moveDown(1.5)
-    .fontSize(16)
-    .fillColor("#000000")
-    .text("Prix : 1 490 € HT", { align: "right", underline: true })
-    .moveDown(0.5)
-    .fontSize(10)
+    .fontSize(9)
     .fillColor("#666666")
-    .text("Acompte : 500 €", { align: "right" })
-    .text("Délais : 7 jours", { align: "right" });
-
-  // Conditions
+    .text("Lien de paiement sécurisé", margin, y, { align: "left" });
+  
+  // Encadré pour QR code ou détails paiement (optionnel)
+  const paymentBoxY = y - 5;
+  const paymentBoxHeight = 60;
+  const paymentBoxWidth = 200;
+  
   doc
-    .moveDown(1.5)
-    .fontSize(11)
-    .fillColor("#333333")
-    .text("Conditions :", { underline: true })
-    .moveDown(0.5)
-    .fontSize(10)
-    .fillColor("#666666")
-    .text("• Paiement 3× possible", { indent: 20 })
-    .text("• Support inclus pendant 90 jours", { indent: 20 });
-
-  // Footer
-  const pageHeight = doc.page.height;
-  const pageWidth = doc.page.width;
-  const footerY = pageHeight - 50;
-
-  doc
-    .fontSize(8)
-    .fillColor("#999999")
-    .text(
-      "Orylis - Création de sites internet professionnels",
-      pageWidth / 2,
-      footerY,
-      { align: "center" }
-    )
-    .text(
-      `Devis généré le ${new Date().toLocaleDateString("fr-FR")}`,
-      pageWidth / 2,
-      footerY + 15,
-      { align: "center" }
-    );
+    .rect(pageWidth - margin - paymentBoxWidth, paymentBoxY, paymentBoxWidth, paymentBoxHeight)
+    .strokeColor("#e0e0e0")
+    .lineWidth(1)
+    .stroke();
 }
 

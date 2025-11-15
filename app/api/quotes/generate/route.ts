@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
       where: eq(profiles.id, user.id),
       columns: {
         fullName: true,
-        company: true
+        company: true,
+        phone: true
       }
     });
 
@@ -76,13 +77,15 @@ export async function POST(req: NextRequest) {
     const prospectEmail = authUser?.email ?? "";
     const companyName = profile?.company ?? null;
 
-    // Générer le numéro de devis (format: Q-YYYYMMDD-XXX)
-    const quoteNumber = `Q-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+    // Générer le numéro de devis (format: 000135)
+    // Utiliser un numéro séquentiel basé sur le timestamp
+    const quoteNumber = `${Date.now().toString().slice(-6).padStart(6, "0")}`;
 
     // Générer le PDF
     const pdfUrl = await generateQuotePDF({
       prospectName,
       prospectEmail,
+      prospectPhone: profile?.phone ?? null,
       companyName,
       projectName: project.name,
       quoteNumber

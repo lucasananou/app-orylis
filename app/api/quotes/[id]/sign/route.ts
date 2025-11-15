@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { quotes, projects } from "@/lib/schema";
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       .set({
         signedPdfUrl: blob.url,
         status: "signed",
-        signedAt: new Date()
+        signedAt: sql`now()`
       })
       .where(eq(quotes.id, id));
 

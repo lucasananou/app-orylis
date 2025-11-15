@@ -37,7 +37,8 @@ async function loadQuoteData(id: string) {
       pdfUrl: true,
       signedPdfUrl: true,
       status: true,
-      signedAt: true
+      signedAt: true,
+      createdAt: true
     }
   });
 
@@ -74,7 +75,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
     <>
       <PageHeader
         title="Devis – Création de site internet"
-        description={`Devis pour le projet ${projectName}`}
+        description={`Devis personnalisé pour le projet ${projectName}`}
       />
 
       {isSigned ? (
@@ -114,10 +115,61 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           </CardContent>
         </Card>
       ) : (
-        <>
-          <QuoteViewer pdfUrl={quote.pdfUrl} />
+        <div className="space-y-12">
+          <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />
           <QuoteSignForm quoteId={id} />
-        </>
+          <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <span>✨</span>
+                Après validation…
+              </CardTitle>
+              <CardDescription className="text-base">
+                Voici ce que nous allons faire :
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <span className="mt-1 text-2xl">🚀</span>
+                  <div>
+                    <p className="font-semibold text-foreground">Nous lançons immédiatement la préparation de votre site final</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Votre projet passe en phase de développement dès validation du devis.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <span className="mt-1 text-2xl">📅</span>
+                  <div>
+                    <p className="font-semibold text-foreground">Vous recevez une date estimée de livraison</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Nous vous communiquons un planning précis dans les 24h suivant la validation.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <span className="mt-1 text-2xl">💬</span>
+                  <div>
+                    <p className="font-semibold text-foreground">Vous accédez au système de tickets et échanges avec Lucas</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Communication directe et suivi en temps réel de l'avancement de votre projet.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <span className="mt-1 text-2xl">📁</span>
+                  <div>
+                    <p className="font-semibold text-foreground">Vous pouvez envoyer vos contenus (photos, textes…)</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Partagez facilement tous vos éléments via votre espace client sécurisé.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </>
   );
