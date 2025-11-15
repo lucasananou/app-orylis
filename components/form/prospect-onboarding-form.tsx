@@ -289,14 +289,14 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
   const { control, watch } = form;
 
-  const inspirationUrlsArray = useFieldArray({
-    control: control as Control<ProspectOnboardingFormState>,
-    name: "inspirationUrls"
+  const inspirationUrlsArray = useFieldArray<ProspectOnboardingFormState>({
+    control,
+    name: "inspirationUrls" as FieldArrayPath<ProspectOnboardingFormState>
   });
 
-  const mainServicesArray = useFieldArray({
-    control: control as Control<ProspectOnboardingFormState>,
-    name: "mainServices"
+  const mainServicesArray = useFieldArray<ProspectOnboardingFormState>({
+    control,
+    name: "mainServices" as FieldArrayPath<ProspectOnboardingFormState>
   });
 
   const watchedValues = watch();
