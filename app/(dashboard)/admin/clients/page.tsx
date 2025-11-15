@@ -30,20 +30,30 @@ async function loadClientsData() {
     .where(or(eq(profiles.role, "prospect"), eq(profiles.role, "client")))
     .orderBy(asc(profiles.fullName));
 
-  // Compter les projets par client et filtrer les staff
+  // Compter les projets par client et récupérer le premier projet pour les prospects
   const clientsWithProjects = await Promise.all(
     clients
       .filter((client) => client.role !== "staff") // Filtrer les staff (ne devrait pas arriver mais sécurité)
       .map(async (client) => {
-        const projectCount = await db
-          .select({ count: projects.id })
+        const clientProjects = await db
+          .select({
+            id: projects.id,
+            name: projects.name,
+            demoUrl: projects.demoUrl,
+            status: projects.status
+          })
           .from(projects)
           .where(eq(projects.ownerId, client.id))
-          .then((rows) => rows.length);
+          .limit(1);
 
         return {
           ...client,
-          projectCount,
+          projectCount: await db
+            .select({ count: projects.id })
+            .from(projects)
+            .where(eq(projects.ownerId, client.id))
+            .then((rows) => rows.length),
+          firstProject: clientProjects[0] ?? null,
           createdAt: client.createdAt?.toISOString() ?? null,
           role: client.role as "prospect" | "client" // Type assertion car on a filtré les staff
         };
