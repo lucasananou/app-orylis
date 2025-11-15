@@ -67,20 +67,20 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr]">
         {/* Bloc 1 : Aperçu de la démo */}
         <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <ExternalLink className="h-5 w-5" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
               Aperçu de votre démo
             </CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-sm sm:text-base">
               Votre site de démonstration pour le projet <strong>{projectName}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 p-6 pt-0">
-            <div className="relative w-full max-w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "450px" }}>
+          <CardContent className="space-y-3 p-4 pt-0 sm:space-y-4 sm:p-6">
+            <div className="relative w-full max-w-full overflow-hidden rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl" style={{ aspectRatio: "16/10", minHeight: "300px" }}>
               <iframe
                 src={demoUrl}
                 className="h-full w-full border-0"
@@ -90,9 +90,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
                 style={{ width: "100%", height: "100%" }}
               />
             </div>
-            <Button variant="outline" size="lg" className="w-full" asChild>
+            <Button variant="outline" size="lg" className="w-full text-sm sm:text-base" asChild>
               <a href={demoUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-2 h-5 w-5" />
+                <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Ouvrir la démo dans un nouvel onglet
               </a>
             </Button>
@@ -100,17 +100,17 @@ export default async function DemoPage(): Promise<JSX.Element> {
         </Card>
 
         {/* Bloc 2 : Options d'action */}
-        <div className="space-y-6 min-w-0">
+        <div className="space-y-4 min-w-0 sm:space-y-6">
           {/* Message FOMO */}
           <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">⚡</span>
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="flex items-start gap-2.5 sm:gap-3">
+                <span className="text-xl sm:text-2xl">⚡</span>
                 <div>
-                  <p className="font-semibold text-orange-900">
+                  <p className="text-sm font-semibold text-orange-900 sm:text-base">
                     Validez votre site aujourd&apos;hui et profitez de votre mise en ligne prioritaire.
                   </p>
-                  <p className="mt-1 text-sm text-orange-700">
+                  <p className="mt-1 text-xs text-orange-700 sm:text-sm">
                     Les projets validés aujourd&apos;hui bénéficient d&apos;un traitement en priorité pour une mise en ligne rapide.
                   </p>
                 </div>
@@ -119,16 +119,16 @@ export default async function DemoPage(): Promise<JSX.Element> {
           </Card>
 
           <Card className="border border-border/70 bg-white shadow-subtle">
-            <CardHeader>
-              <CardTitle>Prochaines étapes</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Prochaines étapes</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Choisissez comment vous souhaitez avancer avec votre projet
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <Button
                 size="lg"
-                className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-md"
+                className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-md text-sm sm:text-base"
                 asChild
               >
                 <a
@@ -140,7 +140,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   Valider mon site et passer à la suite
                 </a>
               </Button>
-              <Button size="lg" variant="outline" className="w-full" asChild>
+              <Button size="lg" variant="outline" className="w-full text-sm sm:text-base" asChild>
                 <a
                   href="https://calendly.com/lucas-orylis/30min"
                   target="_blank"
@@ -155,11 +155,11 @@ export default async function DemoPage(): Promise<JSX.Element> {
 
           {/* Bloc 3 : Informations */}
           <Card className="border border-accent/30 bg-accent/5">
-            <CardHeader>
-              <CardTitle className="text-lg">Ce qui est inclus</CardTitle>
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Ce qui est inclus</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm">
                 <li className="flex items-start gap-2">
                   <span className="mt-1 text-accent">✓</span>
                   <span>

@@ -562,22 +562,22 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Titre optimisé pour la conversion */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+      <div className="space-y-1.5 sm:space-y-2">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl">
           Complétez ce formulaire pour recevoir votre démo personnalisée sous 24h 🚀
         </h1>
-        <p className="text-sm text-muted-foreground sm:text-base">
+        <p className="text-xs text-muted-foreground sm:text-sm md:text-base">
           3–4 minutes. Vos réponses nous permettent d&apos;adapter votre démo à votre activité.
         </p>
       </div>
 
       {/* Barre de progression */}
       <Card className="border border-border/80 bg-white/90">
-        <CardHeader className="gap-2 space-y-0 pb-3 md:flex md:flex-row md:items-center md:justify-between">
+        <CardHeader className="gap-2 space-y-0 pb-2 sm:pb-3 md:flex md:flex-row md:items-center md:justify-between">
           <div className="space-y-0.5">
-            <CardTitle className="text-base font-semibold text-foreground">{projectName}</CardTitle>
+            <CardTitle className="text-sm font-semibold text-foreground sm:text-base">{projectName}</CardTitle>
             <CardDescription className="text-xs">
               Progression <span className="font-medium text-foreground">{currentProgress}%</span>
             </CardDescription>
@@ -604,26 +604,26 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <ProgressSteps steps={stepsProgress} className="grid gap-2 md:grid-cols-4" />
-          <Progress value={currentProgress} className="mt-3" />
+          <ProgressSteps steps={stepsProgress} className="grid gap-1.5 sm:gap-2 md:grid-cols-4" />
+          <Progress value={currentProgress} className="mt-2 sm:mt-3" />
         </CardContent>
       </Card>
 
       <Form form={form} onSubmit={(event) => event.preventDefault()}>
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Étape 1 : Votre activité */}
           {currentStepIndex === 0 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>📋</span>
                   Parlez-nous de votre activité
                 </CardTitle>
-                <CardDescription className="text-sm">
+                <CardDescription className="text-xs sm:text-sm">
                   Juste l'essentiel pour que nous adaptions votre démo.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <FormField
                   control={control}
                   name="companyName"
@@ -665,9 +665,9 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                     <FormItem>
                       <FormLabel>But du site</FormLabel>
                       <FormControl>
-                        <div className="space-y-3">
+                        <div className="space-y-2.5 sm:space-y-3">
                           {SITE_GOAL_OPTIONS.map((option) => (
-                            <div key={option.value} className="flex items-center space-x-2">
+                            <div key={option.value} className="flex items-center space-x-2.5 sm:space-x-3">
                               <Checkbox
                                 id={option.value}
                                 checked={field.value?.includes(option.value)}
@@ -682,7 +682,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                               />
                               <label
                                 htmlFor={option.value}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                className="text-xs font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer sm:text-sm sm:leading-none"
                               >
                                 {option.label}
                               </label>
@@ -717,16 +717,16 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           {/* Étape 2 : Style & inspirations */}
           {currentStepIndex === 1 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>🎨</span>
                   Votre style
                 </CardTitle>
-                <CardDescription className="text-sm">
+                <CardDescription className="text-xs sm:text-sm">
                   Pour que la démo ressemble vraiment à ce que vous aimez.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <div className="space-y-4">
                   <FormLabel>3 sites que vous aimez (optionnel)</FormLabel>
                   <p className="text-sm text-muted-foreground">
@@ -760,9 +760,9 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Style préféré</FormLabel>
-                      <div className="space-y-3">
+                      <div className="space-y-2.5 sm:space-y-3">
                         {STYLE_OPTIONS.map((option) => (
-                          <div key={option.value} className="flex items-center space-x-2">
+                          <div key={option.value} className="flex items-center space-x-2.5 sm:space-x-3">
                             <Checkbox
                               id={option.value}
                               checked={field.value?.includes(option.value)}
@@ -777,7 +777,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             />
                             <label
                               htmlFor={option.value}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                              className="text-xs font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer sm:text-sm sm:leading-none"
                             >
                               {option.label}
                             </label>
@@ -795,16 +795,16 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           {/* Étape 3 : Identité visuelle */}
           {currentStepIndex === 2 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>🎨</span>
                   Votre identité visuelle
                 </CardTitle>
-                <CardDescription className="text-sm">
+                <CardDescription className="text-xs sm:text-sm">
                   Ces éléments nous permettent d'adapter le design.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <FormField
                   control={control}
                   name="primaryColor"
@@ -920,8 +920,8 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                     <FormItem>
                       <FormLabel>Avez-vous déjà une identité visuelle ?</FormLabel>
                       <FormControl>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2">
+                        <div className="space-y-2.5 sm:space-y-3">
+                          <div className="flex items-center space-x-2.5 sm:space-x-3">
                             <input
                               type="radio"
                               id="identity-yes"
@@ -932,12 +932,12 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             />
                             <label
                               htmlFor="identity-yes"
-                              className="text-sm font-medium leading-none cursor-pointer"
+                              className="text-xs font-medium leading-tight cursor-pointer sm:text-sm sm:leading-none"
                             >
                               Oui
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2.5 sm:space-x-3">
                             <input
                               type="radio"
                               id="identity-no"
@@ -948,12 +948,12 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             />
                             <label
                               htmlFor="identity-no"
-                              className="text-sm font-medium leading-none cursor-pointer"
+                              className="text-xs font-medium leading-tight cursor-pointer sm:text-sm sm:leading-none"
                             >
                               Non
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2.5 sm:space-x-3">
                             <input
                               type="radio"
                               id="identity-not-yet"
@@ -964,7 +964,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                             />
                             <label
                               htmlFor="identity-not-yet"
-                              className="text-sm font-medium leading-none cursor-pointer"
+                              className="text-xs font-medium leading-tight cursor-pointer sm:text-sm sm:leading-none"
                             >
                               Pas encore
                             </label>
@@ -982,16 +982,16 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           {/* Étape 4 : Contenu / message */}
           {currentStepIndex === 3 && (
             <Card className="border border-border/70 bg-white shadow-subtle">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <span>✍️</span>
                   Votre message principal
                 </CardTitle>
-                <CardDescription className="text-sm">
+                <CardDescription className="text-xs sm:text-sm">
                   Quelques lignes suffisent pour personnaliser la démo.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <FormField
                   control={control}
                   name="welcomePhrase"
@@ -1052,28 +1052,29 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
             </Card>
           )}
 
-          <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col gap-2.5 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="text-xs text-muted-foreground sm:text-sm">
               Étape {currentStepIndex + 1} sur {stepDefinitions.length}
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={handlePreviousStep}
                 disabled={currentStepIndex === 0 || isSubmitting}
+                className="text-sm sm:text-base"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour
               </Button>
               {currentStepIndex < stepDefinitions.length - 1 && (
-                <Button type="button" onClick={handleNextStep} disabled={isSubmitting}>
+                <Button type="button" onClick={handleNextStep} disabled={isSubmitting} className="text-sm sm:text-base">
                   Étape suivante
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
               {currentStepIndex === stepDefinitions.length - 1 && (
-                <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="text-sm sm:text-base">
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

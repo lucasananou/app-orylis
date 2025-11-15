@@ -14,8 +14,8 @@ export default async function SignupPage(): Promise<JSX.Element> {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 md:px-8 md:py-16 lg:px-12 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16 xl:gap-20">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-12 lg:px-12 lg:py-20">
+        <div className="grid gap-8 sm:gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16 xl:gap-20">
           {/* Mobile: Formulaire en premier (order-1), Desktop: à droite (order-2) */}
           <div className="order-1 lg:order-2">
             <SignupCard />

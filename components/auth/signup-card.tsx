@@ -104,15 +104,15 @@ export function SignupCard() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-8 shadow-lg sm:p-10 md:shadow-xl lg:sticky lg:top-8">
-      <div className="mb-8 space-y-2">
-        <h2 className="text-2xl font-semibold text-slate-900">Créer votre espace Orylis</h2>
-        <p className="text-sm text-slate-600">
+    <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg sm:rounded-3xl sm:p-8 md:p-10 md:shadow-xl lg:sticky lg:top-8">
+      <div className="mb-6 space-y-1.5 sm:mb-8 sm:space-y-2">
+        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Créer votre espace Orylis</h2>
+        <p className="text-xs text-slate-600 sm:text-sm">
           Remplissez le formulaire ci-dessous pour commencer votre projet.
         </p>
       </div>
 
-      <Form form={form} className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
+      <Form form={form} className="space-y-4 sm:space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
         <FormField<SignupFormValues, "email">
           control={form.control}
           name="email"
@@ -234,7 +234,7 @@ export function SignupCard() {
           100% gratuit — aucun engagement
         </p>
 
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-xs text-slate-600 sm:text-sm">
           Déjà un compte ?{" "}
           <Link href="/login" className="font-medium text-accent hover:underline">
             Se connecter
@@ -242,13 +242,13 @@ export function SignupCard() {
         </p>
 
         {/* Réassurance */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
+        <div className="space-y-1.5 pt-2 border-t border-slate-100 sm:space-y-2">
           <p className="flex items-center gap-2 text-xs text-slate-500">
-            <Shield className="h-3.5 w-3.5 shrink-0" />
+            <Shield className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
             <span>Données sécurisées — aucune carte bancaire demandée.</span>
           </p>
           <p className="flex items-center gap-2 text-xs text-slate-500">
-            <Mail className="h-3.5 w-3.5 shrink-0" />
+            <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
             <span>
               Besoin d&apos;aide ?{" "}
               <a

@@ -66,24 +66,24 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         description="Nous préparons votre site de démonstration à partir de vos informations."
       />
       <Card className="border border-border/70 bg-white shadow-subtle">
-        <CardHeader>
-          <div className="flex items-center gap-6">
+        <CardHeader className="pb-4 sm:pb-6">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
             <DemoInProgressAnimated />
-            <div className="flex-1">
-              <CardTitle className="text-2xl">Votre démo est en cours de création ⚙️</CardTitle>
-              <CardDescription className="mt-2 text-base">
+            <div className="flex-1 text-center sm:text-left">
+              <CardTitle className="text-xl sm:text-2xl">Votre démo est en cours de création ⚙️</CardTitle>
+              <CardDescription className="mt-2 text-sm sm:text-base">
                 Nous préparons votre site de démonstration personnalisé pour le projet{" "}
                 <span className="font-semibold text-foreground">{projectName}</span>.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="rounded-2xl border border-border/50 bg-muted/30 p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="rounded-xl border border-border/50 bg-muted/30 p-4 sm:rounded-2xl sm:p-6">
+            <h3 className="mb-3 text-base font-semibold text-foreground sm:mb-4 sm:text-lg">
               Que se passe-t-il maintenant ?
             </h3>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-2.5 text-xs text-muted-foreground sm:space-y-3 sm:text-sm">
               <li className="flex items-start gap-3">
                 <span className="mt-1 text-accent">✓</span>
                 <span>
@@ -107,8 +107,8 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
               </li>
             </ul>
           </div>
-          <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-6">
-            <p className="text-sm text-blue-900">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 sm:rounded-2xl sm:p-6">
+            <p className="text-xs text-blue-900 sm:text-sm">
               <strong>💡 Besoin d'aide ?</strong> N'hésitez pas à nous contacter à{" "}
               <a
                 href="mailto:hello@orylis.fr"
