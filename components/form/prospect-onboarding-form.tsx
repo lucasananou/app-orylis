@@ -58,13 +58,13 @@ const STYLE_OPTIONS = [
 type ProspectOnboardingFormState = {
   companyName: string;
   activity: string;
-  siteGoal: "present_services" | "get_contacts" | "sell_online" | "optimize_image" | "other" | "";
+  siteGoal: "present_services" | "get_contacts" | "sell_online" | "optimize_image" | "other" | "" | undefined;
   siteGoalOther: string;
   inspirationUrls: string[];
   preferredStyles: string[];
   primaryColor: string;
   logoUrl: string;
-  hasVisualIdentity: "yes" | "no" | "not_yet" | "";
+  hasVisualIdentity: "yes" | "no" | "not_yet" | "" | undefined;
   welcomePhrase: string;
   mainServices: string[];
   importantInfo: string;
@@ -158,7 +158,7 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
     draft.activity = trimmed(values.activity);
   }
 
-  if (values.siteGoal && values.siteGoal !== "") {
+  if (values.siteGoal && values.siteGoal !== "" && values.siteGoal !== undefined) {
     draft.siteGoal = values.siteGoal as ProspectOnboardingDraftPayload["siteGoal"];
     if (values.siteGoal === "other" && values.siteGoalOther.trim().length > 0) {
       draft.siteGoalOther = trimmed(values.siteGoalOther);
@@ -208,6 +208,14 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
 
 const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnboardingPayload => {
   const trimmed = (input: string) => input.trim();
+
+  if (!values.siteGoal || values.siteGoal === "" || values.siteGoal === undefined) {
+    throw new Error("siteGoal est requis");
+  }
+
+  if (!values.hasVisualIdentity || values.hasVisualIdentity === "" || values.hasVisualIdentity === undefined) {
+    throw new Error("hasVisualIdentity est requis");
+  }
 
   return {
     companyName: values.companyName.trim().length > 0 ? trimmed(values.companyName) : undefined,
@@ -447,7 +455,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       stepPayload = {
         companyName: values.companyName,
         activity: values.activity,
-        siteGoal: values.siteGoal,
+        siteGoal: values.siteGoal && values.siteGoal !== "" ? values.siteGoal : undefined,
         siteGoalOther: values.siteGoalOther
       };
     } else if (index === 1) {
@@ -462,7 +470,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       stepPayload = {
         primaryColor: values.primaryColor,
         logoUrl: values.logoUrl,
-        hasVisualIdentity: values.hasVisualIdentity
+        hasVisualIdentity: values.hasVisualIdentity && values.hasVisualIdentity !== "" ? values.hasVisualIdentity : undefined
       };
     } else if (index === 3) {
       // Étape 4 : contenu
