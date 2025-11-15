@@ -115,60 +115,67 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-12">
-          <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />
-          <QuoteSignForm quoteId={id} />
-          <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <span>✨</span>
-                Après validation…
-              </CardTitle>
-              <CardDescription className="text-base">
-                Voici ce que nous allons faire :
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <span className="mt-1 text-2xl">🚀</span>
-                  <div>
-                    <p className="font-semibold text-foreground">Nous lançons immédiatement la préparation de votre site final</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Votre projet passe en phase de développement dès validation du devis.
-                    </p>
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr]">
+          {/* Colonne de gauche : Aperçu du devis */}
+          <div>
+            <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />
+          </div>
+
+          {/* Colonne de droite : Signature + Bloc "après validation" */}
+          <div className="space-y-4 sm:space-y-6">
+            <QuoteSignForm quoteId={id} />
+            <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30">
+              <CardHeader className="pb-4 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <span>✨</span>
+                  Après validation…
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-base">
+                  Voici ce que nous allons faire :
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">🚀</span>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-foreground">Nous lançons immédiatement la préparation de votre site final</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                        Votre projet passe en phase de développement dès validation du devis.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">📅</span>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-foreground">Vous recevez une date estimée de livraison</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                        Nous vous communiquons un planning précis dans les 24h suivant la validation.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">💬</span>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-foreground">Vous accédez au système de tickets et échanges avec Lucas</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                        Communication directe et suivi en temps réel de l'avancement de votre projet.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <span className="mt-0.5 sm:mt-1 text-xl sm:text-2xl">📁</span>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-foreground">Vous pouvez envoyer vos contenus (photos, textes…)</p>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                        Partagez facilement tous vos éléments via votre espace client sécurisé.
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <span className="mt-1 text-2xl">📅</span>
-                  <div>
-                    <p className="font-semibold text-foreground">Vous recevez une date estimée de livraison</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Nous vous communiquons un planning précis dans les 24h suivant la validation.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <span className="mt-1 text-2xl">💬</span>
-                  <div>
-                    <p className="font-semibold text-foreground">Vous accédez au système de tickets et échanges avec Lucas</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Communication directe et suivi en temps réel de l'avancement de votre projet.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <span className="mt-1 text-2xl">📁</span>
-                  <div>
-                    <p className="font-semibold text-foreground">Vous pouvez envoyer vos contenus (photos, textes…)</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Partagez facilement tous vos éléments via votre espace client sécurisé.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
     </>

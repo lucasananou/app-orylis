@@ -37,29 +37,29 @@ export function QuoteSignatureCanvas({ onSign, disabled }: QuoteSignatureCanvasP
 
   return (
     <Card className="border border-border/70 bg-white shadow-lg">
-      <CardHeader className="pb-8">
-        <div className="space-y-2">
-          <CardTitle className="text-xl font-semibold">Signature électronique sécurisée</CardTitle>
-          <CardDescription className="text-base">
+      <CardHeader className="pb-4 sm:pb-6 md:pb-8">
+        <div className="space-y-1.5 sm:space-y-2">
+          <CardTitle className="text-lg sm:text-xl font-semibold">Signature électronique sécurisée</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Cette signature vaut validation du devis et lancement du projet.
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6">
         {/* Badge sécurité */}
-        <div className="flex items-center gap-2 rounded-lg border border-accent/20 bg-accent/5 px-4 py-2.5">
-          <Lock className="h-4 w-4 text-accent" />
-          <span className="text-sm font-medium text-foreground">
+        <div className="flex items-center gap-2 rounded-lg border border-accent/20 bg-accent/5 px-3 py-2 sm:px-4 sm:py-2.5">
+          <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
+          <span className="text-xs sm:text-sm font-medium text-foreground">
             Signature chiffrée et horodatée
           </span>
         </div>
 
         {/* Canvas signature */}
-        <div className="rounded-xl border border-border/50 bg-[#fafafa] p-4 shadow-sm">
+        <div className="rounded-lg sm:rounded-xl border border-border/50 bg-[#fafafa] p-3 sm:p-4 shadow-sm">
           <SignatureCanvas
             ref={canvasRef}
             canvasProps={{
-              className: "w-full h-48 rounded-lg bg-white",
+              className: "w-full h-40 sm:h-48 rounded-lg bg-white",
               style: { touchAction: "none" }
             }}
             onEnd={handleEnd}
@@ -69,13 +69,13 @@ export function QuoteSignatureCanvas({ onSign, disabled }: QuoteSignatureCanvasP
         </div>
 
         {/* Boutons */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <Button
             type="button"
             variant="outline"
             onClick={handleClear}
             disabled={disabled || isEmpty}
-            className="w-full text-base"
+            className="w-full text-sm sm:text-base py-3 sm:py-4"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Effacer
@@ -84,10 +84,10 @@ export function QuoteSignatureCanvas({ onSign, disabled }: QuoteSignatureCanvasP
             type="button"
             onClick={handleSign}
             disabled={disabled || isEmpty}
-            className="w-full bg-[#1b5bff] text-white transition-all duration-200 hover:bg-[#1553e6] hover:shadow-md text-base sm:text-lg py-6"
+            className="w-full bg-[#1b5bff] text-white transition-all duration-200 hover:bg-[#1553e6] hover:shadow-md text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-6"
             size="lg"
           >
-            <Check className="mr-2 h-5 w-5" />
+            <Check className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
             ✔️ Valider et lancer mon projet
           </Button>
         </div>

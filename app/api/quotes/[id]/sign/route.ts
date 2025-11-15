@@ -139,7 +139,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       .set({
         signedPdfUrl: blob.url,
         status: "signed",
-        signedAt: sql`now()`
+        signedAt: sql`now()`,
+        updatedAt: sql`now()`
       })
       .where(eq(quotes.id, id));
 
