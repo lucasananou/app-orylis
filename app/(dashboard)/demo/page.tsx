@@ -80,48 +80,48 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Bloc 1 : Aperçu de la démo */}
-        <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
-          <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
-              <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
-              Aperçu de votre démo
-            </CardTitle>
-            <CardDescription className="text-sm sm:text-base break-words">
-              Votre site de démonstration pour le projet <strong className="break-words">{projectName}</strong>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-0 w-full min-w-0">
-            <div className="relative w-full rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl overflow-x-hidden">
-              <div className="relative w-full aspect-[16/9] overflow-hidden">
-                <iframe
-                  src={demoUrl}
-                  className="absolute inset-0 w-full h-full border-0"
-                  title={`Démo ${projectName}`}
-                  allow="fullscreen"
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                  style={{ maxWidth: "100%" }}
-                />
+      <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full">
+          {/* Bloc 1 : Aperçu de la démo */}
+          <Card className="border border-border/70 bg-white shadow-subtle w-full">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
+                <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                Aperçu de votre démo
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base break-words">
+                Votre site de démonstration pour le projet <strong className="break-words">{projectName}</strong>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              <div className="w-full rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl">
+                <div className="relative w-full aspect-[16/9]">
+                  <iframe
+                    src={demoUrl}
+                    className="absolute inset-0 w-full h-full border-0"
+                    title={`Démo ${projectName}`}
+                    allow="fullscreen"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  />
+                </div>
               </div>
-            </div>
-            <Button variant="outline" size="lg" className="w-full text-sm sm:text-base" asChild>
-              <a href={demoUrl} target="_blank" rel="noopener noreferrer" className="break-words">
-                <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
-                <span className="break-words">Ouvrir la démo dans un nouvel onglet</span>
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+              <Button variant="outline" size="lg" className="w-full text-sm sm:text-base" asChild>
+                <a href={demoUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                  Ouvrir la démo dans un nouvel onglet
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
 
-        {/* Bloc 2 : Options d'action */}
-        <div className="space-y-4 w-full min-w-0 sm:space-y-6">
+          {/* Bloc 2 : Options d'action */}
+          <div className="space-y-4 sm:space-y-6 w-full">
           {/* Message FOMO */}
-          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md w-full min-w-0">
-            <CardContent className="pt-4 sm:pt-6 w-full min-w-0">
-              <div className="flex items-start gap-2 sm:gap-3 w-full min-w-0">
-                <span className="text-xl sm:text-2xl shrink-0 flex-shrink-0">⚡</span>
-                <div className="min-w-0 flex-1">
+          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md w-full">
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <span className="text-xl sm:text-2xl shrink-0">⚡</span>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-orange-900 sm:text-base break-words">
                     Validez votre site aujourd&apos;hui et réservez votre créneau de mise en ligne.
                   </p>
@@ -133,8 +133,8 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </CardContent>
           </Card>
 
-          <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
-            <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
+          <Card className="border border-border/70 bg-white shadow-subtle w-full">
+            <CardHeader className="pb-3 sm:pb-4">
               <CardTitle className="text-base sm:text-lg break-words">Prochaines étapes</CardTitle>
               <CardDescription className="text-xs sm:text-sm break-words">
                 Choisissez comment vous souhaitez avancer avec votre projet
@@ -143,7 +143,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
                 Choisissez comment vous souhaitez avancer, vous gardez la main sur la suite du projet.
               </p>
             </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4 w-full min-w-0">
+            <CardContent className="space-y-3 sm:space-y-4">
               <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
               <Button
                 size="lg"
@@ -154,10 +154,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   href="https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="break-words"
                 >
                   <CreditCard className="mr-2 h-4 w-4 shrink-0" />
-                  <span className="break-words">Valider mon site et passer à la suite</span>
+                  Valider mon site et passer à la suite
                 </a>
               </Button>
               <Button size="lg" variant="outline" className="w-full text-sm sm:text-base" asChild>
@@ -165,46 +164,45 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   href="https://calendly.com/lucas-orylis/30min"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="break-words"
                 >
                   <Calendar className="mr-2 h-4 w-4 shrink-0" />
-                  <span className="break-words">Prendre rendez-vous avec Lucas</span>
+                  Prendre rendez-vous avec Lucas
                 </a>
               </Button>
             </CardContent>
           </Card>
 
           {/* Bloc 3 : Informations */}
-          <Card className="border border-accent/30 bg-accent/5 w-full min-w-0">
-            <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
+          <Card className="border border-accent/30 bg-accent/5 w-full">
+            <CardHeader className="pb-3 sm:pb-4">
               <CardTitle className="text-base sm:text-lg break-words">Ce qui est inclus</CardTitle>
             </CardHeader>
-            <CardContent className="w-full min-w-0">
-              <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm w-full">
-                <li className="flex items-start gap-2 w-full min-w-0">
-                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
-                  <span className="break-words min-w-0 flex-1">
+            <CardContent>
+              <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="break-words flex-1">
                     <strong className="text-foreground">Suivi de projet complet</strong> – Accès à
                     votre espace client pour suivre l&apos;avancement
                   </span>
                 </li>
-                <li className="flex items-start gap-2 w-full min-w-0">
-                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
-                  <span className="break-words min-w-0 flex-1">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="break-words flex-1">
                     <strong className="text-foreground">Système de tickets</strong> – Échangez
                     directement avec l&apos;équipe Orylis
                   </span>
                 </li>
-                <li className="flex items-start gap-2 w-full min-w-0">
-                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
-                  <span className="break-words min-w-0 flex-1">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="break-words flex-1">
                     <strong className="text-foreground">Gestion de fichiers</strong> – Partagez vos
                     contenus et ressources facilement
                   </span>
                 </li>
-                <li className="flex items-start gap-2 w-full min-w-0">
-                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
-                  <span className="break-words min-w-0 flex-1">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="break-words flex-1">
                     <strong className="text-foreground">Support dédié</strong> – Accompagnement
                     personnalisé tout au long du projet
                   </span>

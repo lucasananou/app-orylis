@@ -69,7 +69,7 @@ export default async function DashboardLayout({
           projects={data.accessibleProjects}
         />
         <main className="flex-1 overflow-x-hidden bg-gradient-to-b from-[#F7F9FB] via-white to-white py-4 sm:py-5 md:py-6">
-          <div className="mx-auto w-full max-w-6xl space-y-4 min-w-0 px-4 sm:px-6 lg:px-8">{children}</div>
+          <div className="mx-auto w-full max-w-6xl space-y-4 min-w-0">{children}</div>
         </main>
       </div>
     </div>
