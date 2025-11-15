@@ -59,7 +59,8 @@ const config: Config = {
         "3xl": "2rem"
       },
       fontFamily: {
-        sans: ["var(--font-inter)", ...fontFamily.sans]
+        sans: ["var(--font-inter)", ...fontFamily.sans],
+        poppins: ["var(--font-poppins)", ...fontFamily.sans]
       },
       boxShadow: {
         subtle: "0 10px 30px -25px rgba(15, 23, 42, 0.4)"

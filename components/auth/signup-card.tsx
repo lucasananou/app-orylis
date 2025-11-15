@@ -213,7 +213,7 @@ export function SignupCard() {
         <Button
           type="submit"
           size="lg"
-          className="w-full bg-accent text-white transition-all duration-200 hover:bg-[#0B5AE6] hover:shadow-md"
+          className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-lg hover:shadow-blue-500/25"
           disabled={isSubmitting || !form.formState.isValid}
         >
           {isSubmitting ? (
@@ -228,6 +228,11 @@ export function SignupCard() {
             </>
           )}
         </Button>
+
+        {/* Rappel "Sans engagement" sous le CTA */}
+        <p className="text-center text-xs font-medium text-slate-500">
+          100% gratuit — aucun engagement
+        </p>
 
         <p className="text-center text-sm text-slate-600">
           Déjà un compte ?{" "}

@@ -61,7 +61,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl } = await loadDemoData();
 
   return (
-    <>
+    <div className="w-full overflow-x-hidden">
       <PageHeader
         title="Votre démo est prête !"
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
@@ -80,13 +80,14 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 p-6 pt-0">
-            <div className="relative w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "600px" }}>
+            <div className="relative w-full max-w-full overflow-hidden rounded-xl border-2 border-border/60 bg-muted/10 shadow-lg" style={{ aspectRatio: "16/10", minHeight: "600px" }}>
               <iframe
                 src={demoUrl}
-                className="h-full w-full"
+                className="h-full w-full border-0"
                 title={`Démo ${projectName}`}
                 allow="fullscreen"
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                style={{ width: "100%", height: "100%" }}
               />
             </div>
             <Button variant="outline" size="lg" className="w-full" asChild>
@@ -192,7 +193,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
           </Card>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
