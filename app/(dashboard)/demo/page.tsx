@@ -74,56 +74,56 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <>
       <PageHeader
         title="Votre démo est prête !"
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full min-w-0">
         {/* Bloc 1 : Aperçu de la démo */}
-        <Card className="border border-border/70 bg-white shadow-subtle min-w-0">
-          <CardHeader className="pb-3 sm:pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+        <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
+          <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
+              <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
               Aperçu de votre démo
             </CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              Votre site de démonstration pour le projet <strong>{projectName}</strong>
+            <CardDescription className="text-sm sm:text-base break-words">
+              Votre site de démonstration pour le projet <strong className="break-words">{projectName}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 p-4 pt-0 sm:space-y-4 sm:p-6">
-            <div className="relative w-full max-w-full overflow-hidden rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl" style={{ aspectRatio: "16/10", minHeight: "300px" }}>
+          <CardContent className="space-y-3 pt-0 w-full min-w-0">
+            <div className="relative w-full overflow-hidden rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl" style={{ aspectRatio: "16/10", minHeight: "250px", maxHeight: "450px" }}>
               <iframe
                 src={demoUrl}
                 className="h-full w-full border-0"
                 title={`Démo ${projectName}`}
                 allow="fullscreen"
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                style={{ width: "100%", height: "100%" }}
+                style={{ width: "100%", height: "100%", maxWidth: "100%" }}
               />
             </div>
             <Button variant="outline" size="lg" className="w-full text-sm sm:text-base" asChild>
-              <a href={demoUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Ouvrir la démo dans un nouvel onglet
+              <a href={demoUrl} target="_blank" rel="noopener noreferrer" className="break-words">
+                <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                <span className="break-words">Ouvrir la démo dans un nouvel onglet</span>
               </a>
             </Button>
           </CardContent>
         </Card>
 
         {/* Bloc 2 : Options d'action */}
-        <div className="space-y-4 min-w-0 sm:space-y-6">
+        <div className="space-y-4 w-full min-w-0 sm:space-y-6">
           {/* Message FOMO */}
-          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md">
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-start gap-2.5 sm:gap-3">
-                <span className="text-xl sm:text-2xl">⚡</span>
-                <div>
-                  <p className="text-sm font-semibold text-orange-900 sm:text-base">
+          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 shadow-md w-full min-w-0">
+            <CardContent className="pt-4 sm:pt-6 w-full min-w-0">
+              <div className="flex items-start gap-2 sm:gap-3 w-full min-w-0">
+                <span className="text-xl sm:text-2xl shrink-0 flex-shrink-0">⚡</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-orange-900 sm:text-base break-words">
                     Validez votre site aujourd&apos;hui et réservez votre créneau de mise en ligne.
                   </p>
-                  <p className="mt-1 text-xs text-orange-700 sm:text-sm">
+                  <p className="mt-1 text-xs text-orange-700 sm:text-sm break-words">
                     Les projets validés aujourd&apos;hui passent en priorité pour une mise en ligne rapide.
                   </p>
                 </div>
@@ -131,17 +131,17 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </CardContent>
           </Card>
 
-          <Card className="border border-border/70 bg-white shadow-subtle">
-            <CardHeader className="pb-3 sm:pb-4">
-              <CardTitle className="text-base sm:text-lg">Prochaines étapes</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
+          <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
+            <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
+              <CardTitle className="text-base sm:text-lg break-words">Prochaines étapes</CardTitle>
+              <CardDescription className="text-xs sm:text-sm break-words">
                 Choisissez comment vous souhaitez avancer avec votre projet
               </CardDescription>
-              <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
+              <p className="mt-2 text-xs text-muted-foreground sm:text-sm break-words">
                 Choisissez comment vous souhaitez avancer, vous gardez la main sur la suite du projet.
               </p>
             </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 w-full min-w-0">
               <GenerateQuoteButton projectId={projectId} existingQuoteId={existingQuoteId} />
               <Button
                 size="lg"
@@ -152,9 +152,10 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   href="https://buy.stripe.com/aFafZh02O6yJf7H3DOgIo0p"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="break-words"
                 >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Valider mon site et passer à la suite
+                  <CreditCard className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="break-words">Valider mon site et passer à la suite</span>
                 </a>
               </Button>
               <Button size="lg" variant="outline" className="w-full text-sm sm:text-base" asChild>
@@ -162,58 +163,59 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   href="https://calendly.com/lucas-orylis/30min"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="break-words"
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Prendre rendez-vous avec Lucas
+                  <Calendar className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="break-words">Prendre rendez-vous avec Lucas</span>
                 </a>
               </Button>
             </CardContent>
           </Card>
 
           {/* Bloc 3 : Informations */}
-          <Card className="border border-accent/30 bg-accent/5">
-            <CardHeader className="pb-3 sm:pb-4">
-              <CardTitle className="text-base sm:text-lg">Ce qui est inclus</CardTitle>
+          <Card className="border border-accent/30 bg-accent/5 w-full min-w-0">
+            <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
+              <CardTitle className="text-base sm:text-lg break-words">Ce qui est inclus</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent">✓</span>
-                  <span>
+            <CardContent className="w-full min-w-0">
+              <ul className="space-y-2 text-xs text-muted-foreground sm:space-y-2 sm:text-sm w-full">
+                <li className="flex items-start gap-2 w-full min-w-0">
+                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
+                  <span className="break-words min-w-0 flex-1">
                     <strong className="text-foreground">Suivi de projet complet</strong> – Accès à
-                    votre espace client pour suivre l'avancement
+                    votre espace client pour suivre l&apos;avancement
                   </span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent">✓</span>
-                  <span>
+                <li className="flex items-start gap-2 w-full min-w-0">
+                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
+                  <span className="break-words min-w-0 flex-1">
                     <strong className="text-foreground">Système de tickets</strong> – Échangez
-                    directement avec l'équipe Orylis
+                    directement avec l&apos;équipe Orylis
                   </span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent">✓</span>
-                  <span>
+                <li className="flex items-start gap-2 w-full min-w-0">
+                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
+                  <span className="break-words min-w-0 flex-1">
                     <strong className="text-foreground">Gestion de fichiers</strong> – Partagez vos
                     contenus et ressources facilement
                   </span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-accent">✓</span>
-                  <span>
+                <li className="flex items-start gap-2 w-full min-w-0">
+                  <span className="mt-1 text-accent shrink-0 flex-shrink-0">✓</span>
+                  <span className="break-words min-w-0 flex-1">
                     <strong className="text-foreground">Support dédié</strong> – Accompagnement
                     personnalisé tout au long du projet
                   </span>
                 </li>
               </ul>
-              <p className="mt-4 text-xs text-muted-foreground sm:text-sm">
+              <p className="mt-4 text-xs text-muted-foreground sm:text-sm break-words">
                 Tout est centralisé dans votre espace Orylis, vous n&apos;avez plus à courir après les infos.
               </p>
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

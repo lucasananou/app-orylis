@@ -50,19 +50,21 @@ export function GenerateQuoteButton({ projectId, existingQuoteId }: GenerateQuot
     <Button
       size="lg"
       variant="outline"
-      className="w-full text-sm sm:text-base"
+      className="w-full text-sm sm:text-base min-w-0"
       onClick={handleGenerate}
       disabled={isGenerating}
     >
       {isGenerating ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Préparation...
+          <Loader2 className="mr-2 h-4 w-4 animate-spin shrink-0" />
+          <span className="break-words">Préparation...</span>
         </>
       ) : (
         <>
-          <FileText className="mr-2 h-4 w-4" />
-          {existingQuoteId ? "Voir mon devis personnalisé" : "Recevoir mon devis personnalisé"}
+          <FileText className="mr-2 h-4 w-4 shrink-0" />
+          <span className="break-words">
+            {existingQuoteId ? "Voir mon devis personnalisé" : "Recevoir mon devis personnalisé"}
+          </span>
         </>
       )}
     </Button>
