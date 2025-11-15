@@ -65,7 +65,8 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         title="Votre démo est en création"
         description="Nous préparons votre site de démonstration à partir de vos informations."
       />
-      <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
+      <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
+        <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
         <CardHeader className="pb-4 sm:pb-6 w-full min-w-0">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 w-full min-w-0">
             <div className="shrink-0 flex-shrink-0">
@@ -132,6 +133,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
           </div>
         </CardContent>
       </Card>
+      </div>
     </>
   );
 }

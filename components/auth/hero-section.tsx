@@ -30,7 +30,7 @@ export function HeroSection() {
             💬 Nos démos sont créées à partir de vos informations, pas des templates génériques.
           </p>
         </div>
-        <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg lg:text-xl break-words">
+        <p className="w-full text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg lg:text-xl break-words">
           Créez votre espace Orylis, répondez à quelques questions, et recevez une démo de site WordPress professionnelle, adaptée à votre activité.{" "}
           <span className="font-medium text-slate-700">Gratuit, sans engagement.</span>
         </p>

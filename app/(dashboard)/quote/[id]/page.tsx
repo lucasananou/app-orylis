@@ -79,7 +79,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
       />
 
       {isSigned ? (
-        <div className="w-full max-w-screen-lg mx-auto px-5">
+        <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="border border-green-200 bg-green-50/50 w-full min-w-0">
           <CardHeader className="w-full min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 w-full min-w-0">
@@ -117,7 +117,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
         </Card>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto px-5">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
           {/* Colonne de gauche : Aperçu du devis */}
           <div className="w-full min-w-0">
             <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />

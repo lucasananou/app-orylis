@@ -80,7 +80,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
         description="Découvrez votre site de démonstration personnalisé et passez à l'étape suivante."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto px-5">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1fr] w-full min-w-0 max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
         {/* Bloc 1 : Aperçu de la démo */}
         <Card className="border border-border/70 bg-white shadow-subtle w-full min-w-0">
           <CardHeader className="pb-3 sm:pb-4 w-full min-w-0">
@@ -93,15 +93,17 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 pt-0 w-full min-w-0">
-            <div className="relative w-full overflow-hidden rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl" style={{ aspectRatio: "16/10", minHeight: "250px", maxHeight: "450px" }}>
-              <iframe
-                src={demoUrl}
-                className="h-full w-full border-0"
-                title={`Démo ${projectName}`}
-                allow="fullscreen"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                style={{ width: "100%", height: "100%", maxWidth: "100%" }}
-              />
+            <div className="relative w-full rounded-lg border-2 border-border/60 bg-muted/10 shadow-lg sm:rounded-xl overflow-x-hidden">
+              <div className="relative w-full aspect-[16/9] overflow-hidden">
+                <iframe
+                  src={demoUrl}
+                  className="absolute inset-0 w-full h-full border-0"
+                  title={`Démo ${projectName}`}
+                  allow="fullscreen"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  style={{ maxWidth: "100%" }}
+                />
+              </div>
             </div>
             <Button variant="outline" size="lg" className="w-full text-sm sm:text-base" asChild>
               <a href={demoUrl} target="_blank" rel="noopener noreferrer" className="break-words">

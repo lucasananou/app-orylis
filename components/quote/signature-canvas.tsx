@@ -55,17 +55,19 @@ export function QuoteSignatureCanvas({ onSign, disabled }: QuoteSignatureCanvasP
         </div>
 
         {/* Canvas signature */}
-        <div className="rounded-lg sm:rounded-xl border border-border/50 bg-[#fafafa] p-3 sm:p-4 shadow-sm w-full min-w-0 overflow-hidden">
-          <SignatureCanvas
-            ref={canvasRef}
-            canvasProps={{
-              className: "w-full h-40 sm:h-48 rounded-lg bg-white",
-              style: { touchAction: "none", width: "100%", maxWidth: "100%" }
-            }}
-            onEnd={handleEnd}
-            backgroundColor="#ffffff"
-            penColor="#000000"
-          />
+        <div className="rounded-lg sm:rounded-xl border border-border/50 bg-[#fafafa] p-3 sm:p-4 shadow-sm w-full min-w-0">
+          <div className="w-full overflow-x-hidden">
+            <SignatureCanvas
+              ref={canvasRef}
+              canvasProps={{
+                className: "w-full h-40 sm:h-48 md:h-56 rounded-lg bg-white",
+                style: { touchAction: "none", width: "100%", maxWidth: "100%" }
+              }}
+              onEnd={handleEnd}
+              backgroundColor="#ffffff"
+              penColor="#000000"
+            />
+          </div>
         </div>
 
         {/* Boutons */}
