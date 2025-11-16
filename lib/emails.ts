@@ -292,6 +292,34 @@ export async function sendWelcomeEmail(
 }
 
 /**
+ * Notification admin : nouveau compte prospect créé
+ */
+export async function sendProspectSignupEmailToAdmin(
+  userId: string,
+  projectName: string
+) {
+  // Récupérer infos utilisateur (email + nom si disponible)
+  const user = await getUserInfo(userId);
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Nouveau compte prospect</h2>
+    <p>Un nouveau compte vient d'être créé sur Orylis Hub.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>Nom:</strong> ${user.name ?? "—"}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Email:</strong> ${user.email ?? "—"}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Projet:</strong> ${projectName}</p>
+    </div>
+    <p>Vous pouvez le retrouver dans le back-office.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Nouveau prospect: ${user.name ?? user.email ?? "compte créé"}`,
+    html: getEmailTemplate(content, "Ouvrir le dashboard", `${appUrl}/admin`)
+  });
+}
+
+/**
  * Email de bienvenue avec identifiants (création de compte client)
  * @deprecated Utilisez sendWelcomeEmail avec le paramètre credentials à la place
  */

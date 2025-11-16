@@ -86,19 +86,10 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   const contentWidth = pageWidth - (margin * 2);
   let y = margin;
 
-  // Logo Orylis en haut à gauche
-  // 1) Tentative logo local: /public/logo-orylis.png (remplaçable par votre fichier)
-  const localLogoPath = path.join(process.cwd(), "public", "logo-orylis.png");
+  // Logo en haut à gauche
+  // 1) Tentative via variable d'env (QUOTE_LOGO_URL / NEXT_PUBLIC_QUOTE_LOGO_URL)
   let logoPlaced = false;
-  try {
-    const logoBuffer = await fs.readFile(localLogoPath);
-    doc.image(logoBuffer, margin, y, { width: 140, height: 44, fit: [140, 44] });
-    y += 54;
-    logoPlaced = true;
-  } catch {}
-
-  // 2) Tentative logo distant via variable d'env (QUOTE_LOGO_URL / NEXT_PUBLIC_QUOTE_LOGO_URL)
-  if (!logoPlaced && ENV_REMOTE_LOGO_URL) {
+  if (ENV_REMOTE_LOGO_URL) {
     try {
       const res = await fetch(ENV_REMOTE_LOGO_URL);
       if (res.ok) {
@@ -108,6 +99,21 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
         logoPlaced = true;
       }
     } catch {}
+  }
+
+  // 2) Tentatives locales: plusieurs noms possibles
+  if (!logoPlaced) {
+    const candidates = ["logo-app.png", "logo.png", "logo-orylis.png"];
+    for (const file of candidates) {
+      try {
+        const p = path.join(process.cwd(), "public", file);
+        const logoBuffer = await fs.readFile(p);
+        doc.image(logoBuffer, margin, y, { width: 140, height: 44, fit: [140, 44] });
+        y += 54;
+        logoPlaced = true;
+        break;
+      } catch {}
+    }
   }
 
   // 3) Fallback logo distant par défaut
@@ -270,14 +276,17 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   servicesY += 15;
   doc.text("• Suivi et accompagnement pour la prise en main", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
 
-  // Total HT à droite
+  // Total HT à droite (label et montant séparés pour éviter le chevauchement)
   const totalY = servicesBoxY + servicesBoxHeight - 30;
-  doc
-    .fontSize(12)
-    .fillColor("#000000")
-    // On place les libellés et montants 200px plus à gauche
-    .text("Total HT :", servicesBoxX + servicesBoxWidth - 220, totalY, { align: "right", width: 200 })
-    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 220, totalY, { align: "right", width: 200 });
+  const rightEdge = servicesBoxX + servicesBoxWidth - 20;
+  const amountBoxWidth = 100;
+  const labelBoxWidth = 100;
+  const amountX = rightEdge - amountBoxWidth;
+  const labelX = amountX - labelBoxWidth - 10; // petit espacement
+
+  doc.fontSize(12).fillColor("#000000");
+  doc.text("Total HT :", labelX, totalY, { align: "right", width: labelBoxWidth });
+  doc.text("1 490,00 €", amountX, totalY, { align: "right", width: amountBoxWidth });
 
   // Section paiement en bas
   y = servicesBoxY + servicesBoxHeight + 30;

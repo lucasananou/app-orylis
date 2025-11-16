@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { authUsers, profiles, projects, userCredentials } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
-import { sendProspectWelcomeEmail, sendWelcomeEmail } from "@/lib/emails";
+import { sendProspectWelcomeEmail, sendWelcomeEmail, sendProspectSignupEmailToAdmin } from "@/lib/emails";
 import crypto from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -109,6 +109,9 @@ export async function POST(req: NextRequest) {
       }),
       sendWelcomeEmail(userId, projectName, { email, password: rawPassword }).catch((error) => {
         console.error("[Email] Failed to send welcome email:", error);
+      }),
+      sendProspectSignupEmailToAdmin(userId, projectName).catch((error) => {
+        console.error("[Email] Failed to notify admin about signup:", error);
       })
     ]).catch(() => {
       // Ignorer les erreurs, on ne veut pas bloquer la réponse
