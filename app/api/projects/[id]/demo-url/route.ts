@@ -41,7 +41,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       demoUrl,
       status: status ?? "demo_in_progress",
       // On peut ajuster la progression si besoin
-      // @ts-expect-error drizzle accepts partial update
       ...(status === "demo_in_progress" ? { progress: 60 } : {})
     })
     .where(eq(projects.id, projectId))
