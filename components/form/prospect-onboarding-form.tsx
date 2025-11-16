@@ -476,7 +476,10 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       // Étape 4 : contenu
       stepPayload = {
         welcomePhrase: values.welcomePhrase,
-        mainServices: values.mainServices.filter((service) => service.trim().length > 0),
+        // Ne pas filtrer ici pour laisser le schéma contrôler:
+        // - service #1 obligatoire (>= 2 chars)
+        // - services #2 et #3 optionnels
+        mainServices: values.mainServices,
         importantInfo: values.importantInfo
       };
     }

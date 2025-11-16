@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { onboardingResponses, projects } from "@/lib/schema";
 import { EmptyState } from "@/components/empty-state";
+import { OnboardingStartButton } from "@/components/onboarding-start-button";
 import { PageHeader } from "@/components/page-header";
 import { ClipboardList } from "lucide-react";
 import { OnboardingForm } from "@/components/form/onboarding-form";
@@ -120,16 +121,24 @@ export default async function OnboardingPage(): Promise<JSX.Element> {
         <PageHeader
           title="Onboarding projet"
           description="Toutes les informations nécessaires pour lancer la production sont déjà renseignées."
+          className="sm:items-center"
         />
-        <EmptyState
-          icon={ClipboardList}
-          title="Pas d’onboarding actif"
-          description={
-            staff
-              ? "Sélectionnez un projet à mettre en onboarding dans le back-office."
-              : "Votre onboarding est déjà complété ou en cours d’orchestration côté Orylis."
-          }
-        />
+        <div className="space-y-4 text-center sm:text-left">
+          <EmptyState
+            icon={ClipboardList}
+            title="Pas d’onboarding actif"
+            description={
+              staff
+                ? "Sélectionnez un projet à mettre en onboarding dans le back-office."
+                : "Vous pouvez démarrer un nouvel onboarding pour transmettre vos informations."
+            }
+          />
+          {!staff && (
+            <div className="mx-auto w-full max-w-screen-md px-4 sm:px-0">
+              <OnboardingStartButton />
+            </div>
+          )}
+        </div>
       </>
     );
   }

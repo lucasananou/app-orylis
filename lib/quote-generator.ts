@@ -6,6 +6,8 @@
 import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 import type PDFKit from "pdfkit";
 import { put } from "@vercel/blob";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 export interface QuoteData {
   prospectName: string;
@@ -85,26 +87,34 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
 
   // Logo Orylis en haut à gauche
   try {
-    const logoResponse = await fetch(ORYLIS_LOGO_URL);
-    if (logoResponse.ok) {
-      const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
-      doc.image(logoBuffer, margin, y, { width: 120, height: 40, fit: [120, 40] });
-      y += 50;
-    } else {
-      // Fallback si le logo ne charge pas
+    // 1) Essayer d'utiliser le logo local du dossier /public
+    const localLogoPath = path.join(process.cwd(), "public", "logo-orylis.png");
+    const logoBuffer = await fs.readFile(localLogoPath);
+    doc.image(logoBuffer, margin, y, { width: 120, height: 40, fit: [120, 40] });
+    y += 50;
+  } catch (error) {
+    try {
+      // 2) Fallback: tenter de récupérer le logo distant
+      const logoResponse = await fetch(ORYLIS_LOGO_URL);
+      if (logoResponse.ok) {
+        const remoteBuffer = Buffer.from(await logoResponse.arrayBuffer());
+        doc.image(remoteBuffer, margin, y, { width: 120, height: 40, fit: [120, 40] });
+        y += 50;
+      } else {
+        // Texte si tout échoue
+        doc
+          .fontSize(28)
+          .fillColor("#005eff")
+          .text("Orylis", margin, y, { align: "left" });
+        y += 40;
+      }
+    } catch (e) {
       doc
         .fontSize(28)
         .fillColor("#005eff")
         .text("Orylis", margin, y, { align: "left" });
       y += 40;
     }
-  } catch (error) {
-    console.error("[Quote] Failed to load logo, using text fallback:", error);
-    doc
-      .fontSize(28)
-      .fillColor("#005eff")
-      .text("Orylis", margin, y, { align: "left" });
-    y += 40;
   }
   
   // Numéro de devis et date en haut à droite
@@ -147,21 +157,23 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
     doc.text(`Company: ${data.companyName}`, margin, y, { align: "left", width: contentWidth / 2 - 10 });
   }
 
-  // Section PRESTATAIRE à droite (alignée avec CLIENT)
+  // Section PRESTATAIRE à droite (alignée avec CLIENT) - élargie et plus à gauche pour lisibilité
   let yPrestataire = 100;
+  const providerBoxWidth = 200;
+  const providerBoxX = pageWidth - margin - providerBoxWidth;
   doc
     .fontSize(11)
     .fillColor("#000000")
-    .text("PRESTATAIRE :", pageWidth - margin, yPrestataire, { align: "right", width: contentWidth / 2 - 10 });
+    .text("PRESTATAIRE :", providerBoxX, yPrestataire, { align: "right", width: providerBoxWidth });
   
   yPrestataire += 20;
   doc
     .fontSize(10)
     .fillColor("#333333")
-    .text("Name: Orylis", pageWidth - margin, yPrestataire, { align: "right", width: contentWidth / 2 - 10 });
+    .text("Name: Orylis", providerBoxX, yPrestataire, { align: "right", width: providerBoxWidth });
   
   yPrestataire += 15;
-  doc.text("Email: orylisfrance@gmail.com", pageWidth - margin, yPrestataire, { align: "right", width: contentWidth / 2 - 10 });
+  doc.text("Email: orylisfrance@gmail.com", providerBoxX, yPrestataire, { align: "right", width: providerBoxWidth });
 
   // Section services avec encadré
   y = Math.max(y, yPrestataire) + 50;
@@ -264,16 +276,8 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
     .fillColor("#666666")
     .text("Lien de paiement sécurisé", margin, y, { align: "left", width: contentWidth / 2 });
   
-  // Encadré pour QR code ou détails paiement (optionnel)
-  const paymentBoxY = y - 5;
-  const paymentBoxHeight = 60;
-  const paymentBoxWidth = 200;
-  
-  doc
-    .rect(pageWidth - margin - paymentBoxWidth, paymentBoxY, paymentBoxWidth, paymentBoxHeight)
-    .strokeColor("#e0e0e0")
-    .lineWidth(1)
-    .stroke();
+  // Supprimer l'encadré vide au-dessus de la signature (ancien placeholder QR)
+  // (conservé intentionnellement vide)
 
   // Zone de signature client (fixe, en bas à droite)
   const signatureBoxWidth = 220;
