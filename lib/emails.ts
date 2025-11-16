@@ -25,7 +25,7 @@ export type EmailTemplateType =
   | "prospect_demo_ready";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const emailFromAddress = process.env.EMAIL_FROM ?? "noreply@orylis.fr";
+const emailFromAddress = process.env.EMAIL_FROM ?? "contact@orylis.fr";
 const emailFrom = `Orylis.fr <${emailFromAddress}>`;
 const appUrl = process.env.NEXTAUTH_URL ?? "https://app.orylis.fr";
 const ADMIN_EMAIL = "contact@orylis.fr";
