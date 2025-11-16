@@ -29,11 +29,12 @@ export function ChatWidget(): JSX.Element {
     }
   ]);
   const bodyRef = React.useRef<HTMLDivElement | null>(null);
+  const bottomRef = React.useRef<HTMLDivElement | null>(null);
+  const [faqCollapsed, setFaqCollapsed] = React.useState(false);
 
   const scrollToBottom = React.useCallback(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    // Smoothly scroll to the last message
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   React.useEffect(() => {
@@ -46,6 +47,8 @@ export function ChatWidget(): JSX.Element {
       { id: `q-${question.id}`, role: "user", text: question.question },
       { id: `a-${question.id}`, role: "bot", text: question.answer }
     ]);
+    // Collapse FAQ after the first interaction to keep the focus on the conversation
+    setFaqCollapsed(true);
   }, []);
 
   const onSend = React.useCallback(() => {
@@ -86,11 +89,23 @@ export function ChatWidget(): JSX.Element {
         <div className="fixed bottom-4 right-4 z-50 w-[90vw] max-w-sm h-[60vh] sm:h-[70vh] bg-white rounded-2xl border border-slate-200 shadow-xl flex flex-col">
           {/* Header */}
           <div className="border-b border-slate-200 p-4">
-            <div className="text-sm font-semibold">Orylis – Aide & questions</div>
-            <div className="text-xs text-slate-500">Réponses rapides · Pas d’IA · WhatsApp possible</div>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">Orylis – Aide & questions</div>
+                <div className="text-xs text-slate-500">Réponses rapides · Pas d’IA · WhatsApp possible</div>
+              </div>
+              <button
+                type="button"
+                aria-label="Fermer le chat"
+                onClick={() => setIsOpen(false)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Body */}
+          {/* Body: messages only (scrollable) */}
           <div ref={bodyRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
             {messages.map((m) => (
               <div
@@ -104,29 +119,42 @@ export function ChatWidget(): JSX.Element {
                 {m.text}
               </div>
             ))}
+            <div ref={bottomRef} />
+          </div>
 
-            {/* FAQ quick replies */}
-            <div className="mt-2 space-y-2">
-              {faqCategories.map((cat) => (
-                <div key={cat.id} className="space-y-2">
-                  <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                    {cat.label}
+          {/* FAQ section: outside scroll area */}
+          <div className="border-t border-slate-200 bg-slate-50 p-3 sm:p-4">
+            {faqCollapsed ? (
+              <button
+                type="button"
+                onClick={() => setFaqCollapsed(false)}
+                className="text-xs font-medium text-slate-700 underline underline-offset-2 hover:text-slate-900"
+              >
+                Voir les questions fréquentes
+              </button>
+            ) : (
+              <div className="space-y-2">
+                {faqCategories.map((cat) => (
+                  <div key={cat.id} className="space-y-2">
+                    <div className="text-[11px] font-medium uppercase tracking-wide text-slate-600">
+                      {cat.label}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {cat.questions.map((q) => (
+                        <button
+                          key={q.id}
+                          type="button"
+                          onClick={() => pushUserAndBot(q)}
+                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                          {q.question}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {cat.questions.map((q) => (
-                      <button
-                        key={q.id}
-                        type="button"
-                        onClick={() => pushUserAndBot(q)}
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
-                      >
-                        {q.question}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
