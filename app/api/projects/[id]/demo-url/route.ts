@@ -6,6 +6,7 @@ import { projects, projectStatusEnum } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { assertStaff, safeJson } from "@/lib/utils";
 import { notifyProjectOwner } from "@/lib/notifications";
+import { sendProspectDemoReadyEmail } from "@/lib/emails";
 
 const BodySchema = z.object({
   demoUrl: z.string().min(1, "demoUrl requis"),
@@ -63,6 +64,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     body: "Cliquez pour découvrir votre démo personnalisée.",
     metadata: { demoUrl: updated.demoUrl }
   }).catch(() => null);
+
+  // Envoyer un email "démo prête" au prospect (fire-and-forget)
+  // Ne bloque pas la réponse en cas d'erreur d'envoi
+  sendProspectDemoReadyEmail(updated.ownerId, updated.name, updated.demoUrl ?? "").catch(() => null);
 
   return safeJson({ ok: true, project: updated }, 200);
 }
