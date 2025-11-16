@@ -180,17 +180,11 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             // suppression non supportée
           }
 
+          // Toujours envoyer demoUrl pour garantir le déclenchement côté API
           const normalizedDemoUrl = editValues.demoUrl && editValues.demoUrl !== "" ? editValues.demoUrl : null;
-          const currentDemoUrl = project.demoUrl ?? null;
+          updates.demoUrl = normalizedDemoUrl;
 
-          if (normalizedDemoUrl !== currentDemoUrl) {
-            updates.demoUrl = normalizedDemoUrl;
-          }
-
-          if (Object.keys(updates).length === 0) {
-            toast.info("Aucun changement détecté.");
-            return;
-          }
+          // On envoie toujours: la route PATCH gérera No-op pour les autres champs
 
           const response = await fetch(`/api/projects/${project.id}`, {
             method: "PATCH",
