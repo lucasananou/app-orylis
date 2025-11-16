@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { projects, profiles } from "@/lib/schema";
 import { auth } from "@/auth";
 import { notifyProjectParticipants } from "@/lib/notifications";
-import { sendProjectUpdatedEmail, sendProspectDemoReadyEmailStatic } from "@/lib/emails";
+import { sendProjectUpdatedEmail, sendProspectDemoReadyEmailStaticTo } from "@/lib/emails";
 import { isStaff, isProspect } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -84,7 +84,13 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   // même si la valeur n'a pas changé et quel que soit le rôle.
   const demoProvided = typeof body.demoUrl !== "undefined";
   if (demoProvided && projectAfter?.ownerId) {
-    sendProspectDemoReadyEmailStatic(projectAfter.ownerId)
+    // Récupérer l'email du propriétaire ici (une seule requête ciblée)
+    const owner = await db.query.authUsers.findFirst({
+      where: (t, { eq }) => eq(t.id, projectAfter.ownerId),
+      columns: { email: true }
+    });
+
+    sendProspectDemoReadyEmailStaticTo(owner?.email ?? "")
       .then((res) => {
         if (!res?.success) {
           console.error("[Email] Demo ready email not sent:", res?.error);
