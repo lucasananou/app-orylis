@@ -80,14 +80,11 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     }
   });
 
-  // Vérifier si la démo vient d'être ajoutée (Email 3)
-  const demoJustAdded =
-    body.demoUrl &&
-    body.demoUrl !== null &&
-    body.demoUrl !== "" &&
-    (!projectBefore?.demoUrl || projectBefore.demoUrl === null);
+  // Vérifier si la démo a été ajoutée ou modifiée (envoi email au prospect)
+  const demoProvided = typeof body.demoUrl !== "undefined" && body.demoUrl !== null && body.demoUrl !== "";
+  const demoChanged = demoProvided && projectAfter?.demoUrl && projectBefore?.demoUrl !== projectAfter.demoUrl;
 
-  if (demoJustAdded && projectAfter?.demoUrl && projectAfter.ownerId) {
+  if (demoChanged && projectAfter?.demoUrl && projectAfter.ownerId) {
     // Vérifier si le propriétaire est un prospect
     const ownerProfile = await db.query.profiles.findFirst({
       where: eq(profiles.id, projectAfter.ownerId),
@@ -99,7 +96,11 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
         projectAfter.ownerId,
         projectAfter.name,
         projectAfter.demoUrl
-      ).catch((error) => {
+      ).then((res) => {
+        if (!res?.success) {
+          console.error("[Email] Demo ready email not sent:", res?.error);
+        }
+      }).catch((error) => {
         console.error("[Email] Failed to send prospect demo ready email:", error);
       });
     }
