@@ -55,31 +55,34 @@ export async function POST(req: NextRequest) {
       )
     ]);
 
-    // Paralléliser toutes les insertions DB
-    const [, , , projectResult] = await Promise.all([
-      // Créer l'utilisateur dans authUsers (table NextAuth)
-      db.insert(authUsers).values({
+    // IMPORTANT: exécuter en transaction, et insérer l'utilisateur AVANT les FKs
+    const projectResult = await db.transaction(async (tx) => {
+      // 1) Créer l'utilisateur (FK parent)
+      await tx.insert(authUsers).values({
         id: userId,
         email,
         name: fullName ?? null,
         emailVerified: null,
         image: null
-      }),
-      // Créer les credentials (mot de passe hashé)
-      db.insert(userCredentials).values({
-        userId,
-        passwordHash
-      }),
-      // Créer le profil avec rôle "prospect"
-      db.insert(profiles).values({
+      });
+
+      // 2) Créer le profil (FK vers user)
+      await tx.insert(profiles).values({
         id: userId,
         role: "prospect",
         fullName: fullName ?? null,
         company: company ?? null,
         phone: null
-      }),
-      // Créer un projet automatiquement pour le prospect
-      db
+      });
+
+      // 3) Créer les credentials (FK vers user)
+      await tx.insert(userCredentials).values({
+        userId,
+        passwordHash
+      });
+
+      // 4) Créer le projet par défaut
+      const createdProject = await tx
         .insert(projects)
         .values({
           ownerId: userId,
@@ -87,8 +90,10 @@ export async function POST(req: NextRequest) {
           status: "onboarding",
           progress: 10
         })
-        .returning({ id: projects.id })
-    ]);
+        .returning({ id: projects.id });
+
+      return createdProject;
+    });
 
     const project = projectResult?.[0];
 
