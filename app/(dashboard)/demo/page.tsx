@@ -184,44 +184,49 @@ export default async function DemoPage(): Promise<JSX.Element> {
               </div>
             </div>
 
-            {/* Carte "Ce qui est inclus" */}
-            <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-              <div className="space-y-4">
-                <h2 className="text-base font-semibold text-slate-900 sm:text-lg">Ce qui est inclus</h2>
-                <ul className="space-y-2 text-xs text-slate-600 sm:text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 text-accent shrink-0">✓</span>
-                    <span className="flex-1">
-                      <strong className="text-slate-900">Suivi de projet complet</strong> – Accès à
-                      votre espace client pour suivre l&apos;avancement
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 text-accent shrink-0">✓</span>
-                    <span className="flex-1">
-                      <strong className="text-slate-900">Système de tickets</strong> – Échangez
-                      directement avec l&apos;équipe Orylis
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 text-accent shrink-0">✓</span>
-                    <span className="flex-1">
-                      <strong className="text-slate-900">Gestion de fichiers</strong> – Partagez vos
-                      contenus et ressources facilement
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 text-accent shrink-0">✓</span>
-                    <span className="flex-1">
-                      <strong className="text-slate-900">Support dédié</strong> – Accompagnement
-                      personnalisé tout au long du projet
-                    </span>
-                  </li>
-                </ul>
-                <p className="mt-4 text-xs text-slate-500 sm:text-sm">
-                  Tout est centralisé dans votre espace Orylis, vous n&apos;avez plus à courir après les infos.
+          </div>
+        </div>
+
+        {/* Bloc pleine largeur : Ce que la validation débloque */}
+        <div className="w-full">
+          <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+            <div className="space-y-4">
+              <div className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <span className="mt-0.5 shrink-0">🔒</span>
+                <p className="text-sm text-slate-700">
+                  Ces fonctionnalités se débloquent après la validation de votre site.
                 </p>
               </div>
+              <h2 className="text-base font-semibold text-slate-900 sm:text-lg">Ce que la validation débloque</h2>
+              <ul className="space-y-2 text-xs text-slate-600 sm:text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="flex-1">
+                    <strong className="text-slate-900">Suivi de projet complet</strong> – Accès à votre espace client pour suivre l&apos;avancement
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="flex-1">
+                    <strong className="text-slate-900">Système de tickets</strong> – Échangez directement avec l&apos;équipe Orylis
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="flex-1">
+                    <strong className="text-slate-900">Gestion de fichiers</strong> – Partagez vos contenus et ressources facilement
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 text-accent shrink-0">✓</span>
+                  <span className="flex-1">
+                    <strong className="text-slate-900">Support dédié</strong> – Accompagnement personnalisé tout au long du projet
+                  </span>
+                </li>
+              </ul>
+              <p className="mt-4 text-xs text-slate-500 sm:text-sm">
+                Tout est centralisé dans votre espace Orylis, vous n&apos;avez plus à courir après les infos.
+              </p>
             </div>
           </div>
         </div>
