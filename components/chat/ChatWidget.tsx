@@ -39,6 +39,19 @@ export function ChatWidget(): JSX.Element {
   const bodyRef = React.useRef<HTMLDivElement | null>(null);
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
   const [faqCollapsed, setFaqCollapsed] = React.useState(false);
+  const [showHint, setShowHint] = React.useState(false);
+  const hintMessages = React.useMemo(
+    () => [
+      "Une question ? Je suis dispo 👋",
+      "Besoin d’aide pour votre démo ?",
+      "Je peux vous aider en 10 secondes 😊",
+      "Vous hésitez ? Posez-moi une question."
+    ],
+    []
+  );
+  const [hintText] = React.useState(
+    () => hintMessages[Math.floor(Math.random() * hintMessages.length)]
+  );
   // Courtes suggestions mises en avant (ordre optimisé)
   const suggestionIds = React.useMemo(
     () => ["pricing_after_demo", "final_timing", "can_edit_demo", "ecommerce", "installments"],
@@ -48,6 +61,7 @@ export function ChatWidget(): JSX.Element {
     () => suggestionIds.map((id) => findQuestionById(id)).filter(Boolean) as FaqQuestion[],
     [suggestionIds]
   );
+  const [openCategoryId, setOpenCategoryId] = React.useState<string | null>(null);
 
   const scrollToBottom = React.useCallback(() => {
     // Smoothly scroll to the last message
@@ -67,6 +81,53 @@ export function ChatWidget(): JSX.Element {
     // Collapse FAQ after the first interaction to keep the focus on the conversation
     setFaqCollapsed(true);
   }, []);
+
+  // Very subtle one-shot "pop" using Web Audio, guarded by sessionStorage
+  const playPop = React.useCallback(() => {
+    try {
+      const AudioCtx =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = 880; // high, short
+      g.gain.value = 0.0008; // very low volume
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      setTimeout(() => {
+        o.stop();
+        ctx.close();
+      }, 90); // ~90ms tap
+    } catch {
+      // ignore audio errors
+    }
+  }, []);
+
+  // Delayed, one-time per session hint (4–6s), never re-shown
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isOpen) return; // don't show if already open
+    const already = sessionStorage.getItem("chatBubbleHintShown") === "1";
+    if (already) return;
+
+    const delay = 4000 + Math.floor(Math.random() * 2000); // 4–6s
+    const t = setTimeout(() => {
+      setShowHint(true);
+      sessionStorage.setItem("chatBubbleHintShown", "1");
+      playPop();
+    }, delay);
+    return () => clearTimeout(t);
+  }, [isOpen, playPop]);
+
+  // Hide hint after user interacts or after 7s visible
+  React.useEffect(() => {
+    if (!showHint) return;
+    const t = setTimeout(() => setShowHint(false), 7000);
+    return () => clearTimeout(t);
+  }, [showHint]);
 
   const onSend = React.useCallback(() => {
     if (!input.trim()) return;
@@ -95,11 +156,29 @@ export function ChatWidget(): JSX.Element {
       <button
         type="button"
         aria-label="Ouvrir le chat"
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => {
+          setIsOpen((v) => !v);
+          // Any interaction suppresses hint for the rest of the session
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("chatBubbleHintShown", "1");
+          }
+          setShowHint(false);
+        }}
         className="fixed bottom-4 right-4 z-50 inline-flex h-[56px] w-[56px] items-center justify-center rounded-full bg-[#0D69FF] text-white shadow-lg transition-transform hover:scale-105 sm:bottom-6 sm:right-6"
       >
         {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>
+
+      {/* Bubble hint (one-shot, subtle) */}
+      {showHint && !isOpen && (
+        <div
+          className="fixed bottom-[88px] right-4 z-50 max-w-[70vw] rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 shadow-lg sm:bottom-[96px]"
+          role="status"
+          aria-live="polite"
+        >
+          {hintText}
+        </div>
+      )}
 
       {/* Panel */}
       {isOpen && (
@@ -172,25 +251,48 @@ export function ChatWidget(): JSX.Element {
                   </div>
                 )}
 
-                {faqCategories.map((cat) => (
-                  <div key={cat.id} className="space-y-2">
-                    <div className="text-[11px] font-medium uppercase tracking-wide text-slate-600">
-                      {cat.label}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {cat.questions.map((q) => (
-                        <button
-                          key={q.id}
-                          type="button"
-                          onClick={() => pushUserAndBot(q)}
-                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition-colors"
-                        >
-                          {q.question}
-                        </button>
-                      ))}
-                    </div>
+                {/* Catégories (pills) + contenu déroulant */}
+                <div className="space-y-2">
+                  <div className="text-[11px] font-medium uppercase tracking-wide text-slate-600">
+                    Parcourir par catégorie
                   </div>
-                ))}
+                  <div className="flex flex-wrap gap-2">
+                    {faqCategories.map((cat) => {
+                      const isOpen = openCategoryId === cat.id;
+                      return (
+                        <button
+                          key={`cat-pill-${cat.id}`}
+                          type="button"
+                          onClick={() => setOpenCategoryId(isOpen ? null : cat.id)}
+                          className={
+                            isOpen
+                              ? "rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 shadow-sm"
+                              : "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition-colors"
+                          }
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {openCategoryId && (
+                    <div className="rounded-xl border border-slate-200 bg-white p-2 sm:p-3">
+                      {faqCategories
+                        .find((c) => c.id === openCategoryId)
+                        ?.questions.map((q) => (
+                          <button
+                            key={`q-${q.id}`}
+                            type="button"
+                            onClick={() => pushUserAndBot(q)}
+                            className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 last:mb-0"
+                          >
+                            {q.question}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

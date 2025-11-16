@@ -43,7 +43,7 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
 
   return (
     <header className="flex min-h-[64px] items-center justify-between border-b border-border bg-background/70 px-4 backdrop-blur sm:min-h-[72px] sm:px-6 md:h-20 md:px-8">
-      <div className="flex flex-1 items-center gap-3 overflow-hidden sm:gap-6 md:gap-8">
+      <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden sm:gap-6 md:gap-8">
         <MobileMenu role={role} />
         <Breadcrumb className="hidden md:flex">
           <BreadcrumbList>
