@@ -46,22 +46,31 @@ async function sendEmail(options: EmailOptions): Promise<{ success: boolean; err
     return { success: false, error: "RESEND_API_KEY not configured" };
   }
 
-  try {
-    await resend.emails.send({
-      from: emailFrom,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text ?? options.html.replace(/<[^>]*>/g, "")
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("[Email] Failed to send email:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error"
-    };
+  const maxAttempts = 3;
+  const delaysMs = [300, 1000, 2500];
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await resend.emails.send({
+        from: emailFrom,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text ?? options.html.replace(/<[^>]*>/g, "")
+      });
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error(`[Email] Failed to send email (attempt ${attempt}/${maxAttempts}):`, message);
+      if (attempt === maxAttempts) {
+        return { success: false, error: message };
+      }
+      const delay = delaysMs[attempt - 1] ?? 2000;
+      await new Promise((r) => setTimeout(r, delay));
+    }
   }
+
+  return { success: false, error: "Unknown error" };
 }
 
 /**

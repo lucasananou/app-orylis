@@ -123,7 +123,10 @@ async function fetchUserRole(userId: string) {
   return record?.role ?? "client";
 }
 
-await ensureTestUser();
+// Ne seed le compte démo qu'en développement pour éviter des erreurs ou bruit en prod
+if (process.env.NODE_ENV !== "production") {
+  await ensureTestUser();
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: authAdapter,
