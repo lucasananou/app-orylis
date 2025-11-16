@@ -581,6 +581,85 @@ export async function sendProspectWelcomeEmail(userId: string, projectName: stri
 }
 
 /**
+ * Envoie un email "Démo prête" avec un contenu HTML fixe, sans passer par les templates DB
+ */
+export async function sendProspectDemoReadyEmailStatic(userId: string) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const subject = "Votre démo personnalisée est prête 🎉";
+
+  const html = `<!doctype html>
+<html lang="fr">
+  <body style="margin:0;padding:0;background:#f5f7fb;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fb;">
+      <tr>
+        <td align="center" style="padding:24px 12px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff;border:1px solid #eaecef;">
+            <tr>
+              <td style="padding:24px 20px;font-family:Arial,Helvetica,sans-serif;">
+                <h1 style="margin:0 0 8px 0;font-size:22px;line-height:28px;color:#111827;">Votre démo personnalisée est prête 🎉</h1>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  Bonne nouvelle : votre démo est prête !<br />
+                  Vous pouvez la consulter dès maintenant depuis votre espace Orylis :
+                </p>
+                <p style="margin:0 0 16px 0;">
+                  <a href="${appUrl}/login"
+                     style="display:inline-block;background:#1b5bff;color:#ffffff;text-decoration:none;padding:12px 18px;font-weight:bold;font-size:14px;border-radius:6px;">
+                    Voir ma démo maintenant !
+                  </a>
+                </p>
+                <p style="margin:0 0 18px 0;font-size:12px;line-height:18px;color:#6b7280;">
+                  Si le bouton ne fonctionne pas, copiez/collez ce lien dans votre navigateur&nbsp;:<br />
+                  <a href="${appUrl}/login" style="color:#2563eb;text-decoration:underline;">${appUrl}/login</a>
+                </p>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">Si vous avez perdu votre mot de passe, veuillez retrouver le mail "Bienvenue dans votre espace Orylis 👋"</p>
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;">J’ai construit un rendu adapté à votre activité, propre, moderne et pensé pour convertir vos visiteurs.</p>
+                <br />
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;"><strong>Et maintenant ?</strong></p>
+                <br />
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  Si la démo vous plaît, il suffit de me le confirmer et je me charge :
+                </p>
+                <ul style="margin:0 0 8px 16px;font-size:14px;line-height:22px;color:#111827;">
+                  <li>d’adapter les pages</li>
+                  <li>d’optimiser le contenu</li>
+                  <li>de finaliser votre site</li>
+                  <li>et de le mettre en ligne rapidement</li>
+                </ul>
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  Besoin de modifications ou d’ajustements ?<br />
+                  Dites-le-moi directement depuis votre espace ou en répondant à cet email.
+                </p>
+                <p style="margin:18px 0 0 0;font-size:14px;line-height:22px;color:#111827;">
+                  Hâte d’avoir votre retour,<br />
+                  <strong>Lucas – Orylis</strong>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #eaecef;">
+                <p style="margin:0;font-size:11px;line-height:16px;color:#9aa3af;">
+                  Cet e-mail fait suite à votre demande de démo et à la création de votre espace client.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return sendEmail({
+    to: user.email,
+    subject,
+    html,
+  });
+}
+/**
  * Email 2 : Après onboarding complété (prospect)
  */
 export async function sendProspectOnboardingCompletedEmail(

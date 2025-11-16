@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { projects, profiles } from "@/lib/schema";
 import { auth } from "@/auth";
 import { notifyProjectParticipants } from "@/lib/notifications";
-import { sendProjectUpdatedEmail, sendProspectDemoReadyEmail } from "@/lib/emails";
+import { sendProjectUpdatedEmail, sendProspectDemoReadyEmailStatic } from "@/lib/emails";
 import { isStaff, isProspect } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -84,11 +84,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   // même si la valeur n'a pas changé et quel que soit le rôle.
   const demoProvided = typeof body.demoUrl !== "undefined";
   if (demoProvided && projectAfter?.ownerId) {
-    sendProspectDemoReadyEmail(
-      projectAfter.ownerId,
-      projectAfter.name,
-      projectAfter.demoUrl ?? ""
-    )
+    sendProspectDemoReadyEmailStatic(projectAfter.ownerId)
       .then((res) => {
         if (!res?.success) {
           console.error("[Email] Demo ready email not sent:", res?.error);

@@ -6,7 +6,7 @@ import { projects, projectStatusEnum } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { assertStaff, safeJson } from "@/lib/utils";
 import { notifyProjectOwner } from "@/lib/notifications";
-import { sendProspectDemoReadyEmail } from "@/lib/emails";
+import { sendProspectDemoReadyEmailStatic } from "@/lib/emails";
 
 const BodySchema = z.object({
   demoUrl: z.string().min(1, "demoUrl requis"),
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   // Envoyer un email "démo prête" au prospect et logger le résultat
   // On n'échoue pas la requête si l'email ne part pas
-  sendProspectDemoReadyEmail(updated.ownerId, updated.name, updated.demoUrl ?? "")
+  sendProspectDemoReadyEmailStatic(updated.ownerId)
     .then((res) => {
       if (!res?.success) {
         console.error("[Demo URL] Demo ready email not sent:", res?.error);
