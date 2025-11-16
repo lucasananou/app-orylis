@@ -80,30 +80,23 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     }
   });
 
-  // Vérifier si la démo a été ajoutée ou modifiée (envoi email au prospect)
-  const demoProvided = typeof body.demoUrl !== "undefined" && body.demoUrl !== null && body.demoUrl !== "";
-  const demoChanged = demoProvided && projectAfter?.demoUrl && projectBefore?.demoUrl !== projectAfter.demoUrl;
-
-  if (demoChanged && projectAfter?.demoUrl && projectAfter.ownerId) {
-    // Vérifier si le propriétaire est un prospect
-    const ownerProfile = await db.query.profiles.findFirst({
-      where: eq(profiles.id, projectAfter.ownerId),
-      columns: { role: true }
-    });
-
-    if (ownerProfile && isProspect(ownerProfile.role)) {
-      sendProspectDemoReadyEmail(
-        projectAfter.ownerId,
-        projectAfter.name,
-        projectAfter.demoUrl
-      ).then((res) => {
+  // Envoi systématique de l'email "Démo prête" dès qu'un demoUrl est fourni,
+  // même si la valeur n'a pas changé et quel que soit le rôle.
+  const demoProvided = typeof body.demoUrl !== "undefined";
+  if (demoProvided && projectAfter?.ownerId) {
+    sendProspectDemoReadyEmail(
+      projectAfter.ownerId,
+      projectAfter.name,
+      projectAfter.demoUrl ?? ""
+    )
+      .then((res) => {
         if (!res?.success) {
           console.error("[Email] Demo ready email not sent:", res?.error);
         }
-      }).catch((error) => {
+      })
+      .catch((error) => {
         console.error("[Email] Failed to send prospect demo ready email:", error);
       });
-    }
   }
 
   // Construire le message de mise à jour
