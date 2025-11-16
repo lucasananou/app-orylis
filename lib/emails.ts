@@ -661,11 +661,7 @@ export async function sendProspectDemoReadyEmail(
     <p>Nous sommes impatients de recevoir votre retour !</p>
   `;
 
-  const defaultHtml = getEmailTemplate(
-    defaultContent,
-    "Voir ma démo",
-    `${appUrl}/demo`
-  );
+  const defaultHtml = getEmailTemplate(defaultContent, "Voir ma démo", demoUrl || `${appUrl}/demo`);
 
   const template = await getTemplateFromDB(
     "prospect_demo_ready",
@@ -676,7 +672,7 @@ export async function sendProspectDemoReadyEmail(
   const html = replaceTemplateVariables(template.html, {
     userName,
     projectName,
-    demoUrl: `${appUrl}/demo`
+    demoUrl: demoUrl || `${appUrl}/demo`
   });
 
   return sendEmail({
