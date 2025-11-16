@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, CreditCard } from "lucide-react";
 import { GenerateQuoteButton } from "@/components/quote/generate-quote-button";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -224,6 +225,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
             </div>
           </div>
         </div>
+      <ChatWidget />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { isProspect } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DemoInProgressAnimated } from "@/components/dashboard/demo-in-progress-animated";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
           </CardContent>
         </Card>
       </div>
+      <ChatWidget />
     </>
   );
 }

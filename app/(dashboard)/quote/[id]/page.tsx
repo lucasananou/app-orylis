@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { QuoteSignForm } from "@/components/quote/quote-sign-form";
 import { QuoteViewer } from "@/components/quote/quote-viewer";
 import { CheckCircle2, Download } from "lucide-react";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -182,6 +183,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           </div>
         </div>
       )}
+      <ChatWidget />
     </>
   );
 }
