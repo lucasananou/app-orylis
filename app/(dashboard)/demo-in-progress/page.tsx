@@ -65,8 +65,8 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         title="Votre démo est en cours de préparation"
         description="Nous créons votre site de démonstration personnalisé à partir de vos informations."
       />
-      <div className="w-full px-4 sm:px-6 lg:px-8 min-w-0">
-        <Card className="mx-auto w-full max-w-3xl border border-border/70 bg-white shadow-subtle">
+      <div className="w-full safe-px min-w-0">
+        <Card className="mx-auto w-full max-w-3xl lg:max-w-6xl border border-border/70 bg-white shadow-subtle">
           <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-8">
             <div className="space-y-2 max-w-3xl min-w-0">
               <CardTitle className="text-base sm:text-xl break-words text-center sm:text-left">

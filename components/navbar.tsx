@@ -82,7 +82,7 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
         <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10">
           <AvatarFallback className="text-xs sm:text-sm">{(userName ?? userEmail).slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
-        <NotificationMenu />
+        {role === "staff" ? <NotificationMenu /> : null}
         <Button
           type="button"
           variant="ghost"
