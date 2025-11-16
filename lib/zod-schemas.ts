@@ -462,12 +462,9 @@ export const ProspectOnboardingStep1Schema = z.object({
     .string()
     .min(2, { message: "Merci d'indiquer votre activité principale." })
     .max(200, { message: "200 caractères maximum." }),
-  email: z.string().email({ message: "Merci d’indiquer un email valide." }),
-  phone: z
-    .string()
-    .regex(/^[0-9\s+().-]{8,30}$/, {
-      message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
-    }),
+  // Validation assouplie: seulement requis non vide
+  email: z.string().min(1, { message: "Email requis." }),
+  phone: z.string().min(1, { message: "Téléphone requis." }),
   siteGoal: z
     .array(z.enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"]))
     .min(1, { message: "Sélectionnez au moins un objectif pour votre site." }),
