@@ -251,14 +251,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async jwt({ token, user }) {
+      // Charger le rôle uniquement à la connexion pour éviter un hit DB à chaque requête
       if (user?.id) {
         token.sub = user.id;
+        (token as JWT).role = await fetchUserRole(user.id);
+        return token;
       }
 
-      if (token.sub) {
-        (token as JWT).role = await fetchUserRole(token.sub);
-      }
-
+      // Sinon, conserver le token tel quel
       return token;
     },
     async session({ session, token }) {
