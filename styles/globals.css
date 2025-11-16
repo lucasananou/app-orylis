@@ -46,8 +46,9 @@ canvas {
 
 /* Safe area horizontal padding helper for iOS notch */
 .safe-px {
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
+  /* Padding horizontal symétrique pour éviter les décalages sur iOS */
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 h1,
