@@ -70,10 +70,10 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         <Card className="mx-auto w-full max-w-3xl lg:max-w-6xl border border-border/70 bg-white shadow-subtle">
           <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-8">
             <div className="space-y-2 max-w-3xl min-w-0">
-              <CardTitle className="text-base sm:text-xl break-words text-center sm:text-left">
-                Merci ! Nous lançons la création de votre démo pour <span className="font-semibold">{projectName}</span> 🚀
+              <CardTitle className="text-balance hyphens-auto break-words text-base sm:text-xl text-center sm:text-left leading-snug">
+                Merci ! Nous lançons la création de votre démo pour <span className="font-semibold break-words hyphens-auto">{projectName}</span> 🚀
               </CardTitle>
-              <CardDescription className="text-xs sm:text-sm break-words text-center sm:text-left">
+              <CardDescription className="text-balance hyphens-auto text-xs sm:text-sm break-words text-center sm:text-left">
                 Vous avancerez automatiquement à l’étape suivante dès que la démo sera prête.
               </CardDescription>
             </div>
