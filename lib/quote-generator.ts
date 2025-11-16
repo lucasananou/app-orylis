@@ -274,5 +274,31 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
     .strokeColor("#e0e0e0")
     .lineWidth(1)
     .stroke();
+
+  // Zone de signature client (fixe, en bas à droite)
+  const signatureBoxWidth = 220;
+  const signatureBoxHeight = 120;
+  const signatureBoxX = pageWidth - margin - signatureBoxWidth;
+  const signatureBoxY = pageHeight - margin - signatureBoxHeight - 60; // 60px au-dessus du bas
+
+  // Fond blanc et bordure
+  doc
+    .rect(signatureBoxX, signatureBoxY, signatureBoxWidth, signatureBoxHeight)
+    .fillColor("#ffffff")
+    .fill();
+  doc
+    .rect(signatureBoxX, signatureBoxY, signatureBoxWidth, signatureBoxHeight)
+    .strokeColor("#e0e0e0")
+    .lineWidth(1)
+    .stroke();
+
+  // Label "Signature"
+  doc
+    .fontSize(9)
+    .fillColor("#666666")
+    .text("Signature du client", signatureBoxX, signatureBoxY - 14, {
+      align: "left",
+      width: signatureBoxWidth
+    });
 }
 

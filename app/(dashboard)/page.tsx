@@ -743,19 +743,34 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
       <DashboardHighlights items={highlights} className="mt-6" />
 
       <section className="mt-6 space-y-6">
-        <Card className="border border-border/70 bg-white/90">
-          <CardHeader>
-            <CardTitle>{staff ? "Tous les projets actifs" : "Mes projets"}</CardTitle>
-            <CardDescription>
-              {staff
-                ? "Vue globale des projets clients et de leur statut."
-                : "Suivi partagé avec l'équipe Orylis en temps réel."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DashboardProjects projects={projectsData} role={role} ownerOptions={ownerOptions} />
-          </CardContent>
-        </Card>
+        {staff ? (
+          <Card className="border border-border/70 bg-white/90">
+            <CardHeader>
+              <CardTitle>Tous les projets actifs</CardTitle>
+              <CardDescription>Vue globale des projets clients et de leur statut.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DashboardProjects projects={projectsData} role={role} ownerOptions={ownerOptions} />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border border-border/70 bg-white/90">
+            <CardHeader>
+              <CardTitle>Passer à la création de mon site internet</CardTitle>
+              <CardDescription>
+                Renseignez l’onboarding client pour nous transmettre toutes les informations nécessaires.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="rounded-full">
+                <Link href="/onboarding">Ouvrir le formulaire d’onboarding client</Link>
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Vous pourrez préciser vos pages, contenus, accès, préférences techniques, etc.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[2fr_1fr]">

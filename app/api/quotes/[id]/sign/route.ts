@@ -86,24 +86,37 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     // Convertir la signature en image
     const signatureImage = await pdfDoc.embedPng(signatureDataUrl);
 
-    // Ajouter la signature en bas de la dernière page
-    const signatureWidth = 150;
-    const signatureHeight = (signatureImage.height * signatureWidth) / signatureImage.width;
-    const signatureX = width - signatureWidth - 50;
-    const signatureY = 100;
+    // Ajouter la signature à l'intérieur du cadre prévu (même coordonnées que le générateur)
+    const signatureBoxWidth = 220;
+    const signatureBoxHeight = 120;
+    const margin = 50;
+    const signatureBoxX = width - margin - signatureBoxWidth;
+    const signatureBoxY = margin + 60; // générateur place la box à (pageHeight - margin - sigH - 60). Ici pdf-lib utilise origine bas-gauche
+
+    // Calculer une taille de signature qui tient confortablement dans le cadre
+    const maxSignatureWidth = signatureBoxWidth - 20;
+    const maxSignatureHeight = signatureBoxHeight - 20;
+    let drawWidth = maxSignatureWidth;
+    let drawHeight = (signatureImage.height * drawWidth) / signatureImage.width;
+    if (drawHeight > maxSignatureHeight) {
+      drawHeight = maxSignatureHeight;
+      drawWidth = (signatureImage.width * drawHeight) / signatureImage.height;
+    }
+    const signatureX = signatureBoxX + (signatureBoxWidth - drawWidth) / 2;
+    const signatureY = signatureBoxY + (signatureBoxHeight - drawHeight) / 2;
 
     lastPage.drawImage(signatureImage, {
       x: signatureX,
       y: signatureY,
-      width: signatureWidth,
-      height: signatureHeight
+      width: drawWidth,
+      height: drawHeight
     });
 
     // Ajouter la date de signature
     const font = await pdfDoc.embedFont("Helvetica");
     lastPage.drawText(`Signé le ${new Date().toLocaleDateString("fr-FR")}`, {
-      x: signatureX,
-      y: signatureY - 20,
+      x: signatureBoxX,
+      y: signatureBoxY - 16,
       size: 10,
       font,
       color: rgb(0.4, 0.4, 0.4)

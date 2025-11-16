@@ -43,7 +43,7 @@ export function ProjectCard({
 
   const handleViewDetails = React.useCallback(() => {
     setProjectId(id);
-    router.push("/onboarding" as Route);
+    router.push((`/projects/${id}` as Route));
   }, [id, router, setProjectId]);
 
   const statusColor =

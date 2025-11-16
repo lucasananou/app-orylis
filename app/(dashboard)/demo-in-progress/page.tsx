@@ -66,9 +66,9 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         description="Nous créons votre site de démonstration personnalisé à partir de vos informations."
       />
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <Card className="mx-auto w-full max-w-3xl border border-border/70 bg-white shadow-subtle">
+        <Card className="w-full border border-border/70 bg-white shadow-subtle">
           <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-8">
-            <div className="space-y-2">
+            <div className="space-y-2 max-w-3xl">
               <CardTitle className="text-lg sm:text-xl break-words">
                 Merci ! Nous lançons la création de votre démo pour <span className="font-semibold">{projectName}</span> 🚀
               </CardTitle>
@@ -77,7 +77,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
               </CardDescription>
             </div>
             <div className="mt-4">
-              <ol className="grid grid-cols-3 items-center gap-2 text-xs sm:text-sm">
+              <ol className="grid grid-cols-3 items-center gap-2 text-xs sm:text-sm max-w-3xl">
                 <li className="flex items-center justify-center rounded-full border border-slate-300 bg-slate-50 px-3 py-1.5 text-slate-600">
                   Onboarding
                 </li>
@@ -91,7 +91,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
             </div>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-8">
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-4 sm:rounded-2xl sm:p-6">
+            <div className="rounded-xl border border-border/50 bg-muted/30 p-4 sm:rounded-2xl sm:p-6 max-w-3xl">
               <h3 className="mb-4 text-base font-semibold text-foreground sm:text-lg break-words">
                 Ce que nous faisons pour vous maintenant
               </h3>
@@ -117,7 +117,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
               </ul>
             </div>
 
-            <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4 sm:rounded-2xl sm:p-6">
+            <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4 sm:rounded-2xl sm:p-6 max-w-3xl">
               <h4 className="mb-3 text-sm font-semibold text-blue-900 sm:text-base">Et en attendant, vous pouvez :</h4>
               <ul className="list-disc space-y-2 pl-4 text-xs text-blue-900 sm:text-sm">
                 <li>Préparer la liste de vos services et leurs tarifs.</li>
@@ -126,7 +126,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 max-w-3xl">
               <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground sm:text-base">
