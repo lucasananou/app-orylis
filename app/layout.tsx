@@ -35,7 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
           speed={200}
           shadow="0 0 10px #43b2b9,0 0 5px #43b2b9"
         />
-        <Providers>{children}</Providers>
+        <div className="w-full max-w-full overflow-x-hidden">
+          <Providers>{children}</Providers>
+        </div>
       </body>
     </html>
   );
