@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Script from "next/script";
 import { auth } from "@/auth";
 import { HeroSection } from "@/components/auth/hero-section";
 import { SignupCard } from "@/components/auth/signup-card";
@@ -29,6 +30,11 @@ export default async function SignupPage(): Promise<JSX.Element> {
           </div>
         </div>
       </div>
+
+      {/* Facebook Pixel - ViewContent */}
+      <Script id="fb-viewcontent" strategy="afterInteractive">
+        {`if (typeof fbq === 'function') { try { fbq('track', 'ViewContent'); } catch(e) {} }`}
+      </Script>
     </main>
   );
 }

@@ -4,6 +4,7 @@ import NextTopLoader from "nextjs-toploader";
 import "../styles/globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,6 +39,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
         <div className="w-full max-w-full overflow-x-hidden">
           <Providers>{children}</Providers>
         </div>
+        {/* Meta Pixel Code */}
+        <Script id="fb-pixel-base" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            try { fbq('init', '1185205103095750'); fbq('track', 'PageView'); } catch(e) {}
+          `}
+        </Script>
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=1185205103095750&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
       </body>
     </html>
   );

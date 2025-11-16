@@ -106,9 +106,9 @@ export function SignupCard() {
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-4 shadow-lg sm:rounded-3xl sm:p-6 md:p-8 lg:p-10 md:shadow-xl lg:sticky lg:top-8 min-w-0 max-w-full">
       <div className="mb-6 space-y-1.5 sm:mb-8 sm:space-y-2">
-        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Créer votre espace Orylis</h2>
+        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Débloquez votre démo personnalisée</h2>
         <p className="text-xs text-slate-600 sm:text-sm">
-          Remplissez le formulaire ci-dessous pour commencer votre projet.
+          Cet accès nous permet de vous créer une démo adaptée à votre activité.
         </p>
       </div>
 
@@ -224,7 +224,7 @@ export function SignupCard() {
           ) : (
             <>
               <UserPlus className="mr-2 h-4 w-4" />
-              Créer mon espace
+              Je demande ma démo gratuitement
             </>
           )}
         </Button>

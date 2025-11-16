@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
+import Script from "next/script";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ChatWidget from "@/components/chat/ChatWidget";
 
@@ -156,6 +157,10 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         </Card>
       </div>
       <ChatWidget />
+      {/* Facebook Pixel - CompleteRegistration on demo-in-progress */}
+      <Script id="fb-complete-registration" strategy="afterInteractive">
+        {`if (typeof fbq === 'function') { try { fbq('track', 'CompleteRegistration'); } catch(e) {} }`}
+      </Script>
     </>
   );
 }
