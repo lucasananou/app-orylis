@@ -13,7 +13,7 @@ const BodySchema = z.object({
   status: z.enum(["onboarding", "demo_in_progress", "design", "build", "review", "delivered"]).optional()
 });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) {
     return safeJson({ error: "UNAUTHORIZED" }, 401);
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return safeJson({ error: "FORBIDDEN" }, 403);
   }
 
-  const projectId = params.id;
+  const { id: projectId } = await context.params;
   const json = await req.json().catch(() => ({}));
   const parsed = BodySchema.safeParse(json);
 

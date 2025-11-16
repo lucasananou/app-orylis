@@ -280,6 +280,7 @@ export async function sendWelcomeEmail(
     projectName: projectName ?? "",
     userEmail: credentials?.email ?? "",
     userPassword: credentials?.password ?? "",
+    MotDePasse: credentials?.password ?? "", // alias FR pour les templates
     loginUrl: `${appUrl}/login`
   });
 
