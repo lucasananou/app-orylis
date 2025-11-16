@@ -197,9 +197,6 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             throw new Error(data.error ?? "Impossible de mettre à jour le projet.");
           }
 
-          // Déclencher l'email "Démo prête" systématiquement après l'enregistrement (sans changer le process)
-          fetch(`/api/projects/${project.id}/demo-notify`, { method: "POST" }).catch(() => {});
-
           toast.success("Projet mis à jour.");
         }
 
@@ -208,6 +205,12 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
       } catch (error) {
         const message = error instanceof Error ? error.message : "Une erreur est survenue.";
         toast.error(message);
+      } finally {
+        // Déclencher l'email "Démo prête" systématiquement après le clic sur Enregistrer,
+        // même si le PATCH a échoué (pour forcer la notification au prospect)
+        if (project?.id) {
+          fetch(`/api/projects/${project.id}/demo-notify`, { method: "POST" }).catch(() => {});
+        }
       }
     });
   };
