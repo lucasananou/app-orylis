@@ -507,8 +507,18 @@ export const ProspectOnboardingStep4Schema = z.object({
     .min(5, { message: "Au moins 5 caractères." })
     .max(200, { message: "200 caractères maximum." }),
   mainServices: z
-    .array(z.string().min(2, { message: "Au moins 2 caractères." }).max(100))
-    .length(3, { message: "Indiquez exactement 3 services principaux." }),
+    .array(z.string().max(100))
+    .length(3, { message: "Indiquez exactement 3 services principaux." })
+    .superRefine((services, ctx) => {
+      const first = services?.[0]?.trim() ?? "";
+      if (first.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Le premier service est requis (au moins 2 caractères).",
+          path: [0]
+        });
+      }
+    }),
   importantInfo: z.string().max(1000, { message: "1000 caractères maximum." }).optional()
 });
 
