@@ -58,6 +58,8 @@ const STYLE_OPTIONS = [
 type ProspectOnboardingFormState = {
   companyName: string;
   activity: string;
+  email: string;
+  phone: string;
   siteGoal: string[];
   siteGoalOther: string;
   inspirationUrls: string[];
@@ -132,6 +134,8 @@ const buildDefaultValues = (
   return {
     companyName: ensureString(payload.companyName),
     activity: ensureString(payload.activity),
+    email: ensureString((payload as any).email),
+    phone: ensureString((payload as any).phone),
     siteGoal: ensureStringArray(payload.siteGoal),
     siteGoalOther: ensureString(payload.siteGoalOther),
     inspirationUrls: inspirationUrls.length > 0 ? inspirationUrls : ["", "", ""],
@@ -156,6 +160,12 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
 
   if (values.activity.trim().length > 0) {
     draft.activity = trimmed(values.activity);
+  }
+  if (values.email.trim().length > 0) {
+    (draft as any).email = trimmed(values.email);
+  }
+  if (values.phone.trim().length > 0) {
+    (draft as any).phone = trimmed(values.phone);
   }
 
   if (values.siteGoal && values.siteGoal.length > 0) {
@@ -212,6 +222,12 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
   if (!values.siteGoal || values.siteGoal.length === 0) {
     throw new Error("siteGoal est requis");
   }
+  if (!values.email || values.email.trim().length === 0) {
+    throw new Error("email est requis");
+  }
+  if (!values.phone || values.phone.trim().length === 0) {
+    throw new Error("phone est requis");
+  }
 
   if (!values.hasVisualIdentity) {
     throw new Error("hasVisualIdentity est requis");
@@ -220,6 +236,8 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
   return {
     companyName: values.companyName.trim().length > 0 ? trimmed(values.companyName) : undefined,
     activity: trimmed(values.activity),
+    email: trimmed(values.email),
+    phone: trimmed(values.phone),
     siteGoal: values.siteGoal as ProspectOnboardingPayload["siteGoal"],
     siteGoalOther: values.siteGoal.includes("other") ? trimmed(values.siteGoalOther) : undefined,
     inspirationUrls: values.inspirationUrls
@@ -534,6 +552,20 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           throw new Error(data.error ?? "Impossible de finaliser l'onboarding.");
         }
 
+        // Appel du webhook n8n (non bloquant pour l'utilisateur)
+        try {
+          await fetch("https://orylis.app.n8n.cloud/webhook/3bc9c601-c3b6-422b-9f1e-90c2b576c761", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              projectId,
+              ...finalPayload
+            })
+          });
+        } catch (e) {
+          // Ignorer les erreurs de webhook pour ne pas bloquer l'expérience utilisateur
+        }
+
         draftSignatureRef.current = JSON.stringify(normalizeDraftPayload(form.getValues()));
         setIsCompleted(true);
         setLastSavedAt(new Date());
@@ -655,6 +687,39 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                           placeholder="Ex : traiteur, coach, artisan, immobilier…"
                           {...field}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email (obligatoire)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          inputMode="email"
+                          placeholder="vous@entreprise.fr"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone (obligatoire)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+33 6 12 34 56 78" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

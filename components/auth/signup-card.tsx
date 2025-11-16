@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { ControllerRenderProps } from "react-hook-form";
-import { Loader2, LockKeyhole, Mail, UserPlus, Shield } from "lucide-react";
+import { Loader2, Mail, UserPlus, Shield } from "lucide-react";
 import { z } from "zod";
 import {
   Form,
@@ -23,12 +23,8 @@ import Link from "next/link";
 
 const signupFormSchema = z.object({
   email: z.string().email({ message: "Merci d'entrer un email valide." }),
-  password: z
-    .string()
-    .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères." })
-    .max(128, { message: "Le mot de passe est trop long." }),
-  fullName: z.string().optional(),
-  company: z.string().optional()
+  // Mot de passe supprimé du formulaire (généré serveur)
+  fullName: z.string().optional()
 });
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
@@ -40,9 +36,7 @@ export function SignupCard() {
     mode: "onChange",
     defaultValues: {
       email: "",
-      password: "",
-      fullName: "",
-      company: ""
+      fullName: ""
     }
   });
 
@@ -63,9 +57,8 @@ export function SignupCard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: values.email,
-            password: values.password,
-            fullName: values.fullName || undefined,
-            company: values.company || undefined
+            // On ne transmet plus de mot de passe, il sera généré côté serveur
+            fullName: values.fullName || undefined
           })
         });
 
@@ -77,9 +70,11 @@ export function SignupCard() {
         }
 
         // Connecter automatiquement l'utilisateur
+        const effectivePassword: string | undefined = signupData.password;
+
         const result = await signIn("credentials", {
           email: values.email,
-          password: values.password,
+          password: effectivePassword,
           redirect: false,
           callbackUrl: "/onboarding"
         });
@@ -137,35 +132,6 @@ export function SignupCard() {
           )}
         />
 
-        <FormField<SignupFormValues, "password">
-          control={form.control}
-          name="password"
-          render={({
-            field
-          }: {
-            field: ControllerRenderProps<SignupFormValues, "password">;
-          }) => (
-            <FormItem>
-              <FormLabel>Mot de passe</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <LockKeyhole className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="••••••••"
-                    disabled={isSubmitting}
-                    className="pl-10"
-                    {...field}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-              <p className="text-xs text-slate-500">Minimum 8 caractères</p>
-            </FormItem>
-          )}
-        />
-
         <FormField<SignupFormValues, "fullName">
           control={form.control}
           name="fullName"
@@ -179,28 +145,6 @@ export function SignupCard() {
               <FormControl>
                 <Input
                   placeholder="Prénom Nom"
-                  disabled={isSubmitting}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField<SignupFormValues, "company">
-          control={form.control}
-          name="company"
-          render={({
-            field
-          }: {
-            field: ControllerRenderProps<SignupFormValues, "company">;
-          }) => (
-            <FormItem>
-              <FormLabel>Entreprise (optionnel)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Nom de votre entreprise"
                   disabled={isSubmitting}
                   {...field}
                 />

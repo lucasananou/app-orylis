@@ -17,6 +17,12 @@ export function GenerateQuoteButton({ projectId, existingQuoteId }: GenerateQuot
 
   const handleGenerate = async () => {
     if (existingQuoteId) {
+      try {
+        // Track Lead when user proceeds to view existing quote
+        if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+          try { (window as any).fbq("track", "Lead"); } catch (e) {}
+        }
+      } catch {}
       router.push(`/quote/${existingQuoteId}`);
       return;
     }
@@ -32,6 +38,11 @@ export function GenerateQuoteButton({ projectId, existingQuoteId }: GenerateQuot
 
       if (!response.ok) {
         throw new Error(data.error ?? "Erreur lors de la génération du devis");
+      }
+
+      // Track Lead when quote successfully generated
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        try { (window as any).fbq("track", "Lead"); } catch (e) {}
       }
 
       toast.success("Votre devis personnalisé est prêt !");

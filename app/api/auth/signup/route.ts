@@ -7,12 +7,14 @@ import { db } from "@/lib/db";
 import { authUsers, profiles, projects, userCredentials } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
 import { sendProspectWelcomeEmail } from "@/lib/emails";
+import crypto from "node:crypto";
 
 export const dynamic = "force-dynamic";
 
 const signupSchema = z.object({
   email: z.string().email("Email invalide"),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  // Rendre le mot de passe optionnel (généré côté serveur si absent)
+  password: z.string().min(8).optional(),
   fullName: z.string().optional(),
   company: z.string().optional()
 });
@@ -47,9 +49,12 @@ export async function POST(req: NextRequest) {
     // Créer l'utilisateur
     const userId = randomUUID();
     
+    // Générer un mot de passe si non fourni
+    const rawPassword = password && password.length >= 8 ? password : crypto.randomBytes(12).toString("base64url");
+
     // Paralléliser le hash du mot de passe et la préparation des données
     const [passwordHash, projectName] = await Promise.all([
-      hash(password, 10), // Réduit de 12 à 10 rounds pour améliorer la vitesse (toujours sécurisé)
+      hash(rawPassword, 10), // 10 rounds (sécurisé + rapide)
       Promise.resolve(
         company ? `Site ${company}` : fullName ? `Site ${fullName}` : "Mon site web"
       )
@@ -112,7 +117,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       userId,
-      projectId: project?.id
+      projectId: project?.id,
+      // On renvoie le mot de passe effectif pour la connexion immédiate côté client
+      password: rawPassword
     });
   } catch (error) {
     console.error("[Signup] Error:", error);
