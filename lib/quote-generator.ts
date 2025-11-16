@@ -18,7 +18,8 @@ export interface QuoteData {
   quoteNumber: string;
 }
 
-const ORYLIS_LOGO_URL = "https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png";
+const DEFAULT_REMOTE_LOGO_URL = "https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png";
+const ENV_REMOTE_LOGO_URL = process.env.QUOTE_LOGO_URL ?? process.env.NEXT_PUBLIC_QUOTE_LOGO_URL ?? "";
 
 /**
  * Génère un PDF de devis et l'upload sur Vercel Blob
@@ -86,35 +87,49 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   let y = margin;
 
   // Logo Orylis en haut à gauche
+  // 1) Tentative logo local: /public/logo-orylis.png (remplaçable par votre fichier)
+  const localLogoPath = path.join(process.cwd(), "public", "logo-orylis.png");
+  let logoPlaced = false;
   try {
-    // 1) Essayer d'utiliser le logo local du dossier /public
-    const localLogoPath = path.join(process.cwd(), "public", "logo-orylis.png");
     const logoBuffer = await fs.readFile(localLogoPath);
-    doc.image(logoBuffer, margin, y, { width: 120, height: 40, fit: [120, 40] });
-    y += 50;
-  } catch (error) {
+    doc.image(logoBuffer, margin, y, { width: 140, height: 44, fit: [140, 44] });
+    y += 54;
+    logoPlaced = true;
+  } catch {}
+
+  // 2) Tentative logo distant via variable d'env (QUOTE_LOGO_URL / NEXT_PUBLIC_QUOTE_LOGO_URL)
+  if (!logoPlaced && ENV_REMOTE_LOGO_URL) {
     try {
-      // 2) Fallback: tenter de récupérer le logo distant
-      const logoResponse = await fetch(ORYLIS_LOGO_URL);
-      if (logoResponse.ok) {
-        const remoteBuffer = Buffer.from(await logoResponse.arrayBuffer());
-        doc.image(remoteBuffer, margin, y, { width: 120, height: 40, fit: [120, 40] });
-        y += 50;
-      } else {
-        // Texte si tout échoue
-        doc
-          .fontSize(28)
-          .fillColor("#005eff")
-          .text("Orylis", margin, y, { align: "left" });
-        y += 40;
+      const res = await fetch(ENV_REMOTE_LOGO_URL);
+      if (res.ok) {
+        const buf = Buffer.from(await res.arrayBuffer());
+        doc.image(buf, margin, y, { width: 140, height: 44, fit: [140, 44] });
+        y += 54;
+        logoPlaced = true;
       }
-    } catch (e) {
-      doc
-        .fontSize(28)
-        .fillColor("#005eff")
-        .text("Orylis", margin, y, { align: "left" });
-      y += 40;
-    }
+    } catch {}
+  }
+
+  // 3) Fallback logo distant par défaut
+  if (!logoPlaced) {
+    try {
+      const res = await fetch(DEFAULT_REMOTE_LOGO_URL);
+      if (res.ok) {
+        const buf = Buffer.from(await res.arrayBuffer());
+        doc.image(buf, margin, y, { width: 140, height: 44, fit: [140, 44] });
+        y += 54;
+        logoPlaced = true;
+      }
+    } catch {}
+  }
+
+  // 4) Dernier recours: texte
+  if (!logoPlaced) {
+    doc
+      .fontSize(28)
+      .fillColor("#005eff")
+      .text("Orylis", margin, y, { align: "left" });
+    y += 40;
   }
   
   // Numéro de devis et date en haut à droite
@@ -211,7 +226,8 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   doc
     .fontSize(10)
     .fillColor("#000000")
-    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 20, servicesY, { align: "right", width: 100 });
+    // Décalage de ~200px vers la gauche pour garantir la lisibilité en marge
+    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 220, servicesY, { align: "right", width: 200 });
   
   servicesY += 20;
   doc
@@ -259,8 +275,9 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   doc
     .fontSize(12)
     .fillColor("#000000")
-    .text("Total HT :", servicesBoxX + servicesBoxWidth - 100, totalY, { align: "right", width: 80 })
-    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 20, totalY, { align: "right", width: 100 });
+    // On place les libellés et montants 200px plus à gauche
+    .text("Total HT :", servicesBoxX + servicesBoxWidth - 220, totalY, { align: "right", width: 200 })
+    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 220, totalY, { align: "right", width: 200 });
 
   // Section paiement en bas
   y = servicesBoxY + servicesBoxHeight + 30;

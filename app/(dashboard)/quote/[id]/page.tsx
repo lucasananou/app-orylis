@@ -80,7 +80,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
       />
 
       {isSigned ? (
-        <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto max-w-3xl safe-px min-w-0 pb-24">
           <Card className="border border-green-200 bg-green-50/50 w-full">
             <CardHeader>
               <div className="flex items-center gap-2 sm:gap-3">
@@ -118,15 +118,15 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           </Card>
         </div>
       ) : (
-        <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr] w-full">
+        <div className="w-full mx-auto max-w-3xl safe-px min-w-0 pb-24">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr] w-full min-w-0">
             {/* Colonne de gauche : Aperçu du devis */}
-            <div className="w-full">
+            <div className="w-full min-w-0">
               <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />
             </div>
 
             {/* Colonne de droite : Signature + Bloc "après validation" */}
-            <div className="space-y-4 sm:space-y-6 w-full">
+            <div className="space-y-4 sm:space-y-6 w-full min-w-0">
               <QuoteSignForm quoteId={id} />
               <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30 w-full">
                 <CardHeader className="pb-4 sm:pb-6">
