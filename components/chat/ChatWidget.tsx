@@ -10,6 +10,14 @@ type ChatMessage = {
   text: string;
 };
 
+function findQuestionById(id: string): FaqQuestion | null {
+  for (const category of faqCategories) {
+    const q = category.questions.find((qq) => qq.id === id);
+    if (q) return q;
+  }
+  return null;
+}
+
 function formatWhatsAppUrl(currentUrl: string): string {
   const base = `https://wa.me/${WHATSAPP_NUMBER}`;
   const text = `Bonjour Lucas, je viens de tester ma démo Orylis et j’aimerais en discuter pour mon site.\n\nVoici la page où je suis : ${currentUrl}`;
@@ -31,6 +39,15 @@ export function ChatWidget(): JSX.Element {
   const bodyRef = React.useRef<HTMLDivElement | null>(null);
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
   const [faqCollapsed, setFaqCollapsed] = React.useState(false);
+  // Courtes suggestions mises en avant (ordre optimisé)
+  const suggestionIds = React.useMemo(
+    () => ["pricing_after_demo", "final_timing", "can_edit_demo", "ecommerce", "installments"],
+    []
+  );
+  const suggestionQuestions = React.useMemo(
+    () => suggestionIds.map((id) => findQuestionById(id)).filter(Boolean) as FaqQuestion[],
+    [suggestionIds]
+  );
 
   const scrollToBottom = React.useCallback(() => {
     // Smoothly scroll to the last message
@@ -134,6 +151,27 @@ export function ChatWidget(): JSX.Element {
               </button>
             ) : (
               <div className="space-y-2">
+                {/* Suggestions rapides */}
+                {suggestionQuestions.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-[11px] font-medium uppercase tracking-wide text-slate-600">
+                      Suggestions
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestionQuestions.map((q) => (
+                        <button
+                          key={`s-${q.id}`}
+                          type="button"
+                          onClick={() => pushUserAndBot(q)}
+                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                          {q.question}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {faqCategories.map((cat) => (
                   <div key={cat.id} className="space-y-2">
                     <div className="text-[11px] font-medium uppercase tracking-wide text-slate-600">
@@ -182,9 +220,21 @@ export function ChatWidget(): JSX.Element {
             <button
               type="button"
               onClick={openWhatsApp}
-              className="w-full rounded-xl bg-[#0D69FF] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0b5ee6]"
+              className="w-full rounded-xl bg-[#25D366] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1DA851]"
             >
-              Parler avec Lucas sur WhatsApp
+              <span className="inline-flex items-center justify-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M20.52 3.48A11.87 11.87 0 0 0 12.06 0C5.47 0 .11 5.36.11 11.95a11.86 11.86 0 0 0 1.67 6.07L0 24l6.11-1.76a11.9 11.9 0 0 0 5.94 1.6h.01c6.59 0 11.95-5.36 11.95-11.95 0-3.19-1.24-6.2-3.49-8.41ZM12.06 21.34h-.01a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.63 1.05 1.04-3.54-.22-.36a9.43 9.43 0 0 1-1.44-5.01c0-5.2 4.23-9.43 9.43-9.43 2.52 0 4.88.98 6.66 2.76a9.38 9.38 0 0 1 2.77 6.66c0 5.2-4.23 9.43-9.46 9.43Zm5.19-7.05c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.65.14-.19.28-.74.91-.91 1.1-.17.19-.34.21-.62.07-.28-.14-1.17-.43-2.22-1.38-.82-.73-1.38-1.63-1.54-1.9-.16-.28-.02-.43.12-.57.12-.12.28-.31.43-.48.14-.17.19-.28.28-.48.09-.19.05-.36-.02-.5-.07-.14-.65-1.56-.88-2.13-.23-.55-.47-.47-.65-.48h-.55c-.19 0-.5.07-.76.36-.26.28-1 1-1 2.43 0 1.43 1.03 2.82 1.17 3.02.14.19 2.02 3.08 4.89 4.32.68.29 1.21.46 1.62.59.68.22 1.3.19 1.8.12.55-.08 1.66-.68 1.9-1.33.24-.64.24-1.19.17-1.33-.07-.14-.26-.21-.54-.36Z" />
+                </svg>
+                Parler avec Lucas sur WhatsApp
+              </span>
             </button>
           </div>
         </div>

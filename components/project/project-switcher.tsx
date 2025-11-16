@@ -76,7 +76,7 @@ export function ProjectSwitcher({ projects, role }: ProjectSwitcherProps) {
           type="button"
           variant="outline"
           aria-expanded={open}
-          className="w-64 justify-between gap-2 rounded-full"
+          className="min-w-0 max-w-full w-auto sm:w-64 justify-between gap-2 rounded-full"
         >
           <span className="truncate text-left text-sm font-medium text-foreground">{label}</span>
           <ChevronDown className="h-4 w-4 opacity-60" />
