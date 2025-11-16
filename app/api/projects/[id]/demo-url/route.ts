@@ -65,11 +65,17 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     metadata: { demoUrl: updated.demoUrl }
   }).catch(() => null);
 
-  // Envoyer un email "démo prête" au prospect (fire-and-forget)
-  // Ne bloque pas la réponse en cas d'erreur d'envoi, mais log en cas d'échec
-  sendProspectDemoReadyEmail(updated.ownerId, updated.name, updated.demoUrl ?? "").catch((e) => {
-    console.error("[Demo URL] Failed to send demo ready email:", e);
-  });
+  // Envoyer un email "démo prête" au prospect et logger le résultat
+  // On n'échoue pas la requête si l'email ne part pas
+  sendProspectDemoReadyEmail(updated.ownerId, updated.name, updated.demoUrl ?? "")
+    .then((res) => {
+      if (!res?.success) {
+        console.error("[Demo URL] Demo ready email not sent:", res?.error);
+      }
+    })
+    .catch((e) => {
+      console.error("[Demo URL] Failed to send demo ready email:", e);
+    });
 
   return safeJson({ ok: true, project: updated }, 200);
 }
