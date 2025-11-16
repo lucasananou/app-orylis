@@ -124,15 +124,15 @@ export default async function OnboardingPage(): Promise<JSX.Element> {
           className="sm:items-center"
         />
         <div className="space-y-4 text-center sm:text-left">
-          <EmptyState
-            icon={ClipboardList}
-            title="Pas d’onboarding actif"
-            description={
-              staff
-                ? "Sélectionnez un projet à mettre en onboarding dans le back-office."
+        <EmptyState
+          icon={ClipboardList}
+          title="Pas d’onboarding actif"
+          description={
+            staff
+              ? "Sélectionnez un projet à mettre en onboarding dans le back-office."
                 : "Vous pouvez démarrer un nouvel onboarding pour transmettre vos informations."
-            }
-          />
+          }
+        />
           {!staff && (
             <div className="mx-auto w-full max-w-screen-md px-4 sm:px-0">
               <OnboardingStartButton />

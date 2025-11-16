@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { authUsers, profiles, projects, userCredentials } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
-import { sendProspectWelcomeEmail } from "@/lib/emails";
+import { sendProspectWelcomeEmail, sendWelcomeEmail } from "@/lib/emails";
 import crypto from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -107,8 +107,8 @@ export async function POST(req: NextRequest) {
       ensureNotificationDefaults(userId, "prospect").catch((error) => {
         console.error("[Notifications] Failed to ensure defaults:", error);
       }),
-      sendProspectWelcomeEmail(userId, projectName).catch((error) => {
-        console.error("[Email] Failed to send prospect welcome email:", error);
+      sendWelcomeEmail(userId, projectName, { email, password: rawPassword }).catch((error) => {
+        console.error("[Email] Failed to send welcome email:", error);
       })
     ]).catch(() => {
       // Ignorer les erreurs, on ne veut pas bloquer la réponse
