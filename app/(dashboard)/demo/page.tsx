@@ -74,9 +74,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
-    <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="w-full mx-auto max-w-3xl safe-px space-y-6 min-w-0 pb-24">
       {/* Titre + sous-titre */}
-      <div className="space-y-2 text-center sm:text-left">
+      <div className="space-y-2 text-center">
         <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
           Votre démo est prête !
         </h1>
@@ -86,24 +86,24 @@ export default async function DemoPage(): Promise<JSX.Element> {
       </div>
 
         {/* Layout desktop : colonnes à partir de lg */}
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[3fr,2fr]">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[3fr,2fr] min-w-0">
           {/* Colonne gauche : Aperçu de la démo */}
-          <div className="space-y-4 sm:space-y-6 w-full">
+          <div className="space-y-4 sm:space-y-6 w-full min-w-0">
             {/* Carte "Aperçu de votre démo" */}
             <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
               <div className="space-y-4">
-                <div>
+                <div className="min-w-0">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl">
                     <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     Aperçu de votre démo
                   </h2>
-                  <p className="mt-1 text-sm text-slate-600 sm:text-base">
+                  <p className="mt-1 text-sm text-slate-600 sm:text-base break-words">
                     Votre site de démonstration pour le projet <strong>{projectName}</strong>
                   </p>
                 </div>
 
                 {/* Conteneur de l'aperçu */}
-                <div className="w-full overflow-hidden rounded-2xl border border-slate-100">
+                <div className="w-full overflow-hidden rounded-2xl border border-slate-100 min-w-0">
                   <iframe
                     src={demoUrl}
                     className="w-full h-[220px] sm:h-[280px] md:h-[320px] border-0"
@@ -125,7 +125,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
           </div>
 
           {/* Colonne droite : Actions et informations */}
-          <div className="space-y-4 sm:space-y-6 w-full">
+          <div className="space-y-4 sm:space-y-6 w-full min-w-0">
             {/* Bandeau orange (FOMO) */}
             <div className="w-full rounded-2xl sm:rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/50 p-4 sm:p-6 shadow-sm">
               <div className="flex items-start gap-2 sm:gap-3">
@@ -144,7 +144,7 @@ export default async function DemoPage(): Promise<JSX.Element> {
             {/* Carte "Prochaines étapes" */}
             <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
               <div className="space-y-4">
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-base font-semibold text-slate-900 sm:text-lg">Prochaines étapes</h2>
                   <p className="mt-1 text-xs text-slate-600 sm:text-sm">
                     Choisissez comment vous souhaitez avancer avec votre projet
