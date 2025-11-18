@@ -24,7 +24,12 @@ import Link from "next/link";
 const signupFormSchema = z.object({
   email: z.string().email({ message: "Merci d'entrer un email valide." }),
   // Mot de passe supprimé du formulaire (généré serveur)
-  fullName: z.string().optional()
+  fullName: z.string().optional(),
+  phone: z
+    .string()
+    .min(1, { message: "Le numéro de téléphone est obligatoire." })
+    .regex(/^[0-9 +().-]*$/, { message: "Format de téléphone invalide." })
+    .max(30, { message: "Numéro trop long (30 caractères max)." })
 });
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
@@ -36,7 +41,8 @@ export function SignupCard() {
     mode: "onChange",
     defaultValues: {
       email: "",
-      fullName: ""
+      fullName: "",
+      phone: ""
     }
   });
 
@@ -58,7 +64,8 @@ export function SignupCard() {
           body: JSON.stringify({
             email: values.email,
             // On ne transmet plus de mot de passe, il sera généré côté serveur
-            fullName: values.fullName || undefined
+            fullName: values.fullName || undefined,
+            phone: values.phone
           })
         });
 
@@ -145,6 +152,30 @@ export function SignupCard() {
               <FormControl>
                 <Input
                   placeholder="Prénom Nom"
+                  disabled={isSubmitting}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField<SignupFormValues, "phone">
+          control={form.control}
+          name="phone"
+          render={({
+            field
+          }: {
+            field: ControllerRenderProps<SignupFormValues, "phone">;
+          }) => (
+            <FormItem>
+              <FormLabel>Numéro de téléphone</FormLabel>
+              <FormControl>
+                <Input
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+33 6 12 34 56 78"
                   disabled={isSubmitting}
                   {...field}
                 />
