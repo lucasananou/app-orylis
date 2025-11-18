@@ -15,6 +15,7 @@ interface Client {
   id: string;
   fullName: string | null;
   company: string | null;
+  phone: string | null;
   email: string | null;
   role: "prospect" | "client";
   projectCount: number;
@@ -117,6 +118,9 @@ export function ClientsList({ clients }: ClientsListProps) {
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg truncate">{displayName}</CardTitle>
                   <CardDescription className="truncate">{client.email}</CardDescription>
+                  {client.phone && (
+                    <CardDescription className="truncate text-xs mt-0.5">{client.phone}</CardDescription>
+                  )}
                 </div>
                 <Badge variant={client.role === "client" ? "default" : "secondary"}>
                   {client.role === "client" ? "Client" : "Prospect"}
