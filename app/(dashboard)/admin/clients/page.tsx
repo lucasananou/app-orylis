@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { eq, asc, or } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -30,10 +30,10 @@ async function loadClientsData() {
     .where(or(eq(profiles.role, "prospect"), eq(profiles.role, "client")))
     .orderBy(asc(profiles.fullName));
 
-  // Compter les projets par client et récupérer le premier projet pour les prospects
+  // Compter les projets par client et r├®cup├®rer le premier projet pour les prospects
   const clientsWithProjects = await Promise.all(
     clients
-      .filter((client) => client.role !== "staff") // Filtrer les staff (ne devrait pas arriver mais sécurité)
+      .filter((client) => client.role !== "staff") // Filtrer les staff (ne devrait pas arriver mais s├®curit├®)
       .map(async (client) => {
         const clientProjects = await db
           .select({
@@ -55,7 +55,7 @@ async function loadClientsData() {
             .then((rows) => rows.length),
           firstProject: clientProjects[0] ?? null,
           createdAt: client.createdAt?.toISOString() ?? null,
-          role: client.role as "prospect" | "client" // Type assertion car on a filtré les staff
+          role: client.role as "prospect" | "client" // Type assertion car on a filtr├® les staff
         };
       })
   );
@@ -70,7 +70,7 @@ export default async function AdminClientsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Gestion des clients"
-        description="Gérez les clients et prospects. Promouvez les prospects en clients pour leur donner accès à toutes les fonctionnalités."
+        description="G├®rez les clients et prospects. Promouvez les prospects en clients pour leur donner acc├¿s ├á toutes les fonctionnalit├®s."
       />
 
       <ClientsList clients={clients} />
