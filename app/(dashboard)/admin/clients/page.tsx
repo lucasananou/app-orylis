@@ -21,6 +21,7 @@ async function loadClientsData() {
       id: profiles.id,
       fullName: profiles.fullName,
       company: profiles.company,
+      phone: profiles.phone,
       email: authUsers.email,
       role: profiles.role,
       createdAt: profiles.createdAt
