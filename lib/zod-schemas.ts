@@ -464,7 +464,6 @@ export const ProspectOnboardingStep1Schema = z.object({
     .max(200, { message: "200 caractères maximum." }),
   // Validation assouplie: seulement requis non vide
   email: z.string().min(1, { message: "Email requis." }),
-  phone: z.string().min(1, { message: "Téléphone requis." }),
   siteGoal: z
     .array(z.enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"]))
     .min(1, { message: "Sélectionnez au moins un objectif pour votre site." }),
@@ -530,7 +529,6 @@ export const ProspectOnboardingDraftSchema = z.object({
   companyName: z.string().optional(),
   activity: z.string().optional(),
   email: z.string().optional(),
-  phone: z.string().optional(),
   siteGoal: z.array(z.enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"])).optional(),
   siteGoalOther: z.string().optional(),
   inspirationUrls: z.array(z.string()).optional(),
