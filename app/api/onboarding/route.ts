@@ -191,6 +191,36 @@ export async function POST(req: NextRequest) {
 
   const isProspectUser = isProspect(userProfile?.role ?? session.user.role);
 
+  // Synchroniser les données de l'onboarding vers le profil utilisateur (fullName, company, phone)
+  // Cela permet d'afficher ces informations dans les cartes clients
+  if (completed && parsedPayload) {
+    const profileUpdate: {
+      fullName?: string;
+      company?: string;
+      phone?: string;
+    } = {};
+
+    if (typeof parsedPayload.fullName === "string" && parsedPayload.fullName.trim()) {
+      profileUpdate.fullName = parsedPayload.fullName.trim();
+    }
+    if (typeof parsedPayload.company === "string" && parsedPayload.company.trim()) {
+      profileUpdate.company = parsedPayload.company.trim();
+    }
+    if (typeof parsedPayload.phone === "string" && parsedPayload.phone.trim()) {
+      profileUpdate.phone = parsedPayload.phone.trim();
+    }
+
+    // Mettre à jour le profil si au moins un champ est présent
+    if (Object.keys(profileUpdate).length > 0) {
+      db.update(profiles)
+        .set(profileUpdate)
+        .where(eq(profiles.id, session.user.id))
+        .catch((error) => {
+          console.error("[Onboarding] Failed to update profile:", error);
+        });
+    }
+  }
+
   // Ne pas attendre les notifications et emails (fire and forget)
   if (completed && project) {
     Promise.all([

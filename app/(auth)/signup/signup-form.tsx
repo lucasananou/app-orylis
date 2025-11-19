@@ -47,10 +47,15 @@ export function SignupForm() {
   });
 
   const [isSubmitting, startTransition] = React.useTransition();
+  const [loadingStep, setLoadingStep] = React.useState<string>("");
 
   const handleSubmit = (values: SignupFormValues) => {
     startTransition(async () => {
       try {
+        // Étape 1 : Création de l'espace sécurisé
+        setLoadingStep("Création de votre espace sécurisé...");
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
         // Créer le compte
         const signupResponse = await fetch("/api/auth/signup", {
           method: "POST",
@@ -66,9 +71,14 @@ export function SignupForm() {
         const signupData = await signupResponse.json();
 
         if (!signupResponse.ok) {
+          setLoadingStep("");
           toast.error(signupData.error || "Une erreur est survenue lors de l'inscription.");
           return;
         }
+
+        // Étape 2 : Connexion
+        setLoadingStep("Connexion aux serveurs Orylis...");
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         // Connecter automatiquement l'utilisateur
         const result = await signIn("credentials", {
@@ -79,15 +89,21 @@ export function SignupForm() {
         });
 
         if (result?.error) {
+          setLoadingStep("");
           toast.error("Compte créé mais connexion échouée. Veuillez vous connecter manuellement.");
           router.push("/login");
           return;
         }
 
-        toast.success("Compte créé avec succès ! Redirection vers l'onboarding...");
+        // Étape 3 : Redirection
+        setLoadingStep("Succès ! Redirection vers le configurateur...");
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        toast.success("Compte créé avec succès !");
         router.replace("/onboarding");
         router.refresh();
       } catch (error) {
+        setLoadingStep("");
         console.error("[Signup] Error:", error);
         toast.error("Une erreur est survenue. Veuillez réessayer.");
       }
@@ -152,7 +168,7 @@ export function SignupForm() {
           field: ControllerRenderProps<SignupFormValues, "fullName">;
         }) => (
           <FormItem>
-            <FormLabel>Nom complet (optionnel)</FormLabel>
+            <FormLabel>Nom complet</FormLabel>
             <FormControl>
               <Input
                 placeholder="Prénom Nom"
@@ -196,7 +212,7 @@ export function SignupForm() {
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Création du compte…
+            {loadingStep || "Préparation..."}
           </>
         ) : (
           <>
@@ -205,6 +221,9 @@ export function SignupForm() {
           </>
         )}
       </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Étape 1/2 : Créez votre espace pour démarrer le questionnaire
+      </p>
       <p className="text-center text-xs text-muted-foreground">
         Déjà un compte ?{" "}
         <Link href="/login" className="font-medium text-accent hover:underline">
