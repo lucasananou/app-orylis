@@ -464,7 +464,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
       stepPayload = {
         companyName: values.companyName,
         activity: values.activity,
-        email: values.email,
+        phone: values.phone,
         siteGoal: values.siteGoal.length > 0 ? values.siteGoal : undefined,
         siteGoalOther: values.siteGoalOther
       };
