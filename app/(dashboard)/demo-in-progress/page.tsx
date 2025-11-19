@@ -157,9 +157,9 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
         </Card>
       </div>
       <ChatWidget />
-      {/* Facebook Pixel - CompleteRegistration on demo-in-progress */}
-      <Script id="fb-complete-registration" strategy="afterInteractive">
-        {`if (typeof fbq === 'function') { try { fbq('track', 'CompleteRegistration'); } catch(e) {} }`}
+      {/* Facebook Pixel - Lead on demo-in-progress (formulaire complété) */}
+      <Script id="fb-lead" strategy="afterInteractive">
+        {`if (typeof fbq === 'function') { try { fbq('track', 'Lead'); } catch(e) {} }`}
       </Script>
     </>
   );
