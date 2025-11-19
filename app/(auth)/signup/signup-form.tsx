@@ -190,7 +190,7 @@ export function SignupForm() {
           field: ControllerRenderProps<SignupFormValues, "company">;
         }) => (
           <FormItem>
-            <FormLabel>Entreprise (optionnel)</FormLabel>
+            <FormLabel>Entreprise</FormLabel>
             <FormControl>
               <Input
                 placeholder="Nom de votre entreprise"

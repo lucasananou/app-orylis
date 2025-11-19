@@ -16,12 +16,8 @@ const signupSchema = z.object({
   // Rendre le mot de passe optionnel (généré côté serveur si absent)
   password: z.string().min(8).optional(),
   fullName: z.string().optional(),
-  company: z.string().optional(),
-  phone: z
-    .string()
-    .min(1, "Le numéro de téléphone est obligatoire")
-    .regex(/^[0-9 +().-]*$/, "Format de téléphone invalide")
-    .max(30, "Numéro trop long (30 caractères max)")
+  company: z.string().optional()
+  // Téléphone supprimé - sera demandé à l'onboarding pour réduire la friction
 });
 
 export async function POST(req: NextRequest) {
@@ -36,7 +32,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, password, fullName, company, phone } = parsed.data;
+    const { email, password, fullName, company } = parsed.data;
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await db.query.authUsers.findFirst({
@@ -81,8 +77,8 @@ export async function POST(req: NextRequest) {
         id: userId,
         role: "prospect",
         fullName: fullName ?? null,
-        company: company ?? null,
-        phone: phone ?? null
+        company: company ?? null
+        // Téléphone sera ajouté lors de l'onboarding
       });
 
       // 3) Créer les credentials (FK vers user)

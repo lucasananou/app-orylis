@@ -24,12 +24,8 @@ import Link from "next/link";
 const signupFormSchema = z.object({
   email: z.string().email({ message: "Merci d'entrer un email valide." }),
   // Mot de passe supprimé du formulaire (généré serveur)
-  fullName: z.string().optional(),
-  phone: z
-    .string()
-    .min(1, { message: "Le numéro de téléphone est obligatoire." })
-    .regex(/^[0-9 +().-]*$/, { message: "Format de téléphone invalide." })
-    .max(30, { message: "Numéro trop long (30 caractères max)." })
+  fullName: z.string().optional()
+  // Téléphone supprimé - sera demandé à l'onboarding pour réduire la friction
 });
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
@@ -41,12 +37,12 @@ export function SignupCard() {
     mode: "onChange",
     defaultValues: {
       email: "",
-      fullName: "",
-      phone: ""
+      fullName: ""
     }
   });
 
   const [isSubmitting, startTransition] = React.useTransition();
+  const [loadingStep, setLoadingStep] = React.useState<string>("");
 
   // Point d'extension pour tracking (à utiliser plus tard)
   React.useEffect(() => {
@@ -57,6 +53,10 @@ export function SignupCard() {
   const handleSubmit = (values: SignupFormValues) => {
     startTransition(async () => {
       try {
+        // Étape 1 : Création de l'espace sécurisé
+        setLoadingStep("Création de votre espace sécurisé...");
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
         // Créer le compte
         const signupResponse = await fetch("/api/auth/signup", {
           method: "POST",
@@ -64,17 +64,22 @@ export function SignupCard() {
           body: JSON.stringify({
             email: values.email,
             // On ne transmet plus de mot de passe, il sera généré côté serveur
-            fullName: values.fullName || undefined,
-            phone: values.phone
+            fullName: values.fullName || undefined
+            // Téléphone supprimé - sera demandé à l'onboarding
           })
         });
 
         const signupData = await signupResponse.json();
 
         if (!signupResponse.ok) {
+          setLoadingStep("");
           toast.error(signupData.error || "Une erreur est survenue lors de l'inscription.");
           return;
         }
+
+        // Étape 2 : Connexion
+        setLoadingStep("Connexion aux serveurs Orylis...");
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         // Connecter automatiquement l'utilisateur
         const effectivePassword: string | undefined = signupData.password;
@@ -87,18 +92,24 @@ export function SignupCard() {
         });
 
         if (result?.error) {
+          setLoadingStep("");
           toast.error("Compte créé mais connexion échouée. Veuillez vous connecter manuellement.");
           router.push("/login");
           return;
         }
 
+        // Étape 3 : Redirection
+        setLoadingStep("Succès ! Redirection vers le configurateur...");
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
         // TODO: Événement "signup_submit_success" pour tracking
         // Exemple: trackEvent("signup_submit_success", { userId: signupData.userId });
 
-        toast.success("Compte créé avec succès ! Redirection vers l'onboarding...");
+        toast.success("Compte créé avec succès !");
         router.replace("/onboarding");
         router.refresh();
       } catch (error) {
+        setLoadingStep("");
         console.error("[Signup] Error:", error);
         toast.error("Une erreur est survenue. Veuillez réessayer.");
       }
@@ -148,34 +159,10 @@ export function SignupCard() {
             field: ControllerRenderProps<SignupFormValues, "fullName">;
           }) => (
             <FormItem>
-              <FormLabel>Nom complet (optionnel)</FormLabel>
+              <FormLabel>Nom complet</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Prénom Nom"
-                  disabled={isSubmitting}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField<SignupFormValues, "phone">
-          control={form.control}
-          name="phone"
-          render={({
-            field
-          }: {
-            field: ControllerRenderProps<SignupFormValues, "phone">;
-          }) => (
-            <FormItem>
-              <FormLabel>Numéro de téléphone</FormLabel>
-              <FormControl>
-                <Input
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="+33 6 12 34 56 78"
                   disabled={isSubmitting}
                   {...field}
                 />
@@ -194,7 +181,7 @@ export function SignupCard() {
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Création du compte…
+              {loadingStep || "Préparation..."}
             </>
           ) : (
             <>
@@ -207,6 +194,10 @@ export function SignupCard() {
         {/* Rappel "Sans engagement" sous le CTA */}
         <p className="text-center text-xs font-medium text-slate-500">
           100% gratuit — aucun engagement
+        </p>
+
+        <p className="text-center text-xs text-slate-500">
+          Étape 1/2 : Créez votre espace pour démarrer le questionnaire
         </p>
 
         <p className="text-center text-xs text-slate-600 sm:text-sm">
