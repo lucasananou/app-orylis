@@ -58,7 +58,7 @@ const STYLE_OPTIONS = [
 type ProspectOnboardingFormState = {
   companyName: string;
   activity: string;
-  email: string;
+  phone: string;
   siteGoal: string[];
   siteGoalOther: string;
   inspirationUrls: string[];
@@ -133,7 +133,7 @@ const buildDefaultValues = (
   return {
     companyName: ensureString(payload.companyName),
     activity: ensureString(payload.activity),
-    email: ensureString((payload as any).email),
+    phone: ensureString((payload as any).phone),
     siteGoal: ensureStringArray(payload.siteGoal),
     siteGoalOther: ensureString(payload.siteGoalOther),
     inspirationUrls: inspirationUrls.length > 0 ? inspirationUrls : ["", "", ""],
@@ -159,8 +159,8 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
   if (values.activity.trim().length > 0) {
     draft.activity = trimmed(values.activity);
   }
-  if (values.email.trim().length > 0) {
-    (draft as any).email = trimmed(values.email);
+  if (values.phone.trim().length > 0) {
+    draft.phone = trimmed(values.phone);
   }
 
   if (values.siteGoal && values.siteGoal.length > 0) {
@@ -217,8 +217,8 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
   if (!values.siteGoal || values.siteGoal.length === 0) {
     throw new Error("siteGoal est requis");
   }
-  if (!values.email || values.email.trim().length === 0) {
-    throw new Error("email est requis");
+  if (!values.phone || values.phone.trim().length === 0) {
+    throw new Error("phone est requis");
   }
 
   if (!values.hasVisualIdentity) {
@@ -228,7 +228,7 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
   return {
     companyName: values.companyName.trim().length > 0 ? trimmed(values.companyName) : undefined,
     activity: trimmed(values.activity),
-    email: trimmed(values.email),
+    phone: trimmed(values.phone),
     siteGoal: values.siteGoal as ProspectOnboardingPayload["siteGoal"],
     siteGoalOther: values.siteGoal.includes("other") ? trimmed(values.siteGoalOther) : undefined,
     inspirationUrls: values.inspirationUrls
@@ -687,15 +687,15 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
                 <FormField
                   control={control}
-                  name="email"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email (obligatoire)</FormLabel>
+                      <FormLabel>Numéro de téléphone</FormLabel>
                       <FormControl>
                         <Input
-                          type="email"
-                          inputMode="email"
-                          placeholder="vous@entreprise.fr"
+                          type="tel"
+                          autoComplete="tel"
+                          placeholder="+33 6 12 34 56 78"
                           {...field}
                         />
                       </FormControl>

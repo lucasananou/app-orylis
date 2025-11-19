@@ -203,8 +203,10 @@ export async function POST(req: NextRequest) {
     if (typeof parsedPayload.fullName === "string" && parsedPayload.fullName.trim()) {
       profileUpdate.fullName = parsedPayload.fullName.trim();
     }
-    if (typeof parsedPayload.company === "string" && parsedPayload.company.trim()) {
-      profileUpdate.company = parsedPayload.company.trim();
+    // Gérer à la fois "company" (client) et "companyName" (prospect)
+    const companyValue = (parsedPayload.company as string | undefined) ?? (parsedPayload.companyName as string | undefined);
+    if (typeof companyValue === "string" && companyValue.trim()) {
+      profileUpdate.company = companyValue.trim();
     }
     if (typeof parsedPayload.phone === "string" && parsedPayload.phone.trim()) {
       profileUpdate.phone = parsedPayload.phone.trim();

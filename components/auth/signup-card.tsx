@@ -99,7 +99,7 @@ export function SignupCard() {
         }
 
         // Étape 3 : Redirection
-        setLoadingStep("Succès ! Redirection vers le configurateur...");
+        setLoadingStep("En route vers votre futur site...");
         await new Promise((resolve) => setTimeout(resolve, 600));
 
         // TODO: Événement "signup_submit_success" pour tracking
