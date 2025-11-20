@@ -1,8 +1,8 @@
 ﻿import { redirect } from "next/navigation";
-import { eq, asc, or, sql } from "drizzle-orm";
+import { eq, asc, or, sql, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { profiles, authUsers, projects } from "@/lib/schema";
+import { profiles, authUsers, projects, onboardingResponses } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { ClientsList } from "@/components/admin/clients-list";
@@ -32,6 +32,38 @@ async function loadClientsData() {
     .innerJoin(authUsers, eq(profiles.id, authUsers.id))
     .where(or(eq(profiles.role, "prospect"), eq(profiles.role, "client")))
     .orderBy(asc(profiles.fullName));
+
+  // Récupérer les numéros de téléphone depuis les réponses d'onboarding pour les clients qui n'en ont pas dans leur profil
+  const clientIdsWithoutPhone = clients.filter((c) => !c.phone).map((c) => c.id);
+  
+  let phoneFromOnboarding = new Map<string, string | null>();
+  
+  if (clientIdsWithoutPhone.length > 0) {
+    const onboardingData = await db
+      .select({
+        ownerId: projects.ownerId,
+        payload: onboardingResponses.payload
+      })
+      .from(onboardingResponses)
+      .innerJoin(projects, eq(onboardingResponses.projectId, projects.id))
+      .where(inArray(projects.ownerId, clientIdsWithoutPhone));
+
+    onboardingData.forEach((row) => {
+      if (!phoneFromOnboarding.has(row.ownerId) && row.payload && typeof row.payload === "object") {
+        const payload = row.payload as Record<string, unknown>;
+        const phone = (payload.phone as string | undefined) ?? null;
+        if (phone) {
+          phoneFromOnboarding.set(row.ownerId, phone);
+        }
+      }
+    });
+  }
+
+  // Combiner les numéros : priorité au profil, sinon depuis l'onboarding
+  const clientsWithPhone = clients.map((client) => ({
+    ...client,
+    phone: client.phone ?? phoneFromOnboarding.get(client.id) ?? null
+  }));
 
   // Récupérer tous les projets et les compter en parallèle (optimisation : 2 requêtes au lieu de N)
   const [allProjects, projectCounts] = await Promise.all([
@@ -71,7 +103,7 @@ async function loadClientsData() {
   });
 
   // Combiner les données
-  const clientsWithProjects = clients
+  const clientsWithProjects = clientsWithPhone
     .filter((client) => client.role !== "staff")
     .map((client) => {
       const firstProject = projectsByOwner.get(client.id);
