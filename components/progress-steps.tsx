@@ -27,29 +27,29 @@ export function ProgressSteps({
   const currentStepNumber = steps.findIndex((s) => s.status === "current") + 1;
 
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* En-tête avec progression globale */}
+    <div className={cn("space-y-4 md:space-y-6", className)}>
+      {/* En-tête avec progression globale - Séparé en haut */}
       {(showPercentage || estimatedTimeRemaining !== undefined) && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-foreground">
+        <div className="space-y-2 md:space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm md:text-base font-semibold text-foreground">
                 Étape {currentStepNumber} sur {totalSteps}
               </span>
               {showPercentage && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm md:text-base text-muted-foreground">
                   • {percentage}% complété
                 </span>
               )}
             </div>
             {estimatedTimeRemaining !== undefined && estimatedTimeRemaining > 0 && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs md:text-sm text-muted-foreground">
                 ⏱️ ~{estimatedTimeRemaining} min restantes
               </span>
             )}
           </div>
           {showPercentage && (
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-2 md:h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full bg-accent transition-all duration-500 ease-out"
                 style={{ width: `${percentage}%` }}
@@ -105,19 +105,21 @@ export function ProgressSteps({
         })}
       </ol>
 
-      {/* Version desktop améliorée - Grille 3x2 qui reste dans le conteneur */}
+      {/* Version desktop améliorée - Grille 3x2 qui prend toute la largeur */}
       <div className="hidden md:block">
-        <div className="grid grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-3 gap-4 lg:gap-6 w-full">
           {steps.map((step, index) => {
             const isFirstRow = index < 3;
             const isLastInRow = (index + 1) % 3 === 0;
             const isFirstInRow = index % 3 === 0;
+            const isLastInFirstRow = index === 2; // Étape 3 (dernière de la première ligne)
+            const isFirstInSecondRow = index === 3; // Étape 4 (première de la deuxième ligne)
             
             return (
               <div
                 key={step.id}
                 className={cn(
-                  "relative rounded-xl border-2 p-4 lg:p-5 transition-all duration-300",
+                  "relative rounded-xl border-2 p-4 lg:p-6 xl:p-7 transition-all duration-300 w-full h-full",
                   step.status === "current" && "border-accent bg-accent/5 shadow-lg shadow-accent/20 scale-105 z-10",
                   step.status === "done" && "border-green-200 bg-green-50/50 hover:shadow-md",
                   step.status === "upcoming" && "border-border/50 bg-muted/20 opacity-60"
@@ -147,7 +149,7 @@ export function ProgressSteps({
                     )}
                   </div>
 
-                  {/* Ligne de connexion horizontale à droite (sauf dernière colonne) */}
+                  {/* Ligne de connexion horizontale à droite (sauf dernière colonne de chaque ligne) */}
                   {!isLastInRow && (
                     <div className={cn(
                       "absolute left-full w-4 lg:w-6 h-0.5",
@@ -155,12 +157,36 @@ export function ProgressSteps({
                     )} />
                   )}
 
-                  {/* Ligne de connexion verticale vers le bas (pour la première rangée) */}
-                  {isFirstRow && index < steps.length - 3 && (
-                    <div className={cn(
-                      "absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-4 lg:h-6 -mt-1",
-                      step.status === "done" ? "bg-green-500" : "bg-border"
-                    )} />
+                  {/* Connexion spéciale : Étape 3 → Étape 4 (diagonale) */}
+                  {isLastInFirstRow && (
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 w-full h-0.5 z-0">
+                      <div className={cn(
+                        "absolute right-0 w-4 lg:w-6 h-0.5",
+                        step.status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                      <div className={cn(
+                        "absolute right-4 lg:right-6 top-0 w-0.5 h-full",
+                        step.status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                      <div className={cn(
+                        "absolute right-4 lg:right-6 bottom-0 w-full h-0.5",
+                        step.status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                    </div>
+                  )}
+
+                  {/* Connexion depuis l'étape 4 (depuis le haut) */}
+                  {isFirstInSecondRow && (
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-full h-0.5 z-0">
+                      <div className={cn(
+                        "absolute left-0 w-4 lg:w-6 h-0.5",
+                        steps[index - 1].status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                      <div className={cn(
+                        "absolute left-4 lg:left-6 top-0 w-0.5 h-full",
+                        steps[index - 1].status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                    </div>
                   )}
                 </div>
 
