@@ -105,71 +105,98 @@ export function ProgressSteps({
         })}
       </ol>
 
-      {/* Version desktop améliorée avec cartes */}
-      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-        {steps.map((step, index) => {
-          return (
-            <div
-              key={step.id}
-              className={cn(
-                "relative rounded-xl border-2 p-4 lg:p-5 transition-all duration-200",
-                step.status === "current" && "border-accent bg-accent/5 shadow-md shadow-accent/10 scale-105",
-                step.status === "done" && "border-green-200 bg-green-50/50",
-                step.status === "upcoming" && "border-border/50 bg-muted/30 opacity-75"
-              )}
-            >
-              {/* Numéro de l'étape */}
-              <div className="flex items-start justify-between mb-3">
-                <div className={cn(
-                  "flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full border-2 font-semibold text-sm lg:text-base transition-all",
-                  step.status === "done" && "border-green-500 bg-green-500 text-white",
-                  step.status === "current" && "border-accent bg-accent text-white shadow-lg",
-                  step.status === "upcoming" && "border-muted-foreground/30 bg-muted text-muted-foreground"
-                )}>
-                  {step.status === "done" ? (
-                    <CheckCircle2 className="h-5 w-5 lg:h-6 lg:w-6" />
-                  ) : (
-                    index + 1
+      {/* Version desktop améliorée - Timeline horizontale */}
+      <div className="hidden md:block">
+        <div className="relative">
+          {/* Ligne de connexion horizontale */}
+          <div className="absolute top-8 left-0 right-0 h-0.5 bg-border hidden lg:block" />
+          
+          {/* Étapes en ligne horizontale */}
+          <div className="relative flex flex-wrap lg:flex-nowrap gap-4 lg:gap-6 justify-center lg:justify-between">
+            {steps.map((step, index) => {
+              const isLast = index === steps.length - 1;
+              return (
+                <div
+                  key={step.id}
+                  className={cn(
+                    "relative flex-1 min-w-[200px] max-w-[280px] lg:max-w-none lg:flex-initial lg:w-[calc(16.666%-1.25rem)]",
+                    "rounded-xl border-2 p-5 transition-all duration-300",
+                    step.status === "current" && "border-accent bg-accent/5 shadow-lg shadow-accent/20 scale-105 z-10",
+                    step.status === "done" && "border-green-200 bg-green-50/50 hover:shadow-md",
+                    step.status === "upcoming" && "border-border/50 bg-muted/20 opacity-60"
+                  )}
+                >
+                  {/* Numéro de l'étape avec ligne de connexion */}
+                  <div className="flex items-center justify-center mb-4 relative">
+                    {/* Ligne de connexion à gauche (sauf première étape) */}
+                    {index > 0 && (
+                      <div className={cn(
+                        "absolute right-full w-4 lg:w-6 h-0.5",
+                        steps[index - 1].status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                    )}
+                    
+                    {/* Cercle de l'étape */}
+                    <div className={cn(
+                      "relative flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full border-2 font-semibold text-base lg:text-lg transition-all z-10",
+                      step.status === "done" && "border-green-500 bg-green-500 text-white shadow-md",
+                      step.status === "current" && "border-accent bg-accent text-white shadow-lg ring-4 ring-accent/20",
+                      step.status === "upcoming" && "border-muted-foreground/30 bg-background text-muted-foreground"
+                    )}>
+                      {step.status === "done" ? (
+                        <CheckCircle2 className="h-6 w-6 lg:h-7 lg:w-7" />
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+
+                    {/* Ligne de connexion à droite (sauf dernière étape) */}
+                    {!isLast && (
+                      <div className={cn(
+                        "absolute left-full w-4 lg:w-6 h-0.5",
+                        step.status === "done" ? "bg-green-500" : "bg-border"
+                      )} />
+                    )}
+                  </div>
+
+                  {/* Contenu de l'étape */}
+                  <div className="space-y-2 text-center">
+                    {step.status === "current" && (
+                      <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-2">
+                        En cours
+                      </span>
+                    )}
+                    <h3 className={cn(
+                      "font-semibold text-base lg:text-lg mb-2",
+                      step.status === "current" && "text-foreground",
+                      step.status === "done" && "text-foreground",
+                      step.status === "upcoming" && "text-muted-foreground"
+                    )}>
+                      {step.label}
+                    </h3>
+                    {step.description && (
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                        {step.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Indicateur de progression pour l'étape courante */}
+                  {step.status === "current" && (
+                    <div className="mt-4 pt-3 border-t border-accent/20">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-accent w-1/3 animate-pulse" />
+                        </div>
+                        <span className="text-accent font-medium whitespace-nowrap">En cours...</span>
+                      </div>
+                    </div>
                   )}
                 </div>
-                {step.status === "current" && (
-                  <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded-full">
-                    En cours
-                  </span>
-                )}
-              </div>
-
-              {/* Titre et description */}
-              <div className="space-y-1.5">
-                <h3 className={cn(
-                  "font-semibold text-sm lg:text-base",
-                  step.status === "current" && "text-foreground",
-                  step.status === "done" && "text-foreground",
-                  step.status === "upcoming" && "text-muted-foreground"
-                )}>
-                  {step.label}
-                </h3>
-                {step.description && (
-                  <p className="text-xs lg:text-sm text-muted-foreground leading-relaxed">
-                    {step.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Indicateur de progression pour l'étape courante */}
-              {step.status === "current" && (
-                <div className="mt-4 pt-3 border-t border-accent/20">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-accent w-1/3 animate-pulse" />
-                    </div>
-                    <span className="text-accent font-medium">En cours...</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
