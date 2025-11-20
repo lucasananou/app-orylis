@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -8,9 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, CreditCard } from "lucide-react";
 import { GenerateQuoteButton } from "@/components/quote/generate-quote-button";
-import ChatWidget from "@/components/chat/ChatWidget";
 
-export const dynamic = "force-dynamic";
+// Lazy load ChatWidget (pas besoin de SSR)
+const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget").then(mod => ({ default: mod.default })), {
+  ssr: false
+});
+
+// Cache 30 secondes : la page demo change peu
+export const revalidate = 30;
 
 async function loadDemoData() {
   const session = await auth();

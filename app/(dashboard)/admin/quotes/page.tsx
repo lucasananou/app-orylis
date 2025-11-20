@@ -7,7 +7,8 @@ import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { QuotesList } from "@/components/admin/quotes-list";
 
-export const dynamic = "force-dynamic";
+// Cache 60 secondes : les devis ne changent pas très souvent
+export const revalidate = 60;
 
 async function loadQuotesData() {
   const session = await auth();
@@ -16,7 +17,7 @@ async function loadQuotesData() {
     redirect("/");
   }
 
-  // Récupérer tous les devis avec les informations du projet et du prospect
+  // Récupérer tous les devis avec les informations du projet et du prospect en une seule requête
   const quotesData = await db
     .select({
       id: quotes.id,
@@ -27,42 +28,31 @@ async function loadQuotesData() {
       status: quotes.status,
       signedAt: quotes.signedAt,
       createdAt: quotes.createdAt,
-      ownerId: projects.ownerId
+      ownerId: projects.ownerId,
+      prospectFullName: profiles.fullName,
+      prospectCompany: profiles.company,
+      prospectEmail: authUsers.email,
+      prospectName: authUsers.name
     })
     .from(quotes)
     .innerJoin(projects, eq(quotes.projectId, projects.id))
+    .leftJoin(profiles, eq(projects.ownerId, profiles.id))
+    .leftJoin(authUsers, eq(projects.ownerId, authUsers.id))
     .orderBy(desc(quotes.createdAt));
 
-  // Récupérer les informations des prospects pour chaque devis
-  const quotesWithProspectInfo = await Promise.all(
-    quotesData.map(async (quote) => {
-      const [profile, authUser] = await Promise.all([
-        db.query.profiles.findFirst({
-          where: eq(profiles.id, quote.ownerId),
-          columns: {
-            fullName: true,
-            company: true
-          }
-        }),
-        db.query.authUsers.findFirst({
-          where: eq(authUsers.id, quote.ownerId),
-          columns: {
-            email: true,
-            name: true
-          }
-        })
-      ]);
-
-      return {
-        ...quote,
-        prospectName: profile?.fullName ?? authUser?.name ?? "—",
-        prospectEmail: authUser?.email ?? "—",
-        company: profile?.company ?? null,
-        createdAt: quote.createdAt?.toISOString() ?? null,
-        signedAt: quote.signedAt?.toISOString() ?? null
-      };
-    })
-  );
+  const quotesWithProspectInfo = quotesData.map((quote) => ({
+    id: quote.id,
+    projectId: quote.projectId,
+    projectName: quote.projectName,
+    pdfUrl: quote.pdfUrl,
+    signedPdfUrl: quote.signedPdfUrl,
+    status: quote.status,
+    signedAt: quote.signedAt?.toISOString() ?? null,
+    createdAt: quote.createdAt?.toISOString() ?? null,
+    prospectName: quote.prospectFullName ?? quote.prospectName ?? "—",
+    prospectEmail: quote.prospectEmail ?? "—",
+    company: quote.prospectCompany ?? null
+  }));
 
   return { quotes: quotesWithProspectInfo };
 }

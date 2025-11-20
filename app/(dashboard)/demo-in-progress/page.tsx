@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -7,9 +8,14 @@ import { isProspect } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import Script from "next/script";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ChatWidget from "@/components/chat/ChatWidget";
 
-export const dynamic = "force-dynamic";
+// Lazy load ChatWidget (pas besoin de SSR)
+const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget").then(mod => ({ default: mod.default })), {
+  ssr: false
+});
+
+// Cache 30 secondes : le statut de la démo change peu
+export const revalidate = 30;
 
 async function loadDemoStatus() {
   const session = await auth();

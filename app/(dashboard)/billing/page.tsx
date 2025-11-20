@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/page-header";
 import { BillingLinksManager } from "@/components/billing/billing-links-manager";
 
-export const dynamic = "force-dynamic";
+// Cache 30 secondes : les liens de facturation changent peu
+export const revalidate = 30;
 
 async function loadBillingData() {
   const session = await auth();

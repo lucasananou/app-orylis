@@ -11,7 +11,8 @@ import { OnboardingForm } from "@/components/form/onboarding-form";
 import { ProspectOnboardingForm } from "@/components/form/prospect-onboarding-form";
 import { isStaff, isProspect } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+// Cache 10 secondes : l'onboarding peut être modifié fréquemment
+export const revalidate = 10;
 
 async function loadOnboardingData() {
   const session = await auth();

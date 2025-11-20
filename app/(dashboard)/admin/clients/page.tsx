@@ -1,5 +1,5 @@
 ﻿import { redirect } from "next/navigation";
-import { eq, asc, or } from "drizzle-orm";
+import { eq, asc, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { profiles, authUsers, projects } from "@/lib/schema";
@@ -7,7 +7,8 @@ import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { ClientsList } from "@/components/admin/clients-list";
 
-export const dynamic = "force-dynamic";
+// Cache 60 secondes : la liste des clients change peu
+export const revalidate = 60;
 
 async function loadClientsData() {
   const session = await auth();
@@ -16,6 +17,7 @@ async function loadClientsData() {
     redirect("/");
   }
 
+  // Récupérer tous les clients
   const clients = await db
     .select({
       id: profiles.id,
@@ -31,35 +33,65 @@ async function loadClientsData() {
     .where(or(eq(profiles.role, "prospect"), eq(profiles.role, "client")))
     .orderBy(asc(profiles.fullName));
 
-  // Compter les projets par client et r├®cup├®rer le premier projet pour les prospects
-  const clientsWithProjects = await Promise.all(
-    clients
-      .filter((client) => client.role !== "staff") // Filtrer les staff (ne devrait pas arriver mais s├®curit├®)
-      .map(async (client) => {
-        const clientProjects = await db
-          .select({
-            id: projects.id,
-            name: projects.name,
-            demoUrl: projects.demoUrl,
-            status: projects.status
-          })
-          .from(projects)
-          .where(eq(projects.ownerId, client.id))
-          .limit(1);
-
-        return {
-          ...client,
-          projectCount: await db
-            .select({ count: projects.id })
-            .from(projects)
-            .where(eq(projects.ownerId, client.id))
-            .then((rows) => rows.length),
-          firstProject: clientProjects[0] ?? null,
-          createdAt: client.createdAt?.toISOString() ?? null,
-          role: client.role as "prospect" | "client" // Type assertion car on a filtr├® les staff
-        };
+  // Récupérer tous les projets et les compter en parallèle (optimisation : 2 requêtes au lieu de N)
+  const [allProjects, projectCounts] = await Promise.all([
+    db
+      .select({
+        ownerId: projects.ownerId,
+        id: projects.id,
+        name: projects.name,
+        demoUrl: projects.demoUrl,
+        status: projects.status,
+        createdAt: projects.createdAt
       })
-  );
+      .from(projects)
+      .orderBy(asc(projects.createdAt)),
+    db
+      .select({
+        ownerId: projects.ownerId,
+        count: sql<number>`COUNT(*)::int`.as("count")
+      })
+      .from(projects)
+      .groupBy(projects.ownerId)
+  ]);
+
+  // Créer des maps pour accès rapide O(1)
+  const projectsByOwner = new Map<string, typeof allProjects[0]>();
+  const countsByOwner = new Map<string, number>();
+
+  // Garder seulement le premier projet par owner (trié par createdAt ASC)
+  allProjects.forEach((project) => {
+    if (!projectsByOwner.has(project.ownerId)) {
+      projectsByOwner.set(project.ownerId, project);
+    }
+  });
+
+  projectCounts.forEach((count) => {
+    countsByOwner.set(count.ownerId, Number(count.count));
+  });
+
+  // Combiner les données
+  const clientsWithProjects = clients
+    .filter((client) => client.role !== "staff")
+    .map((client) => {
+      const firstProject = projectsByOwner.get(client.id);
+      const projectCount = countsByOwner.get(client.id) ?? 0;
+
+      return {
+        ...client,
+        projectCount,
+        firstProject: firstProject
+          ? {
+              id: firstProject.id,
+              name: firstProject.name,
+              demoUrl: firstProject.demoUrl,
+              status: firstProject.status
+            }
+          : null,
+        createdAt: client.createdAt?.toISOString() ?? null,
+        role: client.role as "prospect" | "client"
+      };
+    });
 
   return { clients: clientsWithProjects };
 }

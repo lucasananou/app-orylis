@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -8,11 +9,29 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuoteSignForm } from "@/components/quote/quote-sign-form";
-import { QuoteViewer } from "@/components/quote/quote-viewer";
 import { CheckCircle2, Download } from "lucide-react";
-import ChatWidget from "@/components/chat/ChatWidget";
 
-export const dynamic = "force-dynamic";
+// Lazy load des composants lourds
+const QuoteViewer = dynamic(() => import("@/components/quote/quote-viewer").then(mod => ({ default: mod.QuoteViewer })), {
+  loading: () => (
+    <Card className="border border-border/70 bg-white shadow-lg w-full">
+      <CardContent className="p-8">
+        <div className="space-y-4">
+          <div className="h-8 w-64 bg-muted animate-pulse rounded" />
+          <div className="h-96 bg-muted animate-pulse rounded" />
+        </div>
+      </CardContent>
+    </Card>
+  ),
+  ssr: true
+});
+
+const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget").then(mod => ({ default: mod.default })), {
+  ssr: false // Chat widget n'a pas besoin de SSR
+});
+
+// Cache 10 secondes : les devis peuvent être signés rapidement
+export const revalidate = 10;
 
 type Ctx = { params: Promise<{ id: string }> };
 

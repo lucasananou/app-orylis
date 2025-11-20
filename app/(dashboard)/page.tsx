@@ -41,9 +41,9 @@ import { ProspectStaffMessages } from "@/components/dashboard/prospect-staff-mes
 import { ProspectFeaturesTeaser } from "@/components/dashboard/prospect-features-teaser";
 import { ProspectCTASticky } from "@/components/dashboard/prospect-cta-sticky";
 
-// Force le rechargement à chaque requête pour éviter les problèmes de cache
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Cache intelligent : revalider toutes les 30 secondes
+// Les données changent peu souvent, pas besoin de force-dynamic
+export const revalidate = 30;
 
 const ticketStatusLabels: Record<"open" | "in_progress" | "done", string> = {
   open: "Ouvert",
