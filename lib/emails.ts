@@ -149,82 +149,49 @@ function replaceTemplateVariables(html: string, variables: Record<string, string
 }
 
 /**
- * Template de base pour tous les emails
+ * Template de base pour tous les emails (design moderne compatible email)
  */
-function getEmailTemplate(content: string, ctaText?: string, ctaUrl?: string): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f7f9fb;
-    }
-    .container {
-      background-color: #ffffff;
-      border-radius: 12px;
-      padding: 32px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    .logo {
-      font-size: 24px;
-      font-weight: 600;
-      color: #0D69FF;
-      margin-bottom: 8px;
-    }
-    .content {
-      color: #4a5568;
-      margin-bottom: 24px;
-    }
-    .button {
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #0D69FF;
-      color: #ffffff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 500;
-      margin: 16px 0;
-    }
-    .footer {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid #e2e8f0;
-      font-size: 12px;
-      color: #718096;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">Orylis Hub</div>
-    </div>
-    <div class="content">
-      ${content}
-    </div>
-    ${ctaUrl && ctaText ? `<div style="text-align: center;"><a href="${ctaUrl}" class="button">${ctaText}</a></div>` : ""}
-    <div class="footer">
-      <p>Cet email a été envoyé depuis votre espace client Orylis.</p>
-      <p>Si vous avez des questions, contactez-nous à <a href="mailto:hello@orylis.fr">hello@orylis.fr</a></p>
-    </div>
-  </div>
-</body>
-</html>
-  `.trim();
+function getEmailTemplate(content: string, ctaText?: string, ctaUrl?: string, footerText?: string): string {
+  const ctaButton = ctaUrl && ctaText ? `
+                <p style="margin:0 0 16px 0;">
+                  <a href="${ctaUrl}" 
+                     style="display:inline-block;background:#1b5bff;color:#ffffff;text-decoration:none;
+                            padding:12px 18px;font-weight:bold;font-size:14px;border-radius:6px;">
+                    ${ctaText}
+                  </a>
+                </p>
+                <p style="margin:0 0 18px 0;font-size:12px;line-height:18px;color:#6b7280;">
+                  Si le bouton ne fonctionne pas, copiez/collez ce lien dans votre navigateur&nbsp;:<br>
+                  <a href="${ctaUrl}" style="color:#2563eb;text-decoration:underline;">${ctaUrl}</a>
+                </p>
+  ` : "";
+
+  return `<!doctype html>
+<html lang="fr">
+  <body style="margin:0;padding:0;background:#f5f7fb;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fb;">
+      <tr>
+        <td align="center" style="padding:24px 12px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff;border:1px solid #eaecef;">
+            <tr>
+              <td style="padding:24px 20px;font-family:Arial,Helvetica,sans-serif;">
+                ${content}
+                ${ctaButton}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 20px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #eaecef;">
+                <p style="margin:0;font-size:11px;line-height:16px;color:#9aa3af;">
+                  ${footerText ?? "Cet e-mail fait suite à votre demande et à la création de votre espace client Orylis."}
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`.trim();
 }
 
 /**
@@ -1107,23 +1074,40 @@ export async function sendOnboardingReminderEmail(
   const delayText = delay === "24h" ? "24 heures" : "48 heures";
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Rappel : Complétez votre onboarding</h2>
-    <p>Bonjour ${userName},</p>
-    <p>Il y a ${delayText}, vous avez commencé l'onboarding pour votre projet <strong>${projectName}</strong>.</p>
-    <p>Pour recevoir votre démo personnalisée rapidement, nous vous invitons à compléter les informations manquantes.</p>
-    <p><strong>Pourquoi compléter maintenant ?</strong></p>
-    <ul>
-      <li>Vous recevrez votre démo personnalisée sous 24h</li>
-      <li>Vous pourrez générer votre devis dès que l'onboarding sera terminé</li>
-      <li>Votre projet pourra démarrer plus rapidement</li>
-    </ul>
-    <p>Cela ne prend que quelques minutes !</p>
+                <h1 style="margin:0 0 8px 0;font-size:22px;line-height:28px;color:#111827;">
+                  Rappel : Complétez votre onboarding
+                </h1>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  Bonjour ${userName},<br><br>
+                  Il y a ${delayText}, vous avez commencé l'onboarding pour votre projet <strong>${projectName}</strong>.<br>
+                  Pour recevoir votre démo personnalisée rapidement, nous vous invitons à compléter les informations manquantes.
+                </p>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  <strong>Pourquoi compléter maintenant ?</strong>
+                </p>
+                <ul style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  <li>Vous recevrez votre démo personnalisée sous 24h</li>
+                  <li>Vous pourrez générer votre devis dès que l'onboarding sera terminé</li>
+                  <li>Votre projet pourra démarrer plus rapidement</li>
+                </ul>
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  Cela ne prend que quelques minutes !
+                </p>
+                <p style="margin:18px 0 0 0;font-size:14px;line-height:22px;color:#111827;">
+                  À bientôt,<br>
+                  <strong>Lucas – Orylis</strong>
+                </p>
   `;
 
   return sendEmail({
     to: user.email,
     subject: `Rappel : Complétez votre onboarding pour ${projectName}`,
-    html: getEmailTemplate(content, "Continuer l'onboarding", `${appUrl}/onboarding`)
+    html: getEmailTemplate(
+      content,
+      "Continuer l'onboarding",
+      `${appUrl}/onboarding`,
+      "Cet e-mail fait suite à votre demande de démo et à la création de votre espace client."
+    )
   });
 }
 
@@ -1143,23 +1127,40 @@ export async function sendQuoteReadyEmail(
   const userName = user.name ?? "Bonjour";
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Votre devis est prêt ! 🎉</h2>
-    <p>Bonjour ${userName},</p>
-    <p>Votre devis personnalisé pour le projet <strong>${projectName}</strong> est maintenant disponible.</p>
-    <p>Vous pouvez le consulter et le signer directement depuis votre espace client.</p>
-    <p><strong>Prochaines étapes après signature :</strong></p>
-    <ul>
-      <li>Lancement immédiat de la préparation de votre site</li>
-      <li>Reception d'un planning détaillé dans les 24h</li>
-      <li>Accès au système de tickets pour communiquer avec l'équipe</li>
-    </ul>
-    <p>N'hésitez pas à nous contacter si vous avez des questions !</p>
+                <h1 style="margin:0 0 8px 0;font-size:22px;line-height:28px;color:#111827;">
+                  Votre devis est prêt ! 🎉
+                </h1>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  Bonjour ${userName},<br><br>
+                  Votre devis personnalisé pour le projet <strong>${projectName}</strong> est maintenant disponible.<br>
+                  Vous pouvez le consulter et le signer directement depuis votre espace client.
+                </p>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  <strong>Prochaines étapes après signature :</strong>
+                </p>
+                <ul style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  <li>Lancement immédiat de la préparation de votre site</li>
+                  <li>Reception d'un planning détaillé dans les 24h</li>
+                  <li>Accès au système de tickets pour communiquer avec l'équipe</li>
+                </ul>
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  N'hésitez pas à nous contacter si vous avez des questions !
+                </p>
+                <p style="margin:18px 0 0 0;font-size:14px;line-height:22px;color:#111827;">
+                  À bientôt,<br>
+                  <strong>Lucas – Orylis</strong>
+                </p>
   `;
 
   return sendEmail({
     to: user.email,
     subject: `Votre devis ${projectName} est prêt à être signé`,
-    html: getEmailTemplate(content, "Voir mon devis", `${appUrl}/quote/${quoteId}`)
+    html: getEmailTemplate(
+      content,
+      "Voir mon devis",
+      `${appUrl}/quote/${quoteId}`,
+      "Cet e-mail fait suite à votre demande de démo et à la création de votre espace client."
+    )
   });
 }
 
@@ -1179,19 +1180,36 @@ export async function sendQuoteReminderEmail(
   const userName = user.name ?? "Bonjour";
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Rappel : Votre devis vous attend</h2>
-    <p>Bonjour ${userName},</p>
-    <p>Il y a 3 jours, nous vous avons envoyé un devis personnalisé pour votre projet <strong>${projectName}</strong>.</p>
-    <p>Ce devis est toujours valable et vous pouvez le signer à tout moment.</p>
-    <p><strong>Des questions ?</strong></p>
-    <p>N'hésitez pas à nous contacter si vous souhaitez discuter du devis ou apporter des modifications. Nous sommes là pour vous accompagner !</p>
-    <p>Vous pouvez également prendre rendez-vous pour échanger directement avec nous.</p>
+                <h1 style="margin:0 0 8px 0;font-size:22px;line-height:28px;color:#111827;">
+                  Rappel : Votre devis vous attend
+                </h1>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  Bonjour ${userName},<br><br>
+                  Il y a 3 jours, nous vous avons envoyé un devis personnalisé pour votre projet <strong>${projectName}</strong>.<br>
+                  Ce devis est toujours valable et vous pouvez le signer à tout moment.
+                </p>
+                <p style="margin:0 0 8px 0;font-size:14px;line-height:22px;color:#111827;">
+                  <strong>Des questions ?</strong>
+                </p>
+                <p style="margin:0;font-size:14px;line-height:22px;color:#111827;">
+                  N'hésitez pas à nous contacter si vous souhaitez discuter du devis ou apporter des modifications. Nous sommes là pour vous accompagner !<br>
+                  Vous pouvez également prendre rendez-vous pour échanger directement avec nous.
+                </p>
+                <p style="margin:18px 0 0 0;font-size:14px;line-height:22px;color:#111827;">
+                  À bientôt,<br>
+                  <strong>Lucas – Orylis</strong>
+                </p>
   `;
 
   return sendEmail({
     to: user.email,
     subject: `Rappel : Votre devis ${projectName} vous attend`,
-    html: getEmailTemplate(content, "Voir mon devis", `${appUrl}/quote/${quoteId}`)
+    html: getEmailTemplate(
+      content,
+      "Voir mon devis",
+      `${appUrl}/quote/${quoteId}`,
+      "Cet e-mail fait suite à votre demande de démo et à la création de votre espace client."
+    )
   });
 }
 
