@@ -122,7 +122,14 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.2fr_1fr] w-full min-w-0">
             {/* Colonne de gauche : Aperçu du devis */}
             <div className="w-full min-w-0">
-              <QuoteViewer pdfUrl={quote.pdfUrl} createdAt={quote.createdAt} />
+              <QuoteViewer 
+                pdfUrl={quote.pdfUrl} 
+                createdAt={quote.createdAt}
+                summary={{
+                  deliveryTime: "2-4 semaines",
+                  services: ["Site web personnalisé", "Design sur-mesure", "Optimisation SEO", "Support 3 mois"]
+                }}
+              />
             </div>
 
             {/* Colonne de droite : Signature + Bloc "après validation" */}

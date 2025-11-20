@@ -86,21 +86,41 @@ export const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
 );
 FormItem.displayName = "FormItem";
 
-export const FormLabel = React.forwardRef<
-  HTMLLabelElement,
-  React.LabelHTMLAttributes<HTMLLabelElement>
->(({ className, ...props }, ref) => {
-  const { formItemId, isInvalid } = useFormField();
+export interface FormLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  optional?: boolean;
+  required?: boolean;
+}
 
-  return (
-    <label
-      ref={ref}
-      className={cn("text-sm font-medium text-foreground", isInvalid && "text-destructive", className)}
-      htmlFor={formItemId}
-      {...props}
-    />
-  );
-});
+export const FormLabel = React.forwardRef<HTMLLabelElement, FormLabelProps>(
+  ({ className, optional, required, children, ...props }, ref) => {
+    const { formItemId, isInvalid } = useFormField();
+
+    return (
+      <label
+        ref={ref}
+        className={cn(
+          "text-sm font-medium text-foreground flex items-center gap-2",
+          isInvalid && "text-destructive",
+          className
+        )}
+        htmlFor={formItemId}
+        {...props}
+      >
+        {children}
+        {required && (
+          <span className="text-destructive text-xs font-normal" aria-label="Champ obligatoire">
+            *
+          </span>
+        )}
+        {optional && (
+          <span className="text-muted-foreground text-xs font-normal" aria-label="Champ optionnel">
+            (optionnel)
+          </span>
+        )}
+      </label>
+    );
+  }
+);
 FormLabel.displayName = "FormLabel";
 
 export const FormControl = React.forwardRef<

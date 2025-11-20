@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, FileText, CheckCircle2, Clock, XCircle } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 
 interface Quote {
   id: string;
@@ -40,7 +40,7 @@ const statusConfig = {
   cancelled: {
     label: "Annulé",
     icon: XCircle,
-    variant: "destructive" as const,
+    variant: "outline" as const,
     color: "text-red-600"
   }
 };
@@ -70,7 +70,7 @@ export function QuotesList({ quotes }: QuotesListProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <CardTitle className="text-lg">{quote.projectName}</CardTitle>
-                    <Badge variant={status.variant} className="shrink-0">
+                    <Badge variant={status.variant} className={cn("shrink-0", status.color)}>
                       <StatusIcon className="h-3 w-3 mr-1" />
                       {status.label}
                     </Badge>

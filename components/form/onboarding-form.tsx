@@ -683,7 +683,12 @@ const customPagesArray = useFieldArray({
           </div>
         </CardHeader>
         <CardContent>
-          <ProgressSteps steps={stepsProgress} className="grid gap-4 md:grid-cols-3" />
+          <ProgressSteps 
+            steps={stepsProgress} 
+            className="grid gap-4 md:grid-cols-3" 
+            showPercentage={true}
+            estimatedTimeRemaining={Math.max(1, Math.round((stepDefinitions.length - currentStepIndex) * 1.5))}
+          />
         </CardContent>
       </Card>
 
@@ -768,7 +773,7 @@ const customPagesArray = useFieldArray({
                   name="website"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Site actuel (optionnel)</FormLabel>
+                      <FormLabel optional>Site actuel</FormLabel>
                       <FormControl>
                         <Input placeholder="https://votre-site.fr" disabled={isLocked} {...field} />
                       </FormControl>
@@ -836,7 +841,7 @@ const customPagesArray = useFieldArray({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Précisions (optionnel)</FormLabel>
+                      <FormLabel optional>Précisions</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Détaillez votre vision, vos KPIs, vos hypothèses..."
@@ -956,7 +961,7 @@ const customPagesArray = useFieldArray({
                           name={`customPages.${index}.description`}
                           render={({ field: descriptionField }) => (
                             <FormItem>
-                              <FormLabel>Description (optionnelle)</FormLabel>
+                              <FormLabel optional>Description</FormLabel>
                               <FormControl>
                                 <Textarea
                                   placeholder="Notes sur le contenu, les sections, les CTA attendus…"
@@ -1017,7 +1022,7 @@ const customPagesArray = useFieldArray({
                   name="contentsNote"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes sur le contenu (optionnel)</FormLabel>
+                      <FormLabel optional>Notes sur le contenu</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Contenus disponibles, points de vigilance, personnes impliquées..."
@@ -1094,7 +1099,7 @@ const customPagesArray = useFieldArray({
                 </div>
 
                 <div className="space-y-3">
-                  <FormLabel>Concurrents (optionnel)</FormLabel>
+                  <FormLabel optional>Concurrents</FormLabel>
                   <div className="space-y-3">
                     {competitorFields.map((field, index) => (
                       <FormField
@@ -1201,7 +1206,7 @@ const customPagesArray = useFieldArray({
                   name="hostingNotes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes d’hébergement & contraintes (optionnel)</FormLabel>
+                      <FormLabel optional>Notes d'hébergement & contraintes</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Stack actuelle, accès serveurs, préférences techniques..."

@@ -381,6 +381,8 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
 
         draftSignatureRef.current = currentSignature;
         setLastSavedAt(new Date());
+        // Notification silencieuse pour la sauvegarde automatique
+        // (pas de toast pour éviter d'être intrusif, mais on met à jour l'état visuel)
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Erreur lors de l'autosauvegarde.";
@@ -631,7 +633,12 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <ProgressSteps steps={stepsProgress} className="grid gap-1.5 sm:gap-2 md:grid-cols-4" />
+          <ProgressSteps 
+            steps={stepsProgress} 
+            className="grid gap-1.5 sm:gap-2 md:grid-cols-4" 
+            showPercentage={true}
+            estimatedTimeRemaining={Math.max(1, Math.round((stepDefinitions.length - currentStepIndex) * 0.75))}
+          />
           <Progress value={currentProgress} className="mt-2 sm:mt-3" />
         </CardContent>
       </Card>
@@ -656,7 +663,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   name="companyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom de votre entreprise (optionnel)</FormLabel>
+                      <FormLabel optional>Nom de votre entreprise</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Si vous n'en avez pas encore, laissez vide"
@@ -673,7 +680,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   name="activity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Votre activité principale</FormLabel>
+                      <FormLabel required>Votre activité principale</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Ex : traiteur, coach, artisan, immobilier…"
@@ -690,7 +697,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Numéro de téléphone</FormLabel>
+                      <FormLabel required>Numéro de téléphone</FormLabel>
                       <FormControl>
                         <Input
                           type="tel"
@@ -774,7 +781,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4">
                 <div className="space-y-4">
-                  <FormLabel>3 sites que vous aimez (optionnel)</FormLabel>
+                  <FormLabel optional>3 sites que vous aimez</FormLabel>
                   <p className="text-xs sm:text-sm text-muted-foreground break-words">
                     Partagez des liens vers des sites, Instagram, Facebook ou n&apos;importe quel lien qui
                     vous inspire.
@@ -856,7 +863,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   name="primaryColor"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Couleur principale souhaitée (optionnel)</FormLabel>
+                      <FormLabel optional>Couleur principale souhaitée</FormLabel>
                       <div className="flex items-center gap-2 sm:gap-3">
                         <FormControl>
                           <Input
@@ -887,7 +894,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   name="logoUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Logo (optionnel)</FormLabel>
+                      <FormLabel optional>Logo</FormLabel>
                       <div className="space-y-3">
                         {field.value && (
                           <div className="relative inline-block">
@@ -1085,7 +1092,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
                   name="importantInfo"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Informations importantes (optionnel)</FormLabel>
+                      <FormLabel optional>Informations importantes</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder='Ex : "Je veux un site simple", "J&apos;ai déjà un site", "Je veux un système de réservation"'
