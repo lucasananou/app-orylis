@@ -16,6 +16,7 @@ export async function checkAndSendOnboardingReminders() {
   // Onboarding incomplets depuis plus de 24h avec progression < 50%
   const projects24h = await db
     .select({
+      id: projects.id,
       projectId: projects.id,
       projectName: projects.name,
       ownerId: projects.ownerId,
@@ -34,6 +35,7 @@ export async function checkAndSendOnboardingReminders() {
   // Onboarding incomplets depuis plus de 48h avec progression < 100%
   const projects48h = await db
     .select({
+      id: projects.id,
       projectId: projects.id,
       projectName: projects.name,
       ownerId: projects.ownerId,
