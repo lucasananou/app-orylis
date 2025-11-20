@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ProjectOption {
   id: string;
@@ -38,7 +39,9 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const dropZoneRef = React.useRef<HTMLDivElement>(null);
 
   const handleOpen = () => {
     if (disabled) {
@@ -48,8 +51,7 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
     setOpen(true);
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFile = async (file: File) => {
     if (!file) return;
 
     if (!projectId) {
@@ -58,7 +60,7 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
     }
 
     if (!Object.prototype.hasOwnProperty.call(ACCEPTED_TYPES, file.type)) {
-      toast.error("Ce format de fichier n’est pas supporté.");
+      toast.error("Ce format de fichier n'est pas supporté.");
       return;
     }
 
@@ -81,20 +83,50 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error ?? "Impossible d’uploader le fichier.");
+        throw new Error(payload.error ?? "Impossible d'uploader le fichier.");
       }
 
       toast.success("📁 Fichier ajouté avec succès.");
       setOpen(false);
       router.refresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de l’upload.";
+      const message = error instanceof Error ? error.message : "Erreur lors de l'upload.";
       toast.error(message);
     } finally {
       setIsUploading(false);
       if (inputRef.current) {
         inputRef.current.value = "";
       }
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await handleFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await handleFile(file);
     }
   };
 
@@ -114,7 +146,18 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="rounded-2xl border-2 border-dashed border-border/60 bg-gradient-to-br from-muted/60 to-muted/40 p-8 text-center transition-colors hover:border-accent/40 hover:bg-muted/70">
+          <div
+            ref={dropZoneRef}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={cn(
+              "rounded-2xl border-2 border-dashed p-8 text-center transition-colors",
+              isDragging
+                ? "border-accent bg-accent/10"
+                : "border-border/60 bg-gradient-to-br from-muted/60 to-muted/40 hover:border-accent/40 hover:bg-muted/70"
+            )}
+          >
             <p className="text-sm text-muted-foreground">
               Projet sélectionné :{" "}
               <span className="font-medium text-foreground">
@@ -122,7 +165,9 @@ export function FileUploadDialog({ projectId, projects, disabled }: FileUploadDi
               </span>
             </p>
             <p className="mt-2 text-xs text-muted-foreground/80">
-              Cliquez sur le bouton ci-dessous pour choisir un fichier.
+              {isDragging
+                ? "Lâchez le fichier ici"
+                : "Glissez-déposez un fichier ou cliquez sur le bouton ci-dessous"}
             </p>
             <input
               ref={inputRef}

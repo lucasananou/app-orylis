@@ -591,7 +591,7 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
   }));
 
   return (
-    <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
+    <div className="w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8 space-y-3 sm:space-y-4 min-h-screen sm:min-h-0">
       {/* Titre optimisé pour la conversion */}
       <div className="space-y-1.5 sm:space-y-2">
         <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl break-words">

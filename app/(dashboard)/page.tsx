@@ -12,6 +12,7 @@ import {
   projects,
   profiles,
   projectMessages,
+  quotes,
   tickets
 } from "@/lib/schema";
 import { summarizeOnboardingPayload } from "@/lib/onboarding-summary";
@@ -40,6 +41,9 @@ import { ProspectTimeline } from "@/components/dashboard/prospect-timeline";
 import { ProspectStaffMessages } from "@/components/dashboard/prospect-staff-messages";
 import { ProspectFeaturesTeaser } from "@/components/dashboard/prospect-features-teaser";
 import { ProspectCTASticky } from "@/components/dashboard/prospect-cta-sticky";
+import { ProspectCTAWidget } from "@/components/dashboard/prospect-cta-widget";
+import { ClientTodoWidget } from "@/components/dashboard/client-todo-widget";
+import { ProjectTimeline } from "@/components/dashboard/project-timeline";
 
 // Cache intelligent : revalider toutes les 30 secondes
 // Les données changent peu souvent, pas besoin de force-dynamic
@@ -224,8 +228,8 @@ async function loadDashboardData() {
       createdAt: row.createdAt.toISOString()
     }));
 
-    // Compter les fichiers et tickets pour le teaser
-    const [filesCountResult, ticketsCountResult] = await Promise.all([
+    // Compter les fichiers et tickets pour le teaser, et vérifier si un devis existe
+    const [filesCountResult, ticketsCountResult, quoteResult] = await Promise.all([
       db
         .select({ value: sql<number>`count(*)` })
         .from(files)
@@ -235,11 +239,16 @@ async function loadDashboardData() {
         .select({ value: sql<number>`count(*)` })
         .from(tickets)
         .where(eq(tickets.projectId, mainProject.id))
-        .then((rows) => rows.at(0))
+        .then((rows) => rows.at(0)),
+      db.query.quotes.findFirst({
+        where: eq(quotes.projectId, mainProject.id),
+        columns: { id: true }
+      })
     ]);
 
     const filesCount = filesCountResult?.value ?? 0;
     const ticketsCount = ticketsCountResult?.value ?? 0;
+    const hasQuote = !!quoteResult;
 
     const onboardingCardProject = mainProject.status === "onboarding"
       ? {
@@ -280,7 +289,8 @@ async function loadDashboardData() {
       userEmail: user.email,
       staffMessages,
       filesCount,
-      ticketsCount
+      ticketsCount,
+      hasQuote
     };
   }
 
@@ -582,7 +592,8 @@ async function loadDashboardData() {
     userEmail: user.email,
     staffMessages,
     filesCount,
-    ticketsCount
+    ticketsCount,
+    hasQuote: false // Pour les clients/staff, on ne vérifie pas les devis
   };
 }
 
@@ -600,7 +611,8 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
     userEmail,
     staffMessages,
     filesCount,
-    ticketsCount
+    ticketsCount,
+    hasQuote
   } = await loadDashboardData();
 
   // Pour les clients non-staff, utiliser le nom du premier projet s'il existe
@@ -645,6 +657,16 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
               Prendre rendez-vous
             </a>
           </Button>
+        </div>
+
+        {/* CTA Widget pour prospects */}
+        <div className="mb-6">
+          <ProspectCTAWidget
+            hasOnboarding={mainProject.status === "onboarding"}
+            onboardingProgress={mainProject.progress}
+            hasQuote={hasQuote ?? false}
+            projectName={mainProject.name}
+          />
         </div>
 
         {/* Timeline et progression */}

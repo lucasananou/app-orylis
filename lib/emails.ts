@@ -1089,3 +1089,109 @@ export async function sendQuoteSignedEmailToAdmin(
   });
 }
 
+/**
+ * Email de rappel : onboarding incomplet
+ */
+export async function sendOnboardingReminderEmail(
+  userId: string,
+  projectName: string,
+  projectId: string,
+  delay: "24h" | "48h"
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+  const delayText = delay === "24h" ? "24 heures" : "48 heures";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Rappel : Complétez votre onboarding</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Il y a ${delayText}, vous avez commencé l'onboarding pour votre projet <strong>${projectName}</strong>.</p>
+    <p>Pour recevoir votre démo personnalisée rapidement, nous vous invitons à compléter les informations manquantes.</p>
+    <p><strong>Pourquoi compléter maintenant ?</strong></p>
+    <ul>
+      <li>Vous recevrez votre démo personnalisée sous 24h</li>
+      <li>Vous pourrez générer votre devis dès que l'onboarding sera terminé</li>
+      <li>Votre projet pourra démarrer plus rapidement</li>
+    </ul>
+    <p>Cela ne prend que quelques minutes !</p>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: `Rappel : Complétez votre onboarding pour ${projectName}`,
+    html: getEmailTemplate(content, "Continuer l'onboarding", `${appUrl}/onboarding`)
+  });
+}
+
+/**
+ * Email de notification : devis prêt à être signé
+ */
+export async function sendQuoteReadyEmail(
+  userId: string,
+  projectName: string,
+  quoteId: string
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Votre devis est prêt ! 🎉</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Votre devis personnalisé pour le projet <strong>${projectName}</strong> est maintenant disponible.</p>
+    <p>Vous pouvez le consulter et le signer directement depuis votre espace client.</p>
+    <p><strong>Prochaines étapes après signature :</strong></p>
+    <ul>
+      <li>Lancement immédiat de la préparation de votre site</li>
+      <li>Reception d'un planning détaillé dans les 24h</li>
+      <li>Accès au système de tickets pour communiquer avec l'équipe</li>
+    </ul>
+    <p>N'hésitez pas à nous contacter si vous avez des questions !</p>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: `Votre devis ${projectName} est prêt à être signé`,
+    html: getEmailTemplate(content, "Voir mon devis", `${appUrl}/quote/${quoteId}`)
+  });
+}
+
+/**
+ * Email de rappel : devis non signé après 3 jours
+ */
+export async function sendQuoteReminderEmail(
+  userId: string,
+  projectName: string,
+  quoteId: string
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Rappel : Votre devis vous attend</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Il y a 3 jours, nous vous avons envoyé un devis personnalisé pour votre projet <strong>${projectName}</strong>.</p>
+    <p>Ce devis est toujours valable et vous pouvez le signer à tout moment.</p>
+    <p><strong>Des questions ?</strong></p>
+    <p>N'hésitez pas à nous contacter si vous souhaitez discuter du devis ou apporter des modifications. Nous sommes là pour vous accompagner !</p>
+    <p>Vous pouvez également prendre rendez-vous pour échanger directement avec nous.</p>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: `Rappel : Votre devis ${projectName} vous attend`,
+    html: getEmailTemplate(content, "Voir mon devis", `${appUrl}/quote/${quoteId}`)
+  });
+}
+

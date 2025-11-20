@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import dynamic from "next/dynamic";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -8,11 +7,7 @@ import { isProspect } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import Script from "next/script";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-// Lazy load ChatWidget (pas besoin de SSR)
-const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget").then(mod => ({ default: mod.default })), {
-  ssr: false
-});
+import { ChatWidgetClient } from "@/components/chat/chat-widget-client";
 
 // Cache 30 secondes : le statut de la démo change peu
 export const revalidate = 30;
@@ -162,7 +157,7 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
           </CardContent>
         </Card>
       </div>
-      <ChatWidget />
+      <ChatWidgetClient />
       {/* Facebook Pixel - Lead on demo-in-progress (formulaire complété) */}
       <Script id="fb-lead" strategy="afterInteractive">
         {`if (typeof fbq === 'function') { try { fbq('track', 'Lead'); } catch(e) {} }`}

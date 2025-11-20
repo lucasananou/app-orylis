@@ -54,18 +54,34 @@ export function QuoteSignatureCanvas({ onSign, disabled }: QuoteSignatureCanvasP
           </span>
         </div>
 
-        {/* Canvas signature */}
+        {/* Canvas signature - Optimisé mobile */}
         <div className="rounded-lg sm:rounded-xl border border-border/50 bg-[#fafafa] p-3 sm:p-4 shadow-sm w-full">
-          <SignatureCanvas
-            ref={canvasRef}
-            canvasProps={{
-              className: "w-full h-40 sm:h-48 md:h-56 rounded-lg bg-white",
-              style: { touchAction: "none", width: "100%", maxWidth: "100%" }
-            }}
-            onEnd={handleEnd}
-            backgroundColor="#ffffff"
-            penColor="#000000"
-          />
+          <div className="relative w-full" style={{ minHeight: "200px" }}>
+            <SignatureCanvas
+              ref={canvasRef}
+              canvasProps={{
+                className: "w-full rounded-lg bg-white touch-none",
+                style: { 
+                  touchAction: "none", 
+                  width: "100%", 
+                  height: "200px",
+                  maxWidth: "100%",
+                  minHeight: "200px"
+                }
+              }}
+              onEnd={handleEnd}
+              backgroundColor="#ffffff"
+              penColor="#000000"
+              velocityFilterWeight={0.7}
+              minWidth={2}
+              maxWidth={3}
+            />
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <p className="text-xs text-muted-foreground opacity-50">
+                Signez ici avec votre doigt ou votre stylet
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Boutons */}

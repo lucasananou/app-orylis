@@ -9,6 +9,8 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuoteSignForm } from "@/components/quote/quote-sign-form";
+import { QuoteTrustSection, QuoteFAQ } from "@/components/quote/quote-trust-section";
+import { ChatWidgetClient } from "@/components/chat/chat-widget-client";
 import { CheckCircle2, Download } from "lucide-react";
 
 // Lazy load des composants lourds
@@ -24,10 +26,6 @@ const QuoteViewer = dynamic(() => import("@/components/quote/quote-viewer").then
     </Card>
   ),
   ssr: true
-});
-
-const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget").then(mod => ({ default: mod.default })), {
-  ssr: false // Chat widget n'a pas besoin de SSR
 });
 
 // Cache 10 secondes : les devis peuvent être signés rapidement
@@ -154,6 +152,8 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
             {/* Colonne de droite : Signature + Bloc "après validation" */}
             <div className="space-y-4 sm:space-y-6 w-full min-w-0">
               <QuoteSignForm quoteId={id} />
+              <QuoteTrustSection />
+              <QuoteFAQ />
               <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 to-blue-50/30 w-full">
                 <CardHeader className="pb-4 sm:pb-6">
                   <CardTitle className="flex items-center gap-2 text-lg sm:text-xl break-words">
@@ -209,7 +209,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
           </div>
         </div>
       )}
-      <ChatWidget />
+      <ChatWidgetClient />
     </>
   );
 }
