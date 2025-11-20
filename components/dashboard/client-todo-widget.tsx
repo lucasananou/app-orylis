@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { FileText, MessageSquare, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import type { Route } from "next";
 
 interface TodoItem {
   id: string;
   type: "file" | "ticket" | "notification";
   title: string;
   count: number;
-  href: string;
+  href: Route;
 }
 
 interface ClientTodoWidgetProps {
