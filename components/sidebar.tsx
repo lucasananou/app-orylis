@@ -11,7 +11,8 @@ import {
   FolderOpen,
   CreditCard,
   UserRound,
-  Settings
+  Settings,
+  Receipt
 } from "lucide-react";
 import { cn, canAccessTickets, canAccessFiles, canAccessBilling, type UserRole } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
 
 const adminNavItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/admin/clients", label: "Gestion des clients", icon: UserRound },
+  { href: "/admin/quotes", label: "Gestion des devis", icon: Receipt },
   { href: "/admin/emails", label: "Gestion des emails", icon: Settings }
 ];
 

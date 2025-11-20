@@ -66,7 +66,9 @@ export const emailTemplateTypeEnum = pgEnum("email_template_type", [
   "project_updated",
   "prospect_welcome",
   "prospect_onboarding_completed",
-  "prospect_demo_ready"
+  "prospect_demo_ready",
+  "quote_signed",
+  "quote_signed_admin"
 ]);
 
 export const profiles = createTable(

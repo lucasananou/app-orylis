@@ -22,7 +22,9 @@ export type EmailTemplateType =
   | "project_updated"
   | "prospect_welcome"
   | "prospect_onboarding_completed"
-  | "prospect_demo_ready";
+  | "prospect_demo_ready"
+  | "quote_signed"
+  | "quote_signed_admin";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const emailFromAddress = process.env.EMAIL_FROM ?? "contact@orylis.fr";
@@ -111,7 +113,7 @@ async function getTemplateFromDB(
 ): Promise<{ subject: string; html: string }> {
   try {
     const template = await db.query.emailTemplates.findFirst({
-      where: eq(emailTemplates.type, type),
+      where: eq(emailTemplates.type, type as any),
       columns: {
         subject: true,
         htmlContent: true
@@ -998,6 +1000,92 @@ export async function sendProjectUpdatedEmail(
     to: user.email,
     subject: `Projet mis à jour : ${projectName}`,
     html: getEmailTemplate(content, "Voir le projet", `${appUrl}/projects/${projectId}`)
+  });
+}
+
+/**
+ * Email de confirmation : devis signé (envoyé au prospect)
+ */
+export async function sendQuoteSignedEmailToProspect(
+  userId: string,
+  projectName: string,
+  quoteId: string,
+  signedPdfUrl: string
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const defaultContent = `
+    <h2 style="color: #1a202c; margin-top: 0;">Devis signé avec succès ! 🎉</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Merci d'avoir signé le devis pour votre projet <strong>${projectName}</strong>.</p>
+    <p>Votre projet est maintenant officiellement lancé ! Nous allons commencer la préparation de votre site dès maintenant.</p>
+    <p><strong>Prochaines étapes :</strong></p>
+    <ul>
+      <li>Vous recevrez une date estimée de livraison dans les 24h</li>
+      <li>Vous pourrez suivre l'avancement depuis votre espace client</li>
+      <li>Vous aurez accès au système de tickets pour communiquer avec l'équipe</li>
+    </ul>
+    <p>Vous pouvez télécharger votre devis signé ci-dessous.</p>
+  `;
+
+  const defaultHtml = getEmailTemplate(
+    defaultContent,
+    "Télécharger le devis signé",
+    signedPdfUrl
+  );
+
+  const template = await getTemplateFromDB(
+    "quote_signed",
+    `Devis signé : ${projectName}`,
+    defaultHtml
+  );
+
+  const html = replaceTemplateVariables(template.html, {
+    userName,
+    projectName,
+    quoteId,
+    signedPdfUrl
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: replaceTemplateVariables(template.subject, { userName, projectName }),
+    html
+  });
+}
+
+/**
+ * Email de notification : devis signé (envoyé à l'admin)
+ */
+export async function sendQuoteSignedEmailToAdmin(
+  quoteId: string,
+  projectName: string,
+  prospectName: string,
+  prospectEmail: string,
+  signedPdfUrl: string
+) {
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Nouveau devis signé ! 🎉</h2>
+    <p>Un devis vient d'être signé par un prospect.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>Prospect:</strong> ${prospectName}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Email:</strong> ${prospectEmail}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Projet:</strong> ${projectName}</p>
+      <p style="margin: 6px 0 0 0;"><strong>ID du devis:</strong> ${quoteId}</p>
+    </div>
+    <p>Le projet peut maintenant être lancé en phase de développement.</p>
+    <p>Vous pouvez télécharger le devis signé ci-dessous.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Devis signé : ${projectName} - ${prospectName}`,
+    html: getEmailTemplate(content, "Télécharger le devis signé", signedPdfUrl)
   });
 }
 

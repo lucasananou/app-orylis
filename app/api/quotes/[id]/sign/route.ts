@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { quotes, projects } from "@/lib/schema";
+import { quotes, projects, profiles, authUsers } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
 import { PDFDocument, rgb } from "pdf-lib";
 import { put } from "@vercel/blob";
+import {
+  sendQuoteSignedEmailToProspect,
+  sendQuoteSignedEmailToAdmin
+} from "@/lib/emails";
 
 export const dynamic = "force-dynamic";
 
@@ -51,17 +55,38 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
     }
 
-    // Vérifier que le devis appartient au prospect
+    // Vérifier que le devis appartient au prospect et récupérer les infos nécessaires
     const project = await db.query.projects.findFirst({
       where: eq(projects.id, quote.projectId),
       columns: {
-        ownerId: true
+        ownerId: true,
+        name: true
       }
     });
 
     if (!project || project.ownerId !== user.id) {
       return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
     }
+
+    // Récupérer les informations du prospect pour les emails
+    const [profile, authUser] = await Promise.all([
+      db.query.profiles.findFirst({
+        where: eq(profiles.id, user.id),
+        columns: {
+          fullName: true
+        }
+      }),
+      db.query.authUsers.findFirst({
+        where: eq(authUsers.id, user.id),
+        columns: {
+          email: true,
+          name: true
+        }
+      })
+    ]);
+
+    const prospectName = profile?.fullName ?? authUser?.name ?? "Client";
+    const prospectEmail = authUser?.email ?? "";
 
     if (quote.status !== "pending") {
       return NextResponse.json(
@@ -156,6 +181,23 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         updatedAt: sql`now()`
       })
       .where(eq(quotes.id, id));
+
+    // Envoyer les emails (ne pas bloquer si l'email échoue)
+    try {
+      await Promise.all([
+        sendQuoteSignedEmailToProspect(user.id, project.name, id, blob.url),
+        sendQuoteSignedEmailToAdmin(
+          id,
+          project.name,
+          prospectName,
+          prospectEmail,
+          blob.url
+        )
+      ]);
+    } catch (emailError) {
+      console.error("[Quotes/Sign] Failed to send emails:", emailError);
+      // On continue même si l'email échoue
+    }
 
     return NextResponse.json({
       success: true,
