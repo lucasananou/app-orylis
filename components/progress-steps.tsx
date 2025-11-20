@@ -125,16 +125,8 @@ export function ProgressSteps({
                   step.status === "upcoming" && "border-border/50 bg-muted/20 opacity-60"
                 )}
               >
-                {/* Numéro de l'étape */}
+                {/* Numéro de l'étape - Sans lignes de connexion sur desktop */}
                 <div className="flex items-center justify-center mb-4 relative">
-                  {/* Ligne de connexion horizontale à gauche (sauf première colonne) */}
-                  {!isFirstInRow && (
-                    <div className={cn(
-                      "absolute right-full w-4 lg:w-6 h-0.5",
-                      steps[index - 1].status === "done" ? "bg-green-500" : "bg-border"
-                    )} />
-                  )}
-                  
                   {/* Cercle de l'étape */}
                   <div className={cn(
                     "relative flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full border-2 font-semibold text-base lg:text-lg transition-all z-10",
@@ -148,46 +140,6 @@ export function ProgressSteps({
                       index + 1
                     )}
                   </div>
-
-                  {/* Ligne de connexion horizontale à droite (sauf dernière colonne de chaque ligne) */}
-                  {!isLastInRow && (
-                    <div className={cn(
-                      "absolute left-full w-4 lg:w-6 h-0.5",
-                      step.status === "done" ? "bg-green-500" : "bg-border"
-                    )} />
-                  )}
-
-                  {/* Connexion spéciale : Étape 3 → Étape 4 (diagonale) */}
-                  {isLastInFirstRow && (
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 w-full h-0.5 z-0">
-                      <div className={cn(
-                        "absolute right-0 w-4 lg:w-6 h-0.5",
-                        step.status === "done" ? "bg-green-500" : "bg-border"
-                      )} />
-                      <div className={cn(
-                        "absolute right-4 lg:right-6 top-0 w-0.5 h-full",
-                        step.status === "done" ? "bg-green-500" : "bg-border"
-                      )} />
-                      <div className={cn(
-                        "absolute right-4 lg:right-6 bottom-0 w-full h-0.5",
-                        step.status === "done" ? "bg-green-500" : "bg-border"
-                      )} />
-                    </div>
-                  )}
-
-                  {/* Connexion depuis l'étape 4 (depuis le haut) */}
-                  {isFirstInSecondRow && (
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-full h-0.5 z-0">
-                      <div className={cn(
-                        "absolute left-0 w-4 lg:w-6 h-0.5",
-                        steps[index - 1].status === "done" ? "bg-green-500" : "bg-border"
-                      )} />
-                      <div className={cn(
-                        "absolute left-4 lg:left-6 top-0 w-0.5 h-full",
-                        steps[index - 1].status === "done" ? "bg-green-500" : "bg-border"
-                      )} />
-                    </div>
-                  )}
                 </div>
 
                 {/* Contenu de l'étape */}
