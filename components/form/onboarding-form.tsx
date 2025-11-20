@@ -682,10 +682,9 @@ const customPagesArray = useFieldArray({
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="w-full">
           <ProgressSteps 
             steps={stepsProgress} 
-            className="grid gap-4 md:grid-cols-3" 
             showPercentage={true}
             estimatedTimeRemaining={Math.max(1, Math.round((stepDefinitions.length - currentStepIndex) * 1.5))}
           />

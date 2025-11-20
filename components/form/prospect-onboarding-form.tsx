@@ -632,10 +632,9 @@ export function ProspectOnboardingForm({ projects }: ProspectOnboardingFormProps
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 w-full">
           <ProgressSteps 
             steps={stepsProgress} 
-            className="grid gap-1.5 sm:gap-2 md:grid-cols-4" 
             showPercentage={true}
             estimatedTimeRemaining={Math.max(1, Math.round((stepDefinitions.length - currentStepIndex) * 0.75))}
           />

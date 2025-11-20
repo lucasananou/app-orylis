@@ -27,7 +27,7 @@ export function ProgressSteps({
   const currentStepNumber = steps.findIndex((s) => s.status === "current") + 1;
 
   return (
-    <div className={cn("space-y-4 md:space-y-6", className)}>
+    <div className={cn("space-y-4 md:space-y-6 w-full", className)}>
       {/* En-tête avec progression globale - Séparé en haut */}
       {(showPercentage || estimatedTimeRemaining !== undefined) && (
         <div className="space-y-2 md:space-y-3">
@@ -106,8 +106,8 @@ export function ProgressSteps({
       </ol>
 
       {/* Version desktop améliorée - Grille 3x2 qui prend toute la largeur */}
-      <div className="hidden md:block">
-        <div className="grid grid-cols-3 gap-4 lg:gap-6 w-full">
+      <div className="hidden md:block w-full">
+        <div className="grid grid-cols-3 gap-4 lg:gap-6 w-full auto-rows-fr">
           {steps.map((step, index) => {
             const isFirstRow = index < 3;
             const isLastInRow = (index + 1) % 3 === 0;
