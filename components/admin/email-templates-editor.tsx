@@ -27,7 +27,9 @@ const templateTypeLabels: Record<EmailTemplateType, string> = {
   project_updated: "Projet mis à jour",
   prospect_welcome: "Email de bienvenue (prospect)",
   prospect_onboarding_completed: "Onboarding complété (prospect)",
-  prospect_demo_ready: "Démo prête (prospect)"
+  prospect_demo_ready: "Démo prête (prospect)",
+  quote_signed: "Devis signé (prospect)",
+  quote_signed_admin: "Devis signé (notification admin)"
 };
 
 const templateVariables: Record<EmailTemplateType, string[]> = {
@@ -42,7 +44,9 @@ const templateVariables: Record<EmailTemplateType, string[]> = {
   project_updated: ["projectName", "updateMessage", "projectUrl"],
   prospect_welcome: ["userName", "projectName", "onboardingUrl"],
   prospect_onboarding_completed: ["userName", "projectName", "dashboardUrl"],
-  prospect_demo_ready: ["userName", "projectName", "demoUrl"]
+  prospect_demo_ready: ["userName", "projectName", "demoUrl"],
+  quote_signed: ["userName", "projectName", "quoteId", "signedPdfUrl"],
+  quote_signed_admin: ["quoteId", "projectName", "prospectName", "prospectEmail", "signedPdfUrl"]
 };
 
 const templateSchema = z.object({
@@ -58,7 +62,9 @@ const templateSchema = z.object({
     "project_updated",
     "prospect_welcome",
     "prospect_onboarding_completed",
-    "prospect_demo_ready"
+    "prospect_demo_ready",
+    "quote_signed",
+    "quote_signed_admin"
   ]),
   subject: z.string().min(1, "Le sujet est requis"),
   htmlContent: z.string().min(1, "Le contenu HTML est requis")
