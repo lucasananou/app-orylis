@@ -194,13 +194,6 @@ export function SignupCard() {
           )}
         />
 
-        {/* Badge sécurité desktop - au-dessus du CTA */}
-        <div className="hidden lg:block">
-          <p className="mb-3 text-center text-xs font-medium text-slate-600">
-            🔐 Formulaire sécurisé — aucune carte bancaire demandée
-          </p>
-        </div>
-
         {/* Ligne mobile - au-dessus du CTA */}
         <p className="mb-3 text-center text-xs font-medium text-slate-600 lg:hidden">
           Démo WordPress complète — pas un simple template
@@ -235,12 +228,6 @@ export function SignupCard() {
           Vous recevez un vrai site WordPress de démo, personnalisé pour votre activité — pas un modèle générique.
         </p>
 
-        <p className="text-center text-xs text-slate-600 sm:text-sm">
-          Déjà un compte ?{" "}
-          <Link href="/login" className="font-medium text-accent hover:underline">
-            Se connecter
-          </Link>
-        </p>
       </Form>
 
       {/* Section "Comment ça marche" - Desktop : juste après le CTA */}
@@ -303,17 +290,17 @@ export function SignupCard() {
       <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 sm:space-y-2 sm:pt-5">
         <p className="flex items-center gap-2 text-xs text-slate-500">
           <Shield className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-          <span>Données sécurisées — aucune carte bancaire demandée.</span>
+          <span>🔐 Données sécurisées — aucune carte bancaire demandée.</span>
         </p>
         <p className="flex items-center gap-2 text-xs text-slate-500">
           <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
           <span>
             Besoin d&apos;aide ?{" "}
             <a
-              href="mailto:hello@orylis.fr"
+              href="mailto:contact@orylis.fr"
               className="font-medium text-accent hover:underline"
             >
-              Contactez-nous à hello@orylis.fr
+              Contactez-nous à contact@orylis.fr
             </a>
           </span>
         </p>

@@ -97,8 +97,8 @@ export function HeroSection() {
                 className="h-full w-full object-cover"
               />
             </div>
-            <p className="text-xs font-medium text-slate-900">Site vitrine : Boulangerie Simon</p>
-            <p className="text-xs text-slate-600">Livré en 7 jours</p>
+            <p className="text-xs font-medium text-slate-900">Site vitrine : Gorank.fr</p>
+            <p className="text-xs text-slate-600">Agence de référencement naturel</p>
           </div>
 
           {/* Coach */}
