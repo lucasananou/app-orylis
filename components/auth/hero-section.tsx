@@ -33,7 +33,7 @@ export function HeroSection() {
           </p>
         </div>
         <p className="w-full text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg break-words">
-          On analyse votre activité, on crée un site de démo prêt à encaisser des demandes ou des commandes, et vous décidez ensuite si on le met en ligne.
+          On crée un site WordPress de démo, pensé pour convertir, personnalisé pour votre activité. Vous testez, vous validez, on le met en ligne.
         </p>
         {/* Badge de rapidité */}
         <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 sm:px-3 sm:py-1.5 md:text-sm">
@@ -55,19 +55,13 @@ export function HeroSection() {
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="break-words">Sites vitrines & boutiques en ligne WordPress + WooCommerce</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
-              <Check className="h-3.5 w-3.5 text-accent" />
-            </div>
             <span className="break-words">Accès à un espace client pour suivre l&apos;avancement</span>
           </li>
         </ul>
       </div>
 
-      {/* Qualification du prospect - Tarifs et types de sites */}
-      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+      {/* Qualification du prospect - IMMÉDIATEMENT après les bullets (above the fold) */}
+      <div className="space-y-2.5 rounded-lg border border-slate-200 bg-slate-50/50 p-3.5 sm:p-4">
         <p className="text-sm font-semibold text-slate-900 sm:text-base">Sites que nous créons :</p>
         <ul className="space-y-1.5 text-xs text-slate-700 sm:text-sm">
           <li className="flex items-start gap-2">
@@ -83,8 +77,8 @@ export function HeroSection() {
             <span>Pages de vente optimisées pour la conversion</span>
           </li>
         </ul>
-        <p className="pt-2 text-xs font-medium text-slate-900 sm:text-sm">
-          Nos tarifs : à partir de 1490 € — pas d&apos;abonnement forcé, le site vous appartient.
+        <p className="pt-1.5 text-xs font-medium text-slate-900 sm:text-sm">
+          Nos tarifs : à partir de 1490 € le site complet — tarif clair, aucun frais caché, pas d&apos;abonnement forcé, le site vous appartient.
         </p>
       </div>
 

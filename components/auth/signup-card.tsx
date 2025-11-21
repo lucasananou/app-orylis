@@ -120,11 +120,8 @@ export function SignupCard() {
     <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-4 shadow-lg sm:rounded-3xl sm:p-6 md:p-8 lg:p-10 md:shadow-xl lg:sticky lg:top-8 min-w-0 max-w-full">
       {/* Bloc mobile : promesse + puces rassurantes (visible uniquement sur mobile) */}
       <div className="mb-6 space-y-3 lg:hidden">
-        <div className="space-y-1.5">
-          <h2 className="text-lg font-semibold text-slate-900">Testez gratuitement votre futur site en 24h</h2>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Démo WordPress personnalisée, sans engagement, pensée pour vendre à votre place.
-          </p>
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Votre futur site en 24h — gratuit</h2>
         </div>
         <div className="space-y-2 rounded-lg bg-slate-50/50 p-3">
           <div className="flex items-center gap-2 text-xs text-slate-700">
@@ -211,7 +208,7 @@ export function SignupCard() {
           ) : (
             <>
               <UserPlus className="mr-2 h-4 w-4" />
-              Je veux ma démo gratuite
+              Voir mon futur site gratuitement
             </>
           )}
         </Button>
@@ -229,8 +226,33 @@ export function SignupCard() {
         </p>
       </Form>
 
-      {/* Section "Comment ça marche" */}
-      <div className="mt-6 space-y-3 rounded-lg border border-slate-200 bg-slate-50/30 p-4 sm:mt-8 sm:p-5">
+      {/* Section "Comment ça marche" - Desktop : juste après le CTA */}
+      <div className="mt-6 hidden space-y-3 rounded-lg border border-slate-200 bg-slate-50/30 p-4 lg:block lg:mt-4">
+        <h3 className="text-sm font-semibold text-slate-900 sm:text-base">Comment ça marche ?</h3>
+        <ol className="space-y-2.5 text-xs text-slate-700 sm:text-sm">
+          <li className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+              1
+            </span>
+            <span>Vous remplissez 2 questions en 2 minutes</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+              2
+            </span>
+            <span>On crée un site WordPress de démo adapté à votre activité</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+              3
+            </span>
+            <span>Vous découvrez le résultat en ligne + on voit ensemble comment le mettre en production</span>
+          </li>
+        </ol>
+      </div>
+
+      {/* Section "Comment ça marche" - Mobile : à la fin */}
+      <div className="mt-6 space-y-3 rounded-lg border border-slate-200 bg-slate-50/30 p-4 sm:mt-8 sm:p-5 lg:hidden">
         <h3 className="text-sm font-semibold text-slate-900 sm:text-base">Comment ça marche ?</h3>
         <ol className="space-y-2.5 text-xs text-slate-700 sm:text-sm">
           <li className="flex items-start gap-2.5">
