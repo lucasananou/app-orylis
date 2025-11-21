@@ -3,6 +3,7 @@ import Script from "next/script";
 import { auth } from "@/auth";
 import { HeroSection } from "@/components/auth/hero-section";
 import { SignupCard } from "@/components/auth/signup-card";
+import { StickyCTA } from "@/components/auth/sticky-cta";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,9 @@ export default async function SignupPage(): Promise<JSX.Element> {
       <Script id="fb-viewcontent" strategy="afterInteractive">
         {`if (typeof fbq === 'function') { try { fbq('track', 'ViewContent'); } catch(e) {} }`}
       </Script>
+
+      {/* CTA Sticky Mobile */}
+      <StickyCTA />
     </main>
   );
 }

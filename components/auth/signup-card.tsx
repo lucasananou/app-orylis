@@ -225,7 +225,7 @@ export function SignupCard() {
 
         {/* Message de réassurance sous le CTA - Mobile (version punchy) */}
         <p className="text-center text-xs font-medium text-slate-600 lg:hidden">
-          Vous recevez un vrai site WordPress de démo, personnalisé pour votre activité — pas un modèle générique.
+          Vous recevez un site WordPress complet, personnalisé pour votre activité — pas un template générique.
         </p>
 
       </Form>

@@ -20,8 +20,13 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Orylis Hub",
-  description: "Espace client Orylis – Suivi de projet, tickets et ressources."
+  title: "Orylis • Espace Client",
+  description: "Espace client Orylis – Suivi de projet, tickets et ressources.",
+  icons: {
+    icon: "https://orylis.fr/wp-content/uploads/2025/09/cropped-Frame-454507530.png",
+    shortcut: "https://orylis.fr/wp-content/uploads/2025/09/cropped-Frame-454507530.png",
+    apple: "https://orylis.fr/wp-content/uploads/2025/09/cropped-Frame-454507530.png"
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }): JSX.Element {

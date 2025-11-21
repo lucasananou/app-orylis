@@ -49,7 +49,7 @@ export function HeroSection() {
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="break-words">Inscription simple et rapide</span>
+            <span className="break-words">Création de compte ultra-simple</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
@@ -148,6 +148,10 @@ export function HeroSection() {
           <li className="flex items-start gap-2">
             <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
             <span>Process simple, sans engagement, sans bla-bla</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Accompagnement après mise en ligne (optionnel)</span>
           </li>
         </ul>
       </div>
