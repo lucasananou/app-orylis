@@ -194,6 +194,18 @@ export function SignupCard() {
           )}
         />
 
+        {/* Badge sécurité desktop - au-dessus du CTA */}
+        <div className="hidden lg:block">
+          <p className="mb-3 text-center text-xs font-medium text-slate-600">
+            🔐 Formulaire sécurisé — aucune carte bancaire demandée
+          </p>
+        </div>
+
+        {/* Ligne mobile - au-dessus du CTA */}
+        <p className="mb-3 text-center text-xs font-medium text-slate-600 lg:hidden">
+          Démo WordPress complète — pas un simple template
+        </p>
+
         <Button
           type="submit"
           size="lg"
@@ -213,9 +225,14 @@ export function SignupCard() {
           )}
         </Button>
 
-        {/* Message de réassurance sous le CTA */}
-        <p className="text-center text-xs font-medium text-slate-600">
+        {/* Message de réassurance sous le CTA - Desktop */}
+        <p className="hidden text-center text-xs font-medium text-slate-600 lg:block">
           En 24h maximum, vous recevez le lien de votre futur site WordPress, personnalisé pour votre activité.
+        </p>
+
+        {/* Message de réassurance sous le CTA - Mobile (version punchy) */}
+        <p className="text-center text-xs font-medium text-slate-600 lg:hidden">
+          Vous recevez un vrai site WordPress de démo, personnalisé pour votre activité — pas un modèle générique.
         </p>
 
         <p className="text-center text-xs text-slate-600 sm:text-sm">
@@ -234,7 +251,7 @@ export function SignupCard() {
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
               1
             </span>
-            <span>Vous remplissez 2 questions en 2 minutes</span>
+            <span>Vous répondez aux questions essentielles pour personnaliser votre futur site</span>
           </li>
           <li className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
@@ -259,7 +276,7 @@ export function SignupCard() {
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
               1
             </span>
-            <span>Vous remplissez 2 questions en 2 minutes</span>
+            <span>Vous répondez aux questions essentielles pour personnaliser votre futur site</span>
           </li>
           <li className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">

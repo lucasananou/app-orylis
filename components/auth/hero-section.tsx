@@ -82,6 +82,58 @@ export function HeroSection() {
         </p>
       </div>
 
+      {/* Exemples de sites livrés */}
+      <div className="space-y-3 pt-2">
+        <h3 className="text-sm font-semibold text-slate-900 sm:text-base">Aperçu de démos créées</h3>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {/* Artisan */}
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="aspect-video w-full rounded-md bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+              <span className="text-xs font-medium text-slate-600">Site vitrine</span>
+            </div>
+            <p className="text-xs font-medium text-slate-900">Site vitrine : Boulangerie Simon</p>
+            <p className="text-xs text-slate-600">Livré en 7 jours</p>
+          </div>
+
+          {/* Coach */}
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="aspect-video w-full rounded-md bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+              <span className="text-xs font-medium text-slate-600">Coach business</span>
+            </div>
+            <p className="text-xs font-medium text-slate-900">Coach business : Nathalie</p>
+            <p className="text-xs text-slate-600">+42 demandes en 3 mois</p>
+          </div>
+
+          {/* Boutique */}
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="aspect-video w-full rounded-md bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
+              <span className="text-xs font-medium text-slate-600">Boutique en ligne</span>
+            </div>
+            <p className="text-xs font-medium text-slate-900">Boutique en ligne : Love&Fit</p>
+            <p className="text-xs text-slate-600">WooCommerce optimisé conversion</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Pourquoi Orylis ? */}
+      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/50 p-3.5 sm:p-4">
+        <p className="text-sm font-semibold text-slate-900 sm:text-base">Pourquoi Orylis ?</p>
+        <ul className="space-y-1.5 text-xs text-slate-700 sm:text-sm">
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Spécialistes WordPress + WooCommerce</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Démo ultra-rapide en 24h</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Process simple, sans engagement, sans bla-bla</span>
+          </li>
+        </ul>
+      </div>
+
       {/* Technologies */}
       <SocialProof />
     </section>
