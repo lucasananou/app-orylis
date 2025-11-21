@@ -16,27 +16,28 @@ export function HeroSection() {
         />
       </div>
 
-      {/* Titre principal */}
+      {/* Preuve sociale repositionnée en haut */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-slate-900 sm:text-base">⭐ 4,9/5</span>
+        <span className="text-xs text-slate-600 sm:text-sm">— 140+ entrepreneurs accompagnés</span>
+      </div>
+
+      {/* Titre principal - Focus sur le résultat business */}
       <div className="space-y-2 sm:space-y-3">
         <div className="space-y-1.5 sm:space-y-2">
           <h1 className="font-poppins text-2xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-3xl md:text-4xl lg:text-5xl break-words">
-            Recevez une démo personnalisée de votre futur site en 24h 🚀
+            Testez gratuitement un site qui vend à votre place
           </h1>
-          <p className="text-xs font-medium text-slate-500 sm:text-sm md:text-base">
-            Plus de 140 entrepreneurs ont déjà testé leur futur site gratuitement avant d&apos;acheter.
-          </p>
-          {/* Sous-bullet point pour renforcer la valeur perçue */}
-          <p className="text-xs text-slate-400 sm:text-sm">
-            💬 Nos démos sont créées à partir de vos informations, pas des templates génériques.
+          <p className="text-sm font-medium text-slate-600 sm:text-base md:text-lg">
+            Démo WordPress personnalisée, livrée en 24h.
           </p>
         </div>
-        <p className="w-full text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg lg:text-xl break-words">
-          Créez votre espace Orylis, répondez à quelques questions, et recevez une démo de site WordPress professionnelle, adaptée à votre activité.{" "}
-          <span className="font-medium text-slate-700">Gratuit, sans engagement.</span>
+        <p className="w-full text-sm leading-relaxed text-slate-600 sm:text-base md:text-lg break-words">
+          On analyse votre activité, on crée un site de démo prêt à encaisser des demandes ou des commandes, et vous décidez ensuite si on le met en ligne.
         </p>
         {/* Badge de rapidité */}
         <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 sm:px-3 sm:py-1.5 md:text-sm">
-          <span>⚡</span>
+          <span>🔥</span>
           <span>Démo créée en moyenne en 18h</span>
         </div>
       </div>
@@ -48,49 +49,57 @@ export function HeroSection() {
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="break-words">Formulaire d&apos;onboarding en 2 minutes</span>
+            <span className="break-words">Formulaire en 2 minutes</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="break-words">Demo de votre futur site, personnalisée</span>
+            <span className="break-words">Sites vitrines & boutiques en ligne WordPress + WooCommerce</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="break-words">Design moderne, responsive, adapté à votre activité</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
-              <Check className="h-3.5 w-3.5 text-accent" />
-            </div>
-            <span className="break-words">Accès à un espace client pour suivre votre projet</span>
+            <span className="break-words">Accès à un espace client pour suivre l&apos;avancement</span>
           </li>
         </ul>
       </div>
 
-      {/* Preuve sociale */}
-      <div className="space-y-3 pt-2 sm:space-y-4">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-          <span className="text-base font-semibold text-slate-900 sm:text-lg">⭐ 4,9/5</span>
-          <span className="text-sm text-slate-600 sm:text-base">— Plus de 140 entrepreneurs accompagnés</span>
-        </div>
-        <SocialProof />
+      {/* Qualification du prospect - Tarifs et types de sites */}
+      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+        <p className="text-sm font-semibold text-slate-900 sm:text-base">Sites que nous créons :</p>
+        <ul className="space-y-1.5 text-xs text-slate-700 sm:text-sm">
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Sites vitrines pro (artisans, consultants, thérapeutes…)</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Boutiques en ligne WordPress + WooCommerce</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Pages de vente optimisées pour la conversion</span>
+          </li>
+        </ul>
+        <p className="pt-2 text-xs font-medium text-slate-900 sm:text-sm">
+          Nos tarifs : à partir de 1490 € — pas d&apos;abonnement forcé, le site vous appartient.
+        </p>
       </div>
+
+      {/* Technologies */}
+      <SocialProof />
     </section>
   );
 }
 
 function SocialProof() {
-  // Badges de partenaires/outils pour renforcer la crédibilité
-  // Utilisation de noms de marques stylisés (plus sûr et efficace)
+  // Badges de technologies - Focus WordPress/WooCommerce
   const partnerBadges = [
     { name: "WordPress", color: "text-[#21759B]" },
-    { name: "Shopify", color: "text-[#95BF47]" },
-    { name: "Elementor", color: "text-[#92003B]" },
-    { name: "Meta", color: "text-[#1877F2]" }
+    { name: "WooCommerce", color: "text-[#96588A]" },
+    { name: "Elementor", color: "text-[#92003B]" }
   ];
 
   return (

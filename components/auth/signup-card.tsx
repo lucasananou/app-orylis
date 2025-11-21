@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { ControllerRenderProps } from "react-hook-form";
-import { Loader2, Mail, UserPlus, Shield } from "lucide-react";
+import { Loader2, Mail, UserPlus, Shield, Clock, Euro, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 import {
   Form,
@@ -118,10 +118,35 @@ export function SignupCard() {
 
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-4 shadow-lg sm:rounded-3xl sm:p-6 md:p-8 lg:p-10 md:shadow-xl lg:sticky lg:top-8 min-w-0 max-w-full">
-      <div className="mb-6 space-y-1.5 sm:mb-8 sm:space-y-2">
-        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Débloquez votre démo personnalisée</h2>
+      {/* Bloc mobile : promesse + puces rassurantes (visible uniquement sur mobile) */}
+      <div className="mb-6 space-y-3 lg:hidden">
+        <div className="space-y-1.5">
+          <h2 className="text-lg font-semibold text-slate-900">Testez gratuitement votre futur site en 24h</h2>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Démo WordPress personnalisée, sans engagement, pensée pour vendre à votre place.
+          </p>
+        </div>
+        <div className="space-y-2 rounded-lg bg-slate-50/50 p-3">
+          <div className="flex items-center gap-2 text-xs text-slate-700">
+            <Clock className="h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>2 minutes pour remplir le formulaire</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-700">
+            <Euro className="h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>À partir de 1490 € le site complet</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-700">
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Aucun appel commercial forcé</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Titre desktop (visible uniquement sur desktop) */}
+      <div className="mb-6 hidden space-y-1.5 lg:mb-8 lg:block lg:space-y-2">
+        <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Recevez votre démo en 24h</h2>
         <p className="text-xs text-slate-600 sm:text-sm">
-          Cet accès nous permet de vous créer une démo adaptée à votre activité.
+          ⏱️ 2 minutes à remplir – 100% gratuit – aucun engagement
         </p>
       </div>
 
@@ -186,18 +211,14 @@ export function SignupCard() {
           ) : (
             <>
               <UserPlus className="mr-2 h-4 w-4" />
-              Je demande ma démo gratuitement
+              Je veux ma démo gratuite
             </>
           )}
         </Button>
 
-        {/* Rappel "Sans engagement" sous le CTA */}
-        <p className="text-center text-xs font-medium text-slate-500">
-          100% gratuit — aucun engagement
-        </p>
-
-        <p className="text-center text-xs text-slate-500">
-          Étape 1/2 : Créez votre espace pour démarrer le questionnaire
+        {/* Message de réassurance sous le CTA */}
+        <p className="text-center text-xs font-medium text-slate-600">
+          En 24h maximum, vous recevez le lien de votre futur site WordPress, personnalisé pour votre activité.
         </p>
 
         <p className="text-center text-xs text-slate-600 sm:text-sm">
@@ -206,39 +227,64 @@ export function SignupCard() {
             Se connecter
           </Link>
         </p>
-
-        {/* Réassurance */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-100 sm:space-y-2">
-          <p className="flex items-center gap-2 text-xs text-slate-500">
-            <Shield className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-            <span>Données sécurisées — aucune carte bancaire demandée.</span>
-          </p>
-          <p className="flex items-center gap-2 text-xs text-slate-500">
-            <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-            <span>
-              Besoin d&apos;aide ?{" "}
-              <a
-                href="mailto:hello@orylis.fr"
-                className="font-medium text-accent hover:underline"
-              >
-                Contactez-nous à hello@orylis.fr
-              </a>
-            </span>
-          </p>
-        </div>
-
-        <p className="text-center text-xs text-slate-500">
-          En créant un compte, vous acceptez nos{" "}
-          <a
-            href="https://orylis.fr/mentions-legales"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-accent hover:underline"
-          >
-            conditions d&apos;utilisation
-          </a>
-        </p>
       </Form>
+
+      {/* Section "Comment ça marche" */}
+      <div className="mt-6 space-y-3 rounded-lg border border-slate-200 bg-slate-50/30 p-4 sm:mt-8 sm:p-5">
+        <h3 className="text-sm font-semibold text-slate-900 sm:text-base">Comment ça marche ?</h3>
+        <ol className="space-y-2.5 text-xs text-slate-700 sm:text-sm">
+          <li className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+              1
+            </span>
+            <span>Vous remplissez 2 questions en 2 minutes</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+              2
+            </span>
+            <span>On crée un site WordPress de démo adapté à votre activité</span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+              3
+            </span>
+            <span>Vous découvrez le résultat en ligne + on voit ensemble comment le mettre en production</span>
+          </li>
+        </ol>
+      </div>
+
+      {/* Réassurance */}
+      <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 sm:space-y-2 sm:pt-5">
+        <p className="flex items-center gap-2 text-xs text-slate-500">
+          <Shield className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+          <span>Données sécurisées — aucune carte bancaire demandée.</span>
+        </p>
+        <p className="flex items-center gap-2 text-xs text-slate-500">
+          <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+          <span>
+            Besoin d&apos;aide ?{" "}
+            <a
+              href="mailto:hello@orylis.fr"
+              className="font-medium text-accent hover:underline"
+            >
+              Contactez-nous à hello@orylis.fr
+            </a>
+          </span>
+        </p>
+      </div>
+
+      <p className="mt-4 text-center text-xs text-slate-500">
+        En créant un compte, vous acceptez nos{" "}
+        <a
+          href="https://orylis.fr/mentions-legales"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-accent hover:underline"
+        >
+          conditions d&apos;utilisation
+        </a>
+      </p>
     </div>
   );
 }
