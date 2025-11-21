@@ -49,7 +49,7 @@ export function HeroSection() {
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
               <Check className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="break-words">Formulaire en 2 minutes</span>
+            <span className="break-words">Inscription simple et rapide</span>
           </li>
           <li className="flex items-start gap-3">
             <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
@@ -88,8 +88,14 @@ export function HeroSection() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {/* Artisan */}
           <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-            <div className="aspect-video w-full rounded-md bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-              <span className="text-xs font-medium text-slate-600">Site vitrine</span>
+            <div className="aspect-video w-full overflow-hidden rounded-md">
+              <Image
+                src="https://orylis.fr/wp-content/uploads/2025/05/Realisation61-1.webp"
+                alt="Site vitrine - Boulangerie Simon"
+                width={400}
+                height={225}
+                className="h-full w-full object-cover"
+              />
             </div>
             <p className="text-xs font-medium text-slate-900">Site vitrine : Boulangerie Simon</p>
             <p className="text-xs text-slate-600">Livré en 7 jours</p>
@@ -97,20 +103,32 @@ export function HeroSection() {
 
           {/* Coach */}
           <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-            <div className="aspect-video w-full rounded-md bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-              <span className="text-xs font-medium text-slate-600">Coach business</span>
+            <div className="aspect-video w-full overflow-hidden rounded-md">
+              <Image
+                src="https://orylis.fr/wp-content/uploads/2025/05/Frame-454507480.png"
+                alt="Coach business - Stéphane"
+                width={400}
+                height={225}
+                className="h-full w-full object-cover"
+              />
             </div>
-            <p className="text-xs font-medium text-slate-900">Coach business : Nathalie</p>
+            <p className="text-xs font-medium text-slate-900">Coach business : Stéphane</p>
             <p className="text-xs text-slate-600">+42 demandes en 3 mois</p>
           </div>
 
-          {/* Boutique */}
+          {/* Immobilier */}
           <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-            <div className="aspect-video w-full rounded-md bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
-              <span className="text-xs font-medium text-slate-600">Boutique en ligne</span>
+            <div className="aspect-video w-full overflow-hidden rounded-md">
+              <Image
+                src="https://orylis.fr/wp-content/uploads/2025/05/Frame-454507480-2.png"
+                alt="Ticket Immo - Site immobilier"
+                width={400}
+                height={225}
+                className="h-full w-full object-cover"
+              />
             </div>
-            <p className="text-xs font-medium text-slate-900">Boutique en ligne : Love&Fit</p>
-            <p className="text-xs text-slate-600">WooCommerce optimisé conversion</p>
+            <p className="text-xs font-medium text-slate-900">Ticket Immo : Site immobilier</p>
+            <p className="text-xs text-slate-600">Site optimisé conversion</p>
           </div>
         </div>
       </div>

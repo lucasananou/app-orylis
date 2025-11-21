@@ -227,7 +227,7 @@ export function SignupCard() {
 
         {/* Message de réassurance sous le CTA - Desktop */}
         <p className="hidden text-center text-xs font-medium text-slate-600 lg:block">
-          En 24h maximum, vous recevez le lien de votre futur site WordPress, personnalisé pour votre activité.
+          🔥 Votre démo est livrée directement dans votre espace client, prête à être mise en production si vous la validez.
         </p>
 
         {/* Message de réassurance sous le CTA - Mobile (version punchy) */}
@@ -246,6 +246,9 @@ export function SignupCard() {
       {/* Section "Comment ça marche" - Desktop : juste après le CTA */}
       <div className="mt-6 hidden space-y-3 rounded-lg border border-slate-200 bg-slate-50/30 p-4 lg:block lg:mt-4">
         <h3 className="text-sm font-semibold text-slate-900 sm:text-base">Comment ça marche ?</h3>
+        <p className="text-xs text-slate-600 sm:text-sm">
+          🎯 Process simple, rapide et pensé pour vous faire gagner du temps.
+        </p>
         <ol className="space-y-2.5 text-xs text-slate-700 sm:text-sm">
           <li className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
@@ -271,6 +274,9 @@ export function SignupCard() {
       {/* Section "Comment ça marche" - Mobile : à la fin */}
       <div className="mt-6 space-y-3 rounded-lg border border-slate-200 bg-slate-50/30 p-4 sm:mt-8 sm:p-5 lg:hidden">
         <h3 className="text-sm font-semibold text-slate-900 sm:text-base">Comment ça marche ?</h3>
+        <p className="text-xs text-slate-600 sm:text-sm">
+          🎯 Process simple, rapide et pensé pour vous faire gagner du temps.
+        </p>
         <ol className="space-y-2.5 text-xs text-slate-700 sm:text-sm">
           <li className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
