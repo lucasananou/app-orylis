@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { ControllerRenderProps } from "react-hook-form";
-import { Loader2, Mail, UserPlus, Shield, Clock, Euro, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, UserPlus, Clock, Euro, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 import {
   Form,
@@ -194,11 +194,6 @@ export function SignupCard() {
           )}
         />
 
-        {/* Ligne mobile - au-dessus du CTA */}
-        <p className="mb-3 text-center text-xs font-medium text-slate-600 lg:hidden">
-          Démo WordPress complète — pas un simple template
-        </p>
-
         <Button
           type="submit"
           size="lg"
@@ -288,21 +283,17 @@ export function SignupCard() {
 
       {/* Réassurance */}
       <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 sm:space-y-2 sm:pt-5">
-        <p className="flex items-center gap-2 text-xs text-slate-500">
-          <Shield className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-          <span>🔐 Données sécurisées — aucune carte bancaire demandée.</span>
+        <p className="text-xs text-slate-500">
+          🔐 Données sécurisées — aucune carte bancaire demandée.
         </p>
-        <p className="flex items-center gap-2 text-xs text-slate-500">
-          <Mail className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-          <span>
-            Besoin d&apos;aide ?{" "}
-            <a
-              href="mailto:contact@orylis.fr"
-              className="font-medium text-accent hover:underline"
-            >
-              Contactez-nous à contact@orylis.fr
-            </a>
-          </span>
+        <p className="text-xs text-slate-500">
+          Besoin d&apos;aide ?{" "}
+          <a
+            href="mailto:contact@orylis.fr"
+            className="font-medium text-accent hover:underline"
+          >
+            contact@orylis.fr
+          </a>
         </p>
       </div>
 
