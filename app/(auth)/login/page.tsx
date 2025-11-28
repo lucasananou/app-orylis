@@ -3,6 +3,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { PasswordLoginForm } from "./login-form";
+import { CheckCircle2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -14,74 +15,93 @@ export default async function LoginPage(): Promise<JSX.Element> {
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-gradient-to-br from-[#F7F9FB] via-white to-[#E6F4F5] px-4 py-8 sm:px-6 sm:py-12 md:grid-cols-[0.9fr_1fr] md:px-8 md:py-16 lg:px-8">
-      <section className="hidden flex-col justify-center gap-6 text-slate-800 md:flex md:gap-8">
+    <div className="grid min-h-screen grid-cols-1 items-center justify-center bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-blue-50 via-white to-indigo-50 px-4 py-8 sm:px-6 sm:py-12 md:grid-cols-[0.9fr_1fr] md:px-8 md:py-16 lg:px-12 xl:px-24">
+      {/* Left Column: Branding & Info */}
+      <section className="hidden flex-col justify-center gap-8 pr-8 text-slate-800 md:flex lg:pr-16">
         <div className="flex items-center gap-3">
           <Image
             src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
             alt="Orylis"
-            width={120}
-            height={40}
+            width={140}
+            height={48}
             className="h-auto w-auto"
             priority
           />
         </div>
-        <div className="space-y-3 md:space-y-4">
-          <h1 className="text-3xl font-semibold leading-tight tracking-tight text-slate-900 md:text-4xl">
-            Bienvenue sur votre espace client Orylis 🌐
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-slate-900 lg:text-5xl">
+            Bienvenue sur votre <br />
+            <span className="text-blue-600">Espace Client</span>
           </h1>
-          <p className="max-w-lg text-base text-slate-600 md:text-lg">
-            Suivez la création et la gestion de votre site internet en toute simplicité.
+          <p className="max-w-lg text-lg text-slate-600 leading-relaxed">
+            Suivez la création et la gestion de votre site internet en toute simplicité, étape par étape.
           </p>
         </div>
-        <div className="space-y-2 md:space-y-3">
-          <p className="text-sm text-slate-700 md:text-base">Cet espace vous permet de :</p>
-          <ul className="space-y-2 text-sm text-slate-600 md:space-y-2.5">
-            <li className="flex items-start gap-2">
-              <span className="mt-1 text-slate-400">•</span>
-              <span>Suivre l'avancement de votre projet en temps réel.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1 text-slate-400">•</span>
-              <span>Transmettre vos contenus et valider les étapes de création.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1 text-slate-400">•</span>
-              <span>Échanger avec l'équipe Orylis via le système de tickets.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1 text-slate-400">•</span>
-              <span>Accéder à vos fichiers et factures à tout moment.</span>
-            </li>
+
+        <div className="space-y-4">
+          <p className="font-medium text-slate-900">Tout ce dont vous avez besoin :</p>
+          <ul className="space-y-3 text-base text-slate-600">
+            {[
+              "Suivi de projet en temps réel",
+              "Validation des étapes de création",
+              "Support prioritaire via tickets",
+              "Accès aux factures et documents"
+            ].map((item, index) => (
+              <li key={index} className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
-        <p className="text-sm text-slate-700 md:text-base">
-          Vous êtes entre de bonnes mains 🤝
-        </p>
-        <p className="text-xs text-slate-600 md:text-sm">
-          Connectez-vous pour découvrir l'avancement de votre site.
-        </p>
-      </section>
-      <section className="mx-auto w-full max-w-md rounded-2xl border border-border bg-[#F9FAFB] p-6 shadow-subtle sm:rounded-3xl sm:p-8 md:p-10">
-        <div className="mb-6 space-y-2 text-center sm:mb-8 sm:space-y-3">
-          <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Connexion</h2>
+
+        <div className="pt-4">
+          <p className="text-sm font-medium text-slate-500">
+            Vous êtes entre de bonnes mains 🤝
+          </p>
         </div>
-        <PasswordLoginForm />
-        <p className="mt-4 text-center text-xs text-muted-foreground sm:mt-6">
-          Pas encore de compte ?{" "}
-          <Link href="/signup" className="font-medium text-accent hover:underline">
-            Créer un compte
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          Besoin d'aide ? Écrivez-nous à{" "}
-          <Link href="mailto:contact@orylis.fr" className="font-medium text-accent hover:underline">
-            contact@orylis.fr
-          </Link>
-        </p>
-        <p className="mt-3 text-center text-[10px] leading-relaxed text-muted-foreground/80 sm:mt-4 sm:text-xs">
-          🔐 Connexion sécurisée – Vos données sont protégées et utilisées uniquement pour le suivi
-          de votre projet.
+      </section>
+
+      {/* Right Column: Login Form */}
+      <section className="mx-auto w-full max-w-[440px]">
+        <div className="relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-8 shadow-2xl sm:p-10 md:p-12">
+          <div className="mb-8 space-y-2 text-center">
+            <h2 className="text-2xl font-bold text-slate-900">Connexion</h2>
+            <p className="text-sm text-slate-500">
+              Accédez à votre dashboard pour gérer votre site
+            </p>
+          </div>
+
+          <PasswordLoginForm />
+
+          <div className="mt-8 space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-100" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-slate-400">Ou</span>
+              </div>
+            </div>
+
+            <p className="text-center text-sm text-slate-600">
+              Pas encore de compte ?{" "}
+              <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                Créer un compte
+              </Link>
+            </p>
+
+            <p className="text-center text-xs text-slate-400">
+              Besoin d'aide ?{" "}
+              <Link href="mailto:contact@orylis.fr" className="hover:text-slate-600 hover:underline">
+                contact@orylis.fr
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-[11px] text-slate-400 max-w-xs mx-auto leading-relaxed">
+          🔒 Connexion sécurisée – Vos données sont protégées et confidentielles.
         </p>
       </section>
     </div>

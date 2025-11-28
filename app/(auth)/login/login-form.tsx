@@ -145,7 +145,7 @@ export function PasswordLoginForm() {
                 inputMode="email"
                 placeholder="vous@entreprise.fr"
                 disabled={isSubmitting}
-                className="placeholder:text-[#9CA3AF]"
+                className="h-11 placeholder:text-slate-400"
                 {...field}
               />
             </FormControl>
@@ -166,7 +166,7 @@ export function PasswordLoginForm() {
               <FormLabel>Mot de passe</FormLabel>
               <Link
                 href="/forgot-password"
-                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+                className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
               >
                 Mot de passe oublié ?
               </Link>
@@ -177,7 +177,7 @@ export function PasswordLoginForm() {
                 autoComplete="current-password"
                 placeholder="••••••••"
                 disabled={isSubmitting}
-                className="placeholder:text-[#9CA3AF]"
+                className="h-11 placeholder:text-slate-400"
                 {...field}
               />
             </FormControl>
@@ -188,7 +188,7 @@ export function PasswordLoginForm() {
       <Button
         type="submit"
         size="lg"
-        className="w-full bg-[#1F66FF] text-white transition-all duration-200 hover:bg-[#1553CC] hover:shadow-md"
+        className="h-11 w-full bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700 hover:shadow-lg"
         disabled={isSubmitting || !form.formState.isValid}
       >
         {isSubmitting ? (

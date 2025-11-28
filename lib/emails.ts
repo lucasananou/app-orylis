@@ -799,20 +799,26 @@ export async function sendProspectDemoReadyEmailStaticTo(email: string) {
 export async function sendQuoteSignedEmailToAdmin(
   quoteId: string,
   projectName: string,
-  amount: number,
-  signerName: string
+  prospectName: string,
+  prospectEmail: string,
+  signedPdfUrl: string
 ) {
   const content = `
     <h2 style="color: #1a202c; margin-top: 0;">Devis signé ! ✍️</h2>
-    <p><strong>${signerName}</strong> a signé le devis pour le projet <strong>${projectName}</strong>.</p>
-    <p>Montant de l'acompte attendu : <strong>${amount}€</strong></p>
-    <p>Connectez-vous pour voir le devis signé.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>Prospect:</strong> ${prospectName}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Email:</strong> ${prospectEmail}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Projet:</strong> ${projectName}</p>
+      <p style="margin: 6px 0 0 0;"><strong>ID du devis:</strong> ${quoteId}</p>
+    </div>
+    <p>Le projet peut maintenant être lancé en phase de développement.</p>
+    <p>Vous pouvez télécharger le devis signé ci-dessous.</p>
   `;
 
   return sendEmail({
     to: ADMIN_EMAIL,
-    subject: `Devis signé : ${projectName}`,
-    html: getEmailTemplate(content, "Voir le devis", `${appUrl}/quotes/${quoteId}`)
+    subject: `Devis signé : ${projectName} - ${prospectName}`,
+    html: getEmailTemplate(content, "Télécharger le devis signé", signedPdfUrl)
   });
 }
 
