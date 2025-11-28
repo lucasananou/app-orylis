@@ -13,7 +13,8 @@ import {
   profiles,
   projectMessages,
   quotes,
-  tickets
+  tickets,
+  projectBriefs as briefs
 } from "@/lib/schema";
 import { summarizeOnboardingPayload } from "@/lib/onboarding-summary";
 import { countUnreadNotifications } from "@/lib/notifications";
@@ -45,6 +46,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 import { HostingWidget } from "@/components/dashboard/hosting-widget";
 import { SiteHealthWidget } from "@/components/dashboard/site-health-widget";
+import { BriefValidationCard } from "@/components/dashboard/brief-validation-card";
 
 // Cache intelligent : revalider toutes les 30 secondes
 // Les données changent peu souvent, pas besoin de force-dynamic
@@ -65,6 +67,15 @@ interface DashboardProject {
   demoUrl: string | null;
   hostingExpiresAt: string | null;
   maintenanceActive: boolean;
+  deliveredAt: string | null;
+  briefs: Array<{
+    id: string;
+    version: number;
+    content: string;
+    status: "draft" | "sent" | "approved" | "rejected";
+    clientComment: string | null;
+    createdAt: string;
+  }>;
   ownerId: string;
   ownerName: string | null;
   createdAt: string | null;
@@ -103,6 +114,7 @@ async function loadDashboardData() {
           demoUrl: projects.demoUrl,
           hostingExpiresAt: projects.hostingExpiresAt,
           maintenanceActive: projects.maintenanceActive,
+          deliveredAt: projects.deliveredAt,
           ownerId: projects.ownerId,
           ownerName: profiles.fullName,
           createdAt: projects.createdAt
@@ -120,6 +132,7 @@ async function loadDashboardData() {
           demoUrl: projects.demoUrl,
           hostingExpiresAt: projects.hostingExpiresAt,
           maintenanceActive: projects.maintenanceActive,
+          deliveredAt: projects.deliveredAt,
           ownerId: projects.ownerId,
           ownerName: profiles.fullName,
           createdAt: projects.createdAt
@@ -152,18 +165,31 @@ async function loadDashboardData() {
     }))
     : [];
 
-  const projectsData: DashboardProject[] = projectRows.map((project) => ({
-    id: project.id,
-    name: project.name,
-    status: project.status,
-    progress: project.progress,
-    dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
-    demoUrl: project.demoUrl ?? null,
-    hostingExpiresAt: project.hostingExpiresAt ? project.hostingExpiresAt.toISOString() : null,
-    maintenanceActive: project.maintenanceActive,
-    ownerId: project.ownerId,
-    ownerName: project.ownerName ?? null,
-    createdAt: project.createdAt ? project.createdAt.toISOString() : null
+  const projectsData: DashboardProject[] = await Promise.all(projectRows.map(async (project) => {
+    // Fetch project briefs
+    const projectBriefs = await db.query.projectBriefs.findMany({
+      where: eq(briefs.projectId, project.id),
+      orderBy: [desc(briefs.version)]
+    });
+
+    return {
+      id: project.id,
+      name: project.name,
+      status: project.status,
+      progress: project.progress,
+      dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
+      demoUrl: project.demoUrl ?? null,
+      hostingExpiresAt: project.hostingExpiresAt ? project.hostingExpiresAt.toISOString() : null,
+      maintenanceActive: project.maintenanceActive,
+      ownerId: project.ownerId,
+      ownerName: project.ownerName ?? null,
+      createdAt: project.createdAt ? project.createdAt.toISOString() : null,
+      deliveredAt: project.deliveredAt ? project.deliveredAt.toISOString() : null,
+      briefs: projectBriefs.map(b => ({
+        ...b,
+        createdAt: b.createdAt.toISOString()
+      }))
+    };
   }));
 
   // Pour les prospects, gérer les redirections selon le statut du projet
@@ -791,7 +817,20 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
           </div>
         ) : (
           <>
-            {onboardingCardProject && !onboardingCompleted ? (
+            {projectsData[0]?.briefs?.[0]?.status === "sent" ? (
+              <BriefValidationCard
+                brief={projectsData[0].briefs[0]}
+                onUpdate={() => {
+                  // Force refresh via server action or router refresh would be better
+                  // For now, we rely on the fact that the component handles its own state for immediate feedback
+                  // But to update the UI globally, we might need a refresh.
+                  // Since this is a server component, we can't easily pass a refresh handler that re-runs the server query.
+                  // The card itself shows success message. The user will likely reload or navigate.
+                  // Ideally: router.refresh()
+                  window.location.reload();
+                }}
+              />
+            ) : onboardingCardProject && !onboardingCompleted ? (
               <Card className="border-l-4 border-l-blue-600 border-y border-r border-slate-200 shadow-sm bg-white">
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">

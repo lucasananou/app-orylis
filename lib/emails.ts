@@ -1065,3 +1065,80 @@ export async function sendInternalInactivityNotification(
   });
 }
 
+
+/**
+ * Email : Brief envoyé au client
+ */
+export async function sendBriefSentEmail(userId: string, projectName: string) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Nouveau brief à valider 📝</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Nous avons rédigé le brief de production pour votre projet <strong>${projectName}</strong>.</p>
+    <p>Ce document récapitule les fonctionnalités et le contenu de votre futur site, basé sur vos réponses au questionnaire.</p>
+    <p><strong>Action requise :</strong> Merci de le lire attentivement et de le valider (ou demander des modifications) pour que nous puissions lancer la production.</p>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: `Action requise : Validez le brief pour ${projectName}`,
+    html: getEmailTemplate(content, "Lire le brief", `${appUrl}/`)
+  });
+}
+
+/**
+ * Email : Brief validé par le client (Admin)
+ */
+export async function sendBriefApprovedEmailToAdmin(
+  userId: string,
+  projectName: string
+) {
+  const user = await getUserInfo(userId);
+  const userName = user.name ?? "Client";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Brief validé ! ✅</h2>
+    <p><strong>${userName}</strong> a validé le brief pour le projet <strong>${projectName}</strong>.</p>
+    <p>La phase de production peut officiellement commencer.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Brief validé : ${projectName}`,
+    html: getEmailTemplate(content, "Voir le projet", `${appUrl}/admin/clients`)
+  });
+}
+
+/**
+ * Email : Brief rejeté / modifications demandées (Admin)
+ */
+export async function sendBriefRejectedEmailToAdmin(
+  userId: string,
+  projectName: string,
+  comment: string
+) {
+  const user = await getUserInfo(userId);
+  const userName = user.name ?? "Client";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Modifications demandées 💬</h2>
+    <p><strong>${userName}</strong> a demandé des modifications sur le brief du projet <strong>${projectName}</strong>.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>Commentaire :</strong></p>
+      <p style="margin: 8px 0 0 0; font-style: italic;">"${comment}"</p>
+    </div>
+    <p>Vous devez mettre à jour le brief et le renvoyer.</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Retour sur brief : ${projectName}`,
+    html: getEmailTemplate(content, "Voir le projet", `${appUrl}/admin/clients`)
+  });
+}

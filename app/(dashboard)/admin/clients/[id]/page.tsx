@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
+import { BriefManager } from "@/components/admin/brief-manager";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
@@ -143,6 +144,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                         />
                     </CardContent>
                 </Card>
+            )}
+
+            {project && (
+                <BriefManager projectId={project.id} />
             )}
         </div>
     );

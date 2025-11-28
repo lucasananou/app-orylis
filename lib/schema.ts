@@ -422,6 +422,33 @@ export const quotes = createTable(
   })
 );
 
+export const briefStatusEnum = pgEnum("brief_status", ["draft", "sent", "approved", "rejected"]);
+
+export const projectBriefs = createTable(
+  "project_briefs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    content: text("content").notNull(),
+    status: briefStatusEnum("status").notNull().default("draft"),
+    clientComment: text("client_comment"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (brief) => ({
+    projectIdx: index("project_briefs_project_id_idx").on(brief.projectId),
+    statusIdx: index("project_briefs_status_idx").on(brief.status)
+  })
+);
+
 export const profilesRelations = relations(profiles, ({ many, one }) => ({
   projects: many(projects),
   tickets: many(tickets),
@@ -505,7 +532,8 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   billingLinks: many(billingLinks),
   notifications: many(notifications),
   quotes: many(quotes),
-  subscriptions: many(subscriptions)
+  subscriptions: many(subscriptions),
+  briefs: many(projectBriefs)
 }));
 
 
@@ -601,5 +629,12 @@ export const passwordResetTokensRelations = relations(passwordResetTokens, ({ on
   user: one(authUsers, {
     fields: [passwordResetTokens.userId],
     references: [authUsers.id]
+  })
+}));
+
+export const projectBriefsRelations = relations(projectBriefs, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectBriefs.projectId],
+    references: [projects.id]
   })
 }));
