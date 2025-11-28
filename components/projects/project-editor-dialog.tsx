@@ -71,7 +71,9 @@ const editProjectSchema = z.object({
     .min(0, { message: "Progression minimale 0%." })
     .max(100, { message: "Progression maximale 100%." }),
   dueDate: dueDateSchema,
-  demoUrl: z.string().url({ message: "URL invalide." }).or(z.literal("")).optional()
+  demoUrl: z.string().url({ message: "URL invalide." }).or(z.literal("")).optional(),
+  hostingExpiresAt: z.string().optional(),
+  maintenanceActive: z.boolean().default(false)
 });
 
 type CreateProjectFormValues = z.infer<typeof createProjectSchema>;
@@ -90,6 +92,8 @@ type ExistingProject = {
   dueDate: string | null;
   ownerId: string;
   demoUrl?: string | null;
+  hostingExpiresAt?: string | null;
+  maintenanceActive?: boolean;
 };
 
 interface ProjectEditorDialogProps {
@@ -111,19 +115,21 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
     mode: "onChange",
     defaultValues: isCreateMode
       ? {
-          ownerId: owners.at(0)?.id ?? "",
-          name: "",
-          status: "onboarding",
-          progress: 10
-          // dueDate n'est pas inclus dans les valeurs par défaut pour la création
-        }
+        ownerId: owners.at(0)?.id ?? "",
+        name: "",
+        status: "onboarding",
+        progress: 10
+        // dueDate n'est pas inclus dans les valeurs par défaut pour la création
+      }
       : {
-          name: project?.name ?? "",
-          status: (project?.status as EditProjectFormValues["status"]) ?? "onboarding",
-          progress: project?.progress ?? 0,
-          dueDate: project?.dueDate ? project.dueDate.slice(0, 10) : "",
-          demoUrl: project?.demoUrl ?? ""
-        }
+        name: project?.name ?? "",
+        status: (project?.status as EditProjectFormValues["status"]) ?? "onboarding",
+        progress: project?.progress ?? 0,
+        dueDate: project?.dueDate ? project.dueDate.slice(0, 10) : "",
+        demoUrl: project?.demoUrl ?? "",
+        hostingExpiresAt: project?.hostingExpiresAt ? project.hostingExpiresAt.slice(0, 10) : "",
+        maintenanceActive: project?.maintenanceActive ?? false
+      }
   });
 
   React.useEffect(() => {
@@ -184,6 +190,11 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           const normalizedDemoUrl = editValues.demoUrl && editValues.demoUrl !== "" ? editValues.demoUrl : null;
           updates.demoUrl = normalizedDemoUrl;
 
+          // Hosting & Maintenance
+          const normalizedHostingExpiresAt = editValues.hostingExpiresAt && editValues.hostingExpiresAt !== "" ? new Date(editValues.hostingExpiresAt).toISOString() : null;
+          updates.hostingExpiresAt = normalizedHostingExpiresAt;
+          updates.maintenanceActive = editValues.maintenanceActive;
+
           // On envoie toujours: la route PATCH gérera No-op pour les autres champs
 
           const response = await fetch(`/api/projects/${project.id}`, {
@@ -209,7 +220,7 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
         // Déclencher l'email "Démo prête" systématiquement après le clic sur Enregistrer,
         // même si le PATCH a échoué (pour forcer la notification au prospect)
         if (project?.id) {
-          fetch(`/api/projects/${project.id}/demo-notify`, { method: "POST" }).catch(() => {});
+          fetch(`/api/projects/${project.id}/demo-notify`, { method: "POST" }).catch(() => { });
         }
       }
     });
@@ -351,6 +362,54 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
                     </FormItem>
                   )}
                 />
+
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="text-sm font-medium mb-4">Hébergement & Maintenance</h4>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="maintenanceActive"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>Pack Maintenance</FormLabel>
+                            <p className="text-xs text-muted-foreground">
+                              Active le badge "Premium" et masque les alertes de renouvellement.
+                            </p>
+                          </div>
+                          <FormControl>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                disabled={isSubmitting}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                            </div>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="hostingExpiresAt"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date d'expiration hébergement</FormLabel>
+                          <FormControl>
+                            <Input type="date" disabled={isSubmitting} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          <p className="text-xs text-muted-foreground">
+                            Utilisé pour le compte à rebours si la maintenance n'est pas active.
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </>
             )}
           </div>

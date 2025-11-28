@@ -37,6 +37,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     progress: number;
     dueDate: string | null;
     demoUrl: string | null;
+    hostingExpiresAt: string | null;
+    maintenanceActive: boolean;
   }>;
 
   const update: Record<string, unknown> = {};
@@ -45,6 +47,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   if (typeof body.progress === "number") update.progress = body.progress;
   if (body.dueDate !== undefined) update.dueDate = body.dueDate ? new Date(body.dueDate) : null;
   if (body.demoUrl !== undefined) update.demoUrl = body.demoUrl || null;
+  if (body.hostingExpiresAt !== undefined) update.hostingExpiresAt = body.hostingExpiresAt ? new Date(body.hostingExpiresAt) : null;
+  if (typeof body.maintenanceActive === "boolean") update.maintenanceActive = body.maintenanceActive;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
@@ -112,7 +116,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     review: "Review",
     delivered: "Livré"
   };
-  
+
   if (statusChanged) {
     updateMessages.push(
       `Statut : ${statusLabels[projectBefore.status] ?? projectBefore.status} → ${statusLabels[update.status as string] ?? update.status}`

@@ -43,6 +43,8 @@ import { ClientTodoWidget } from "@/components/dashboard/client-todo-widget";
 import { ProjectTimeline } from "@/components/dashboard/project-timeline";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
+import { HostingWidget } from "@/components/dashboard/hosting-widget";
+import { SiteHealthWidget } from "@/components/dashboard/site-health-widget";
 
 // Cache intelligent : revalider toutes les 30 secondes
 // Les données changent peu souvent, pas besoin de force-dynamic
@@ -61,6 +63,8 @@ interface DashboardProject {
   progress: number;
   dueDate: string | null;
   demoUrl: string | null;
+  hostingExpiresAt: string | null;
+  maintenanceActive: boolean;
   ownerId: string;
   ownerName: string | null;
   createdAt: string | null;
@@ -97,6 +101,8 @@ async function loadDashboardData() {
           progress: projects.progress,
           dueDate: projects.dueDate,
           demoUrl: projects.demoUrl,
+          hostingExpiresAt: projects.hostingExpiresAt,
+          maintenanceActive: projects.maintenanceActive,
           ownerId: projects.ownerId,
           ownerName: profiles.fullName,
           createdAt: projects.createdAt
@@ -112,6 +118,8 @@ async function loadDashboardData() {
           progress: projects.progress,
           dueDate: projects.dueDate,
           demoUrl: projects.demoUrl,
+          hostingExpiresAt: projects.hostingExpiresAt,
+          maintenanceActive: projects.maintenanceActive,
           ownerId: projects.ownerId,
           ownerName: profiles.fullName,
           createdAt: projects.createdAt
@@ -151,6 +159,8 @@ async function loadDashboardData() {
     progress: project.progress,
     dueDate: project.dueDate ? new Date(project.dueDate).toISOString() : null,
     demoUrl: project.demoUrl ?? null,
+    hostingExpiresAt: project.hostingExpiresAt ? project.hostingExpiresAt.toISOString() : null,
+    maintenanceActive: project.maintenanceActive,
     ownerId: project.ownerId,
     ownerName: project.ownerName ?? null,
     createdAt: project.createdAt ? project.createdAt.toISOString() : null
@@ -778,6 +788,35 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                   </p>
                 </CardContent>
               </Card>
+            ) : projectsData[0]?.status === "delivered" ? (
+              <div className="space-y-6">
+                <div className="rounded-lg bg-green-50 p-4 text-green-800 border border-green-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
+                      🚀
+                    </span>
+                    <div>
+                      <h3 className="font-semibold">Votre site est en ligne !</h3>
+                      <p className="text-sm text-green-700">Félicitations, votre projet est publié et accessible à tous.</p>
+                    </div>
+                  </div>
+                  {projectsData[0].demoUrl && (
+                    <Button asChild variant="outline" className="w-full sm:w-auto bg-white border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800">
+                      <a href={projectsData[0].demoUrl} target="_blank" rel="noopener noreferrer">
+                        Voir mon site
+                      </a>
+                    </Button>
+                  )}
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <HostingWidget
+                    hostingExpiresAt={projectsData[0].hostingExpiresAt ? new Date(projectsData[0].hostingExpiresAt) : null}
+                    maintenanceActive={projectsData[0].maintenanceActive}
+                  />
+                  <SiteHealthWidget maintenanceActive={projectsData[0].maintenanceActive} />
+                </div>
+              </div>
             ) : (
               <Card className="border-l-4 border-l-green-600 border-y border-r border-slate-200 shadow-sm bg-white">
                 <CardHeader>

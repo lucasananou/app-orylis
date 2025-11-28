@@ -110,6 +110,8 @@ export const projects = createTable(
     progress: integer("progress").notNull().default(10),
     dueDate: date("due_date"),
     demoUrl: text("demo_url"),
+    hostingExpiresAt: timestamp("hosting_expires_at", { withTimezone: true }),
+    maintenanceActive: boolean("maintenance_active").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`)
