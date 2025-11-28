@@ -1,7 +1,7 @@
 ﻿// app/api/onboarding/route.ts
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -131,13 +131,20 @@ export async function POST(req: NextRequest) {
     )
   });
 
+  const type = isProspectPayload ? "prospect" : "client";
+
   const existing = await db
     .select({
       id: onboardingResponses.id,
       completed: onboardingResponses.completed
     })
     .from(onboardingResponses)
-    .where(eq(onboardingResponses.projectId, projectId))
+    .where(
+      and(
+        eq(onboardingResponses.projectId, projectId),
+        eq(onboardingResponses.type, type)
+      )
+    )
     .then((rows) => rows.at(0) ?? null);
 
   try {
@@ -154,7 +161,7 @@ export async function POST(req: NextRequest) {
       );
     } else {
       await db.execute(
-        sql`INSERT INTO ${onboardingResponses} (project_id, payload, completed) VALUES (${projectId}, ${jsonbValue}, ${completed})`
+        sql`INSERT INTO ${onboardingResponses} (project_id, type, payload, completed) VALUES (${projectId}, ${type}, ${jsonbValue}, ${completed})`
       );
     }
   } catch (error) {

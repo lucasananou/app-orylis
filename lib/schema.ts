@@ -122,6 +122,8 @@ export const projects = createTable(
   })
 );
 
+export const onboardingTypeEnum = pgEnum("onboarding_type", ["prospect", "client"]);
+
 export const onboardingResponses = createTable(
   "onboarding_responses",
   {
@@ -129,6 +131,7 @@ export const onboardingResponses = createTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
+    type: onboardingTypeEnum("type").notNull().default("prospect"),
     payload: jsonb("payload").notNull(),
     completed: boolean("completed").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })

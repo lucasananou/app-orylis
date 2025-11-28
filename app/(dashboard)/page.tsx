@@ -231,7 +231,12 @@ async function loadDashboardData() {
           updatedAt: onboardingResponses.updatedAt
         })
         .from(onboardingResponses)
-        .where(eq(onboardingResponses.projectId, mainProject.id))
+        .where(
+          and(
+            eq(onboardingResponses.projectId, mainProject.id),
+            eq(onboardingResponses.type, "prospect")
+          )
+        )
         .then((rows) => rows.at(0) ?? null),
       db
         .select({
@@ -333,8 +338,11 @@ async function loadDashboardData() {
     };
   }
 
-  // Pour les clients/staff, charger toutes les données en parallèle
-  const onboardingPromise = onboardingProject
+  // Pour les clients/staff,  // Charger l'onboarding du projet principal (le premier)
+  // Si c'est un prospect, on veut le type "prospect", sinon "client"
+  const expectedOnboardingType = isProspectUser ? "prospect" : "client";
+
+  const onboardingPromise = projectsData.length > 0
     ? db
       .select({
         payload: onboardingResponses.payload,
@@ -342,7 +350,12 @@ async function loadDashboardData() {
         completed: onboardingResponses.completed
       })
       .from(onboardingResponses)
-      .where(eq(onboardingResponses.projectId, onboardingProject.id))
+      .where(
+        and(
+          eq(onboardingResponses.projectId, projectsData[0].id),
+          eq(onboardingResponses.type, expectedOnboardingType)
+        )
+      )
       .then((rows) => rows.at(0) ?? null)
     : Promise.resolve(null);
 

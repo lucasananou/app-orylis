@@ -9,6 +9,7 @@ import { Loader2, Send, History, CheckCircle2, XCircle, AlertCircle } from "luci
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { OnboardingViewer } from "@/components/admin/onboarding-viewer";
 
 interface Brief {
     id: string;
@@ -132,7 +133,14 @@ export function BriefManager({ projectId }: BriefManagerProps) {
 
                     {/* Editor */}
                     {!isApproved && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
+                            {!currentBrief && (
+                                <OnboardingViewer
+                                    projectId={projectId}
+                                    onGenerateBrief={(content) => setNewContent(content)}
+                                />
+                            )}
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">
                                     {currentBrief ? `Nouvelle version (v${currentBrief.version + 1})` : "Premier brouillon"}
