@@ -836,30 +836,6 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     html: getEmailTemplate(content, "Réinitialiser mon mot de passe", resetUrl)
   });
 }
-projectName: string,
-  prospectName: string,
-    prospectEmail: string,
-      signedPdfUrl: string
-) {
-  const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Nouveau devis signé ! 🎉</h2>
-    <p>Un devis vient d'être signé par un prospect.</p>
-    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
-      <p style="margin: 0;"><strong>Prospect:</strong> ${prospectName}</p>
-      <p style="margin: 6px 0 0 0;"><strong>Email:</strong> ${prospectEmail}</p>
-      <p style="margin: 6px 0 0 0;"><strong>Projet:</strong> ${projectName}</p>
-      <p style="margin: 6px 0 0 0;"><strong>ID du devis:</strong> ${quoteId}</p>
-    </div>
-    <p>Le projet peut maintenant être lancé en phase de développement.</p>
-    <p>Vous pouvez télécharger le devis signé ci-dessous.</p>
-  `;
-
-  return sendEmail({
-    to: ADMIN_EMAIL,
-    subject: `Devis signé : ${projectName} - ${prospectName}`,
-    html: getEmailTemplate(content, "Télécharger le devis signé", signedPdfUrl)
-  });
-}
 
 /**
  * Email de notification : devis généré (envoyé au prospect)

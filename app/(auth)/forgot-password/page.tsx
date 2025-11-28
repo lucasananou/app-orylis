@@ -7,13 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { requestPasswordReset } from "@/app/actions/auth-reset";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 
 export default function ForgotPasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const { toast } = useToast();
 
     async function handleSubmit(formData: FormData) {
         setIsLoading(true);
@@ -21,24 +20,15 @@ export default function ForgotPasswordPage() {
             const result = await requestPasswordReset(formData);
 
             if (result?.error) {
-                toast({
-                    variant: "destructive",
-                    title: "Erreur",
-                    description: result.error,
-                });
+                toast.error(result.error);
             } else {
                 setIsSubmitted(true);
-                toast({
-                    title: "Email envoyé",
+                toast.success("Email envoyé", {
                     description: "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
                 });
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Une erreur est survenue. Veuillez réessayer.",
-            });
+            toast.error("Une erreur est survenue. Veuillez réessayer.");
         } finally {
             setIsLoading(false);
         }
