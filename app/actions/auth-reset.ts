@@ -114,6 +114,5 @@ export async function resetPassword(formData: FormData) {
         return { error: "Une erreur est survenue" };
     }
 
-    // Redirection hors du try/catch car cela lance une erreur NEXT_REDIRECT
-    redirect("/login?reset=success");
+    return { success: true };
 }

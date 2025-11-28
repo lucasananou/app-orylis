@@ -33,6 +33,10 @@ function ResetPasswordForm() {
             } else {
                 setIsSuccess(true);
                 toast.success("Mot de passe mis à jour avec succès !");
+                // Redirect to login after a short delay
+                setTimeout(() => {
+                    window.location.href = "/login?reset=success";
+                }, 2000);
             }
         } catch (error) {
             toast.error("Une erreur est survenue. Veuillez réessayer.");
