@@ -1,0 +1,6 @@
+[2025-11-28T05:55:11.668Z] Starting PDF generation test... 
+[2025-11-28T05:55:11.679Z] [Test] Checking local paths: ["C:\\Users\\lpuss\\app orylis\\public\\logo-orylis.png","C:\\Users\\lpuss\\app orylis\\logo-orylis.png","C:\\Users\\lpuss\\app orylis\\public\\logo-orylis.png"]
+[2025-11-28T05:55:11.679Z] [Test] Trying to read file: C:\Users\lpuss\app orylis\public\logo-orylis.png 
+[2025-11-28T05:55:11.681Z] [Test] File read successfully. Size: 136599 bytes 
+[2025-11-28T05:55:11.690Z] Logo loaded from: "C:\\Users\\lpuss\\app orylis\\public\\logo-orylis.png"
+[2025-11-28T05:55:11.695Z] PDF generated at: C:\Users\lpuss\app orylis\test-quote.pdf 

@@ -1,0 +1,41 @@
+[1mdiff --git a/app/(dashboard)/admin/clients/page.tsx b/app/(dashboard)/admin/clients/page.tsx[m
+[1mindex 76859d1..17395fc 100644[m
+[1m--- a/app/(dashboard)/admin/clients/page.tsx[m
+[1m+++ b/app/(dashboard)/admin/clients/page.tsx[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-import { redirect } from "next/navigation";[m
+[32m+[m[32m﻿import { redirect } from "next/navigation";[m
+ import { eq, asc, or } from "drizzle-orm";[m
+ import { auth } from "@/auth";[m
+ import { db } from "@/lib/db";[m
+[36m@@ -30,10 +30,10 @@[m [masync function loadClientsData() {[m
+     .where(or(eq(profiles.role, "prospect"), eq(profiles.role, "client")))[m
+     .orderBy(asc(profiles.fullName));[m
+ [m
+[31m-  // Compter les projets par client et récupérer le premier projet pour les prospects[m
+[32m+[m[32m  // Compter les projets par client et r├®cup├®rer le premier projet pour les prospects[m
+   const clientsWithProjects = await Promise.all([m
+     clients[m
+[31m-      .filter((client) => client.role !== "staff") // Filtrer les staff (ne devrait pas arriver mais sécurité)[m
+[32m+[m[32m      .filter((client) => client.role !== "staff") // Filtrer les staff (ne devrait pas arriver mais s├®curit├®)[m
+       .map(async (client) => {[m
+         const clientProjects = await db[m
+           .select({[m
+[36m@@ -55,7 +55,7 @@[m [masync function loadClientsData() {[m
+             .then((rows) => rows.length),[m
+           firstProject: clientProjects[0] ?? null,[m
+           createdAt: client.createdAt?.toISOString() ?? null,[m
+[31m-          role: client.role as "prospect" | "client" // Type assertion car on a filtré les staff[m
+[32m+[m[32m          role: client.role as "prospect" | "client" // Type assertion car on a filtr├® les staff[m
+         };[m
+       })[m
+   );[m
+[36m@@ -70,7 +70,7 @@[m [mexport default async function AdminClientsPage() {[m
+     <div className="space-y-6">[m
+       <PageHeader[m
+         title="Gestion des clients"[m
+[31m-        description="Gérez les clients et prospects. Promouvez les prospects en clients pour leur donner accès à toutes les fonctionnalités."[m
+[32m+[m[32m        description="G├®rez les clients et prospects. Promouvez les prospects en clients pour leur donner acc├¿s ├á toutes les fonctionnalit├®s."[m
+       />[m
+ [m
+       <ClientsList clients={clients} />[m
