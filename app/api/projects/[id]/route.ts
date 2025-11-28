@@ -39,6 +39,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     demoUrl: string | null;
     hostingExpiresAt: string | null;
     maintenanceActive: boolean;
+    deliveredAt: string | null;
   }>;
 
   const update: Record<string, unknown> = {};
@@ -49,6 +50,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   if (body.demoUrl !== undefined) update.demoUrl = body.demoUrl || null;
   if (body.hostingExpiresAt !== undefined) update.hostingExpiresAt = body.hostingExpiresAt ? new Date(body.hostingExpiresAt) : null;
   if (typeof body.maintenanceActive === "boolean") update.maintenanceActive = body.maintenanceActive;
+  if (body.deliveredAt !== undefined) update.deliveredAt = body.deliveredAt ? new Date(body.deliveredAt) : null;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });

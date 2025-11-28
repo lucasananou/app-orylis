@@ -760,6 +760,35 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
               <DashboardProjects projects={projectsData} role={role} ownerOptions={ownerOptions} />
             </CardContent>
           </Card>
+        ) : projectsData[0]?.status === "delivered" ? (
+          <div className="space-y-6">
+            <div className="rounded-lg bg-green-50 p-4 text-green-800 border border-green-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
+                  🚀
+                </span>
+                <div>
+                  <h3 className="font-semibold">Votre site est en ligne !</h3>
+                  <p className="text-sm text-green-700">Félicitations, votre projet est publié et accessible à tous.</p>
+                </div>
+              </div>
+              {projectsData[0].demoUrl && (
+                <Button asChild variant="outline" className="w-full sm:w-auto bg-white border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800">
+                  <a href={projectsData[0].demoUrl} target="_blank" rel="noopener noreferrer">
+                    Voir mon site
+                  </a>
+                </Button>
+              )}
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <HostingWidget
+                hostingExpiresAt={projectsData[0].hostingExpiresAt ? new Date(projectsData[0].hostingExpiresAt) : null}
+                maintenanceActive={projectsData[0].maintenanceActive}
+              />
+              <SiteHealthWidget maintenanceActive={projectsData[0].maintenanceActive} />
+            </div>
+          </div>
         ) : (
           <>
             {onboardingCardProject && !onboardingCompleted ? (
@@ -788,35 +817,6 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                   </p>
                 </CardContent>
               </Card>
-            ) : projectsData[0]?.status === "delivered" ? (
-              <div className="space-y-6">
-                <div className="rounded-lg bg-green-50 p-4 text-green-800 border border-green-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
-                      🚀
-                    </span>
-                    <div>
-                      <h3 className="font-semibold">Votre site est en ligne !</h3>
-                      <p className="text-sm text-green-700">Félicitations, votre projet est publié et accessible à tous.</p>
-                    </div>
-                  </div>
-                  {projectsData[0].demoUrl && (
-                    <Button asChild variant="outline" className="w-full sm:w-auto bg-white border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800">
-                      <a href={projectsData[0].demoUrl} target="_blank" rel="noopener noreferrer">
-                        Voir mon site
-                      </a>
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <HostingWidget
-                    hostingExpiresAt={projectsData[0].hostingExpiresAt ? new Date(projectsData[0].hostingExpiresAt) : null}
-                    maintenanceActive={projectsData[0].maintenanceActive}
-                  />
-                  <SiteHealthWidget maintenanceActive={projectsData[0].maintenanceActive} />
-                </div>
-              </div>
             ) : (
               <Card className="border-l-4 border-l-green-600 border-y border-r border-slate-200 shadow-sm bg-white">
                 <CardHeader>
@@ -848,30 +848,32 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
         )}
       </section>
 
-      <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[2fr_1fr]">
-        <DashboardOnboardingCard project={onboardingCardProject} role={role} />
+      {(!projectsData[0] || projectsData[0].status !== "delivered") && (
+        <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[2fr_1fr]">
+          <DashboardOnboardingCard project={onboardingCardProject} role={role} />
 
-        <Card className="border border-border/70">
-          <CardHeader className="pb-3">
-            <CardTitle>Guide & Support</CardTitle>
-            <CardDescription>Accédez à la base de connaissances et au support.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/guide">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Base de connaissances
-              </Link>
-            </Button>
-            <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-              <span>Email support</span>
-              <Button size="sm" variant="ghost" asChild>
-                <a href="mailto:contact@orylis.fr">contact@orylis.fr</a>
+          <Card className="border border-border/70">
+            <CardHeader className="pb-3">
+              <CardTitle>Guide & Support</CardTitle>
+              <CardDescription>Accédez à la base de connaissances et au support.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link href="/guide">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Base de connaissances
+                </Link>
               </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+              <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                <span>Email support</span>
+                <Button size="sm" variant="ghost" asChild>
+                  <a href="mailto:contact@orylis.fr">contact@orylis.fr</a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       <section className="mt-6">
         <DashboardActivity items={activityItems} />

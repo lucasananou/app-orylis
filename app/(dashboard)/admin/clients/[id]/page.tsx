@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { ClientServicesManager } from "@/components/admin/client-services-manager";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
+import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
@@ -82,8 +83,30 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
                 {project && (
                     <Card>
-                        <CardHeader>
-                            <CardTitle>Projet Principal</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-semibold">Projet Principal</CardTitle>
+                            <ProjectEditorDialog
+                                mode="edit"
+                                owners={[{ id: client.id, name: client.fullName || "Client" }]}
+                                project={{
+                                    id: project.id,
+                                    name: project.name,
+                                    status: project.status,
+                                    progress: project.progress,
+                                    dueDate: project.dueDate,
+                                    ownerId: project.ownerId,
+                                    demoUrl: project.demoUrl,
+                                    hostingExpiresAt: project.hostingExpiresAt ? project.hostingExpiresAt.toISOString() : null,
+                                    maintenanceActive: project.maintenanceActive,
+                                    deliveredAt: project.deliveredAt ? project.deliveredAt.toISOString() : null
+                                }}
+                                trigger={
+                                    <Button variant="outline" size="sm">
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Gérer le projet
+                                    </Button>
+                                }
+                            />
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div>

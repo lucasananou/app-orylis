@@ -73,7 +73,8 @@ const editProjectSchema = z.object({
   dueDate: dueDateSchema,
   demoUrl: z.string().url({ message: "URL invalide." }).or(z.literal("")).optional(),
   hostingExpiresAt: z.string().optional(),
-  maintenanceActive: z.boolean().default(false)
+  maintenanceActive: z.boolean().default(false),
+  deliveredAt: z.string().optional()
 });
 
 type CreateProjectFormValues = z.infer<typeof createProjectSchema>;
@@ -94,6 +95,7 @@ type ExistingProject = {
   demoUrl?: string | null;
   hostingExpiresAt?: string | null;
   maintenanceActive?: boolean;
+  deliveredAt?: string | null;
 };
 
 interface ProjectEditorDialogProps {
@@ -128,7 +130,8 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
         dueDate: project?.dueDate ? project.dueDate.slice(0, 10) : "",
         demoUrl: project?.demoUrl ?? "",
         hostingExpiresAt: project?.hostingExpiresAt ? project.hostingExpiresAt.slice(0, 10) : "",
-        maintenanceActive: project?.maintenanceActive ?? false
+        maintenanceActive: project?.maintenanceActive ?? false,
+        deliveredAt: project?.deliveredAt ? project.deliveredAt.slice(0, 10) : ""
       }
   });
 
@@ -194,6 +197,9 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           const normalizedHostingExpiresAt = editValues.hostingExpiresAt && editValues.hostingExpiresAt !== "" ? new Date(editValues.hostingExpiresAt).toISOString() : null;
           updates.hostingExpiresAt = normalizedHostingExpiresAt;
           updates.maintenanceActive = editValues.maintenanceActive;
+
+          const normalizedDeliveredAt = editValues.deliveredAt && editValues.deliveredAt !== "" ? new Date(editValues.deliveredAt).toISOString() : null;
+          updates.deliveredAt = normalizedDeliveredAt;
 
           // On envoie toujours: la route PATCH gérera No-op pour les autres champs
 
@@ -404,6 +410,23 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
                           <FormMessage />
                           <p className="text-xs text-muted-foreground">
                             Utilisé pour le compte à rebours si la maintenance n'est pas active.
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="deliveredAt"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date de livraison (Mise en ligne)</FormLabel>
+                          <FormControl>
+                            <Input type="date" disabled={isSubmitting} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          <p className="text-xs text-muted-foreground">
+                            Date officielle de mise en ligne du site.
                           </p>
                         </FormItem>
                       )}

@@ -112,6 +112,7 @@ export const projects = createTable(
     demoUrl: text("demo_url"),
     hostingExpiresAt: timestamp("hosting_expires_at", { withTimezone: true }),
     maintenanceActive: boolean("maintenance_active").notNull().default(false),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`)
