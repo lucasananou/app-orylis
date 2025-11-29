@@ -33,7 +33,7 @@ export function SiteReviewCard({ project }: SiteReviewCardProps) {
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                     <Button asChild className="gap-2" variant="default">
-                        <Link href={project.demoUrl as string} target="_blank" rel="noopener noreferrer">
+                        <Link href={project.demoUrl as any} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="h-4 w-4" />
                             Voir mon site
                         </Link>
