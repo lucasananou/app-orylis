@@ -1,6 +1,5 @@
 import * as React from "react";
 import { redirect } from "next/navigation";
-// @ts-expect-error React cache is available in Next.js environment
 import { cache } from "react";
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
