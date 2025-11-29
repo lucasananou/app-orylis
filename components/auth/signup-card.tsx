@@ -162,7 +162,7 @@ export function SignupCard() {
                     inputMode="email"
                     placeholder="vous@entreprise.fr"
                     disabled={isSubmitting}
-                    className="pl-10"
+                    className="pl-10 text-base sm:text-sm"
                     {...field}
                   />
                 </div>
@@ -186,6 +186,7 @@ export function SignupCard() {
                 <Input
                   placeholder="Prénom Nom"
                   disabled={isSubmitting}
+                  className="text-base sm:text-sm"
                   {...field}
                 />
               </FormControl>

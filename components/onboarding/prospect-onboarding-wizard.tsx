@@ -686,7 +686,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                                             key={option.value}
                                                             className={cn(
                                                                 "flex cursor-pointer items-center justify-center text-center rounded-xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50",
-                                                                field.value.includes(option.value) && "border-blue-500 bg-blue-50 font-medium text-blue-700"
+                                                                field.value.includes(option.value) && "border-blue-500 bg-blue-50 text-blue-700"
                                                             )}
                                                         >
                                                             <input
@@ -702,7 +702,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                                                     }
                                                                 }}
                                                             />
-                                                            <span>{option.label}</span>
+                                                            <span className="font-medium">{option.label}</span>
                                                         </label>
                                                     ))}
                                                 </div>
@@ -907,53 +907,55 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                         </div>
 
                         {/* Navigation Footer */}
-                        <div className="flex items-center justify-between pt-8 border-t border-slate-100">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="lg"
-                                onClick={handlePreviousStep}
-                                disabled={currentStepIndex === 0 || isSubmitting}
-                                className="text-slate-500 hover:text-slate-900"
-                            >
-                                <ArrowLeft className="mr-2 h-5 w-5" />
-                                Retour
-                            </Button>
+                        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-100 bg-white p-4 sm:static sm:border-t-0 sm:bg-transparent sm:p-0 sm:pt-8">
+                            <div className="mx-auto flex max-w-2xl items-center justify-between">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="lg"
+                                    onClick={handlePreviousStep}
+                                    disabled={currentStepIndex === 0 || isSubmitting}
+                                    className="text-slate-500 hover:text-slate-900"
+                                >
+                                    <ArrowLeft className="mr-2 h-5 w-5" />
+                                    Retour
+                                </Button>
 
-                            <div className="flex items-center gap-4">
-                                {isSavingDraft && (
-                                    <span className="text-xs text-muted-foreground animate-pulse">
-                                        Sauvegarde...
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-4">
+                                    {isSavingDraft && (
+                                        <span className="hidden text-xs text-muted-foreground animate-pulse sm:inline-block">
+                                            Sauvegarde...
+                                        </span>
+                                    )}
 
-                                {currentStepIndex < stepDefinitions.length - 1 ? (
-                                    <Button
-                                        type="button"
-                                        size="lg"
-                                        onClick={handleNextStep}
-                                        disabled={isSubmitting}
-                                        className="min-w-[140px] text-lg h-12 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
-                                    >
-                                        Continuer
-                                        <ArrowRight className="ml-2 h-5 w-5" />
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        type="button"
-                                        size="lg"
-                                        onClick={handleSubmit}
-                                        disabled={isSubmitting}
-                                        className="min-w-[140px] text-lg h-12 rounded-full bg-green-600 hover:bg-green-700 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 transition-all"
-                                    >
-                                        {isSubmitting ? (
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        ) : (
-                                            <CheckCircle2 className="mr-2 h-5 w-5" />
-                                        )}
-                                        Valider
-                                    </Button>
-                                )}
+                                    {currentStepIndex < stepDefinitions.length - 1 ? (
+                                        <Button
+                                            type="button"
+                                            size="lg"
+                                            onClick={handleNextStep}
+                                            disabled={isSubmitting}
+                                            className="min-w-[140px] text-lg h-12 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
+                                        >
+                                            Continuer
+                                            <ArrowRight className="ml-2 h-5 w-5" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            size="lg"
+                                            onClick={handleSubmit}
+                                            disabled={isSubmitting}
+                                            className="min-w-[140px] text-lg h-12 rounded-full bg-green-600 hover:bg-green-700 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 transition-all"
+                                        >
+                                            {isSubmitting ? (
+                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            ) : (
+                                                <CheckCircle2 className="mr-2 h-5 w-5" />
+                                            )}
+                                            Valider
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
