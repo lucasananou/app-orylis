@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { users, projects, onboarding_data, profiles } from "@/lib/schema";
+import { authUsers, projects, onboardingResponses, profiles, userCredentials } from "@/lib/schema";
 import { PublicOnboardingSchema } from "@/lib/zod-schemas";
 import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
@@ -21,8 +21,8 @@ export async function POST(req: Request) {
         const { firstName, lastName, email, ...onboardingData } = result.data;
 
         // 1. Check if user exists
-        const existingUser = await db.query.users.findFirst({
-            where: eq(users.email, email),
+        const existingUser = await db.query.authUsers.findFirst({
+            where: eq(authUsers.email, email),
         });
 
         if (existingUser) {
@@ -38,20 +38,26 @@ export async function POST(req: Request) {
         const userId = randomUUID();
 
         await db.transaction(async (tx) => {
-            // Insert User
-            await tx.insert(users).values({
+            // Insert User (authUsers)
+            await tx.insert(authUsers).values({
                 id: userId,
                 email,
-                password: hashedPassword,
-                role: "prospect",
+                emailVerified: new Date(), // Optional but good practice
             });
 
             // Insert Profile
             await tx.insert(profiles).values({
-                userId,
-                full_name: `${firstName} ${lastName}`,
+                id: userId, // profiles.id references authUsers.id
+                role: "prospect",
+                fullName: `${firstName} ${lastName}`,
                 company: onboardingData.companyName,
                 phone: onboardingData.phone,
+            });
+
+            // Insert Credentials
+            await tx.insert(userCredentials).values({
+                userId,
+                passwordHash: hashedPassword,
             });
 
             // 3. Create Project
@@ -65,11 +71,11 @@ export async function POST(req: Request) {
             });
 
             // 4. Save Onboarding Data
-            await tx.insert(onboarding_data).values({
+            await tx.insert(onboardingResponses).values({
                 projectId,
                 payload: onboardingData,
                 completed: true,
-                step: "completed",
+                type: "prospect",
             });
 
             // 5. Trigger Webhooks (Fire and Forget)
