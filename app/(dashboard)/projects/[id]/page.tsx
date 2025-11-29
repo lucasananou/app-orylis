@@ -23,6 +23,7 @@ import { ProgressBadge } from "@/components/ui/progress-badge";
 import { ProjectRequestDialog } from "@/components/projects/project-request-dialog";
 import { ProjectFeedbackDialog } from "@/components/projects/project-feedback-dialog";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
+import { AdminProjectControls } from "@/components/projects/admin-project-controls";
 
 export const dynamic = "force-dynamic";
 
@@ -138,6 +139,17 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
+          {staff && (
+            <AdminProjectControls
+              project={{
+                id: projectRow.id,
+                name: projectRow.name,
+                status: projectRow.status,
+                demoUrl: projectRow.demoUrl
+              }}
+            />
+          )}
+
           <Card className="border border-border/70">
             <CardHeader className="space-y-2">
               <CardTitle className="flex items-center justify-between gap-3">
@@ -172,31 +184,33 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
                 </div>
               )}
               <div className="flex flex-wrap gap-3">
-                {canCreateRequest ? (
+                {canCreateRequest && !staff ? (
                   <>
-                    {staff && (
-                      <ProjectEditorDialog
-                        mode="edit"
-                        project={{
-                          id: projectRow.id,
-                          name: projectRow.name,
-                          status: projectRow.status,
-                          progress: projectRow.progress,
-                          dueDate: projectRow.dueDate,
-                          ownerId: projectRow.ownerId,
-                          demoUrl: projectRow.demoUrl,
-                          hostingExpiresAt: projectRow.hostingExpiresAt ? projectRow.hostingExpiresAt.toISOString() : null,
-                          maintenanceActive: projectRow.maintenanceActive,
-                          deliveredAt: projectRow.deliveredAt ? projectRow.deliveredAt.toISOString() : null
-                        }}
-                        owners={owners}
-                        trigger={<Button variant="default">Modifier le projet</Button>}
-                      />
-                    )}
                     <ProjectRequestDialog projectId={projectRow.id} projectName={projectRow.name} role={user.role} />
                     <ProjectFeedbackDialog projectId={projectRow.id} projectName={projectRow.name} role={user.role} />
                   </>
                 ) : null}
+
+                {staff && (
+                  <ProjectEditorDialog
+                    mode="edit"
+                    project={{
+                      id: projectRow.id,
+                      name: projectRow.name,
+                      status: projectRow.status,
+                      progress: projectRow.progress,
+                      dueDate: projectRow.dueDate,
+                      ownerId: projectRow.ownerId,
+                      demoUrl: projectRow.demoUrl,
+                      hostingExpiresAt: projectRow.hostingExpiresAt ? projectRow.hostingExpiresAt.toISOString() : null,
+                      maintenanceActive: projectRow.maintenanceActive,
+                      deliveredAt: projectRow.deliveredAt ? projectRow.deliveredAt.toISOString() : null
+                    }}
+                    owners={owners}
+                    trigger={<Button variant="outline">Éditer les métadonnées</Button>}
+                  />
+                )}
+
                 <Button asChild variant="outline">
                   <Link href={`/projects/${projectRow.id}/onboarding` as Route}>Voir l’onboarding</Link>
                 </Button>
