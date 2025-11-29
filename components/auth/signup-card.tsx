@@ -55,7 +55,7 @@ export function SignupCard() {
       try {
         // Étape 1 : Création de l'espace sécurisé
         setLoadingStep("Création de votre espace sécurisé...");
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Créer le compte
         const signupResponse = await fetch("/api/auth/signup", {
@@ -79,7 +79,7 @@ export function SignupCard() {
 
         // Étape 2 : Connexion
         setLoadingStep("Connexion aux serveurs Orylis...");
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Connecter automatiquement l'utilisateur
         const effectivePassword: string | undefined = signupData.password;
@@ -100,7 +100,7 @@ export function SignupCard() {
 
         // Étape 3 : Redirection
         setLoadingStep("En route vers votre futur site...");
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // TODO: Événement "signup_submit_success" pour tracking
         // Exemple: trackEvent("signup_submit_success", { userId: signupData.userId });

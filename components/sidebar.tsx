@@ -88,6 +88,11 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
             return null;
           }
 
+          // Masquer les items pour les prospects (sauf Dashboard et Onboarding)
+          if (role === "prospect" && !["/", "/onboarding"].includes(item.href)) {
+            return null;
+          }
+
           // Vérifier les permissions pour tickets, files, billing
           const isRestricted =
             (item.href === "/tickets" && !canAccessTickets(role)) ||

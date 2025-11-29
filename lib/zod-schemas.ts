@@ -482,8 +482,12 @@ export const notificationMarkSchema = z
 // Schémas pour le formulaire d'onboarding PROSPECT (simplifié)
 // ============================================
 
-// Étape 1 : Votre activité
-export const ProspectOnboardingStep1Schema = z.object({
+// ============================================
+// Schémas pour le formulaire d'onboarding PROSPECT (granularisé)
+// ============================================
+
+// 1. Coordonnées
+export const ProspectContactSchema = z.object({
   companyName: z
     .string()
     .min(1, { message: "Le nom de l'entreprise est requis." })
@@ -492,25 +496,32 @@ export const ProspectOnboardingStep1Schema = z.object({
     .string()
     .min(2, { message: "Merci d'indiquer votre activité principale." })
     .max(200, { message: "200 caractères maximum." }),
-  // Email supprimé - déjà renseigné à l'inscription
   phone: z
     .string()
     .min(1, { message: "Le numéro de téléphone est obligatoire." })
     .regex(/^[0-9\s+().-]{8,30}$/, {
       message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
-    }),
+    })
+});
+
+// 2. Objectifs
+export const ProspectGoalSchema = z.object({
   siteGoal: z
     .array(z.enum(["present_services", "get_contacts", "sell_online", "optimize_image", "other"]))
     .min(1, { message: "Sélectionnez au moins un objectif pour votre site." }),
   siteGoalOther: z.string().max(200).optional()
 });
 
-// Étape 2 : Style & inspirations
-export const ProspectOnboardingStep2Schema = z.object({
+// 3. Inspirations
+export const ProspectInspirationSchema = z.object({
   inspirationUrls: z
     .array(z.string().url({ message: "URL invalide." }).or(z.literal("")))
     .max(3, { message: "Maximum 3 liens." })
-    .optional(),
+    .optional()
+});
+
+// 4. Style
+export const ProspectStyleSchema = z.object({
   preferredStyles: z
     .array(
       z.enum([
@@ -525,20 +536,24 @@ export const ProspectOnboardingStep2Schema = z.object({
     .min(1, { message: "Sélectionnez au moins un style ou 'Je ne sais pas'." })
 });
 
-// Étape 3 : Identité visuelle
-export const ProspectOnboardingStep3Schema = z.object({
-  primaryColor: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, { message: "Couleur invalide (format hex: #RRGGBB)." })
-    .optional(),
-  logoUrl: z.string().url({ message: "URL invalide." }).optional().or(z.literal("")),
+// 5. Identité (Question)
+export const ProspectIdentitySchema = z.object({
   hasVisualIdentity: z.enum(["yes", "no", "not_yet"], {
     errorMap: () => ({ message: "Sélectionnez une option." })
   })
 });
 
-// Étape 4 : Contenu / message
-export const ProspectOnboardingStep4Schema = z.object({
+// 6. Branding (Logo & Couleur)
+export const ProspectBrandingSchema = z.object({
+  primaryColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, { message: "Couleur invalide (format hex: #RRGGBB)." })
+    .optional(),
+  logoUrl: z.string().url({ message: "URL invalide." }).optional().or(z.literal(""))
+});
+
+// 7. Message
+export const ProspectMessageSchema = z.object({
   welcomePhrase: z
     .string()
     .min(5, { message: "Au moins 5 caractères." })
@@ -555,9 +570,19 @@ export const ProspectOnboardingStep4Schema = z.object({
           path: [0]
         });
       }
-    }),
+    })
+});
+
+// 8. Infos
+export const ProspectInfoSchema = z.object({
   importantInfo: z.string().max(1000, { message: "1000 caractères maximum." }).optional()
 });
+
+// Alias pour backward compatibility (si nécessaire) ou pour regrouper
+export const ProspectOnboardingStep1Schema = ProspectContactSchema.merge(ProspectGoalSchema);
+export const ProspectOnboardingStep2Schema = ProspectInspirationSchema.merge(ProspectStyleSchema);
+export const ProspectOnboardingStep3Schema = ProspectIdentitySchema.merge(ProspectBrandingSchema);
+export const ProspectOnboardingStep4Schema = ProspectMessageSchema.merge(ProspectInfoSchema);
 
 // Schéma complet pour le payload prospect (brouillon - tous optionnels)
 export const ProspectOnboardingDraftSchema = z.object({
@@ -577,11 +602,14 @@ export const ProspectOnboardingDraftSchema = z.object({
 });
 
 // Schéma complet pour la validation finale prospect
-export const ProspectOnboardingFinalSchema = ProspectOnboardingStep1Schema.merge(
-  ProspectOnboardingStep2Schema
-)
-  .merge(ProspectOnboardingStep3Schema)
-  .merge(ProspectOnboardingStep4Schema)
+export const ProspectOnboardingFinalSchema = ProspectContactSchema
+  .merge(ProspectGoalSchema)
+  .merge(ProspectInspirationSchema)
+  .merge(ProspectStyleSchema)
+  .merge(ProspectIdentitySchema)
+  .merge(ProspectBrandingSchema)
+  .merge(ProspectMessageSchema)
+  .merge(ProspectInfoSchema)
   .refine(
     (data) => {
       // Si siteGoal contient "other", siteGoalOther doit être rempli

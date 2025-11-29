@@ -8,10 +8,14 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Upload, X, ClipboardList 
 import {
     ProspectOnboardingDraftSchema,
     ProspectOnboardingFinalSchema,
-    ProspectOnboardingStep1Schema,
-    ProspectOnboardingStep2Schema,
-    ProspectOnboardingStep3Schema,
-    ProspectOnboardingStep4Schema,
+    ProspectContactSchema,
+    ProspectGoalSchema,
+    ProspectInspirationSchema,
+    ProspectStyleSchema,
+    ProspectIdentitySchema,
+    ProspectBrandingSchema,
+    ProspectMessageSchema,
+    ProspectInfoSchema,
     type ProspectOnboardingDraftPayload,
     type ProspectOnboardingPayload
 } from "@/lib/zod-schemas";
@@ -90,32 +94,60 @@ const stepDefinitions = [
         fields: []
     },
     {
-        id: "activity",
-        label: "Votre activité",
-        description: "Juste l'essentiel pour que nous adaptions votre démo.",
-        schema: ProspectOnboardingStep1Schema,
-        fields: ["companyName", "activity", "phone", "siteGoal", "siteGoalOther"]
+        id: "contact",
+        label: "Vos coordonnées",
+        description: "Pour mieux vous connaître.",
+        schema: ProspectContactSchema,
+        fields: ["companyName", "activity", "phone"]
+    },
+    {
+        id: "goals",
+        label: "Vos objectifs",
+        description: "Quel est le but principal de votre site ?",
+        schema: ProspectGoalSchema,
+        fields: ["siteGoal", "siteGoalOther"]
+    },
+    {
+        id: "inspirations",
+        label: "Vos inspirations",
+        description: "Des exemples de sites que vous aimez ?",
+        schema: ProspectInspirationSchema,
+        fields: ["inspirationUrls"]
     },
     {
         id: "style",
-        label: "Style & inspirations",
-        description: "Pour que la démo ressemble vraiment à ce que vous aimez.",
-        schema: ProspectOnboardingStep2Schema,
-        fields: ["inspirationUrls", "preferredStyles"]
+        label: "Votre style",
+        description: "Quelle ambiance souhaitez-vous ?",
+        schema: ProspectStyleSchema,
+        fields: ["preferredStyles"]
     },
     {
-        id: "identity",
+        id: "identity_check",
         label: "Identité visuelle",
-        description: "Ces éléments nous permettent d'adapter le design.",
-        schema: ProspectOnboardingStep3Schema,
-        fields: ["primaryColor", "logoUrl", "hasVisualIdentity"]
+        description: "Avez-vous déjà une charte graphique ?",
+        schema: ProspectIdentitySchema,
+        fields: ["hasVisualIdentity"]
     },
     {
-        id: "content",
-        label: "Contenu / message",
-        description: "Quelques lignes suffisent pour personnaliser la démo.",
-        schema: ProspectOnboardingStep4Schema,
-        fields: ["welcomePhrase", "mainServices", "importantInfo"]
+        id: "branding",
+        label: "Vos éléments",
+        description: "Logo et couleurs (si vous en avez).",
+        schema: ProspectBrandingSchema,
+        fields: ["primaryColor", "logoUrl"]
+    },
+    {
+        id: "message",
+        label: "Votre message",
+        description: "Que souhaitez-vous dire à vos visiteurs ?",
+        schema: ProspectMessageSchema,
+        fields: ["welcomePhrase", "mainServices"]
+    },
+    {
+        id: "infos",
+        label: "Infos complémentaires",
+        description: "D'autres précisions utiles ?",
+        schema: ProspectInfoSchema,
+        fields: ["importantInfo"]
     }
 ] as const;
 
@@ -390,34 +422,45 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
         const definition = stepDefinitions[index];
         if (definition.id === "welcome") return true;
 
-        // Manual validation logic mapping form values to step schema
         const values = form.getValues();
         let stepPayload: Record<string, unknown> = {};
 
-        if (definition.id === "activity") {
+        if (definition.id === "contact") {
             stepPayload = {
                 companyName: values.companyName,
                 activity: values.activity,
-                phone: values.phone,
+                phone: values.phone
+            };
+        } else if (definition.id === "goals") {
+            stepPayload = {
                 siteGoal: values.siteGoal.length > 0 ? values.siteGoal : undefined,
                 siteGoalOther: values.siteGoalOther
             };
-        } else if (definition.id === "style") {
+        } else if (definition.id === "inspirations") {
             const filteredUrls = values.inspirationUrls.filter((url) => url.trim().length > 0);
             stepPayload = {
-                ...(filteredUrls.length > 0 ? { inspirationUrls: filteredUrls } : {}),
+                inspirationUrls: filteredUrls.length > 0 ? filteredUrls : undefined
+            };
+        } else if (definition.id === "style") {
+            stepPayload = {
                 preferredStyles: values.preferredStyles
             };
-        } else if (definition.id === "identity") {
+        } else if (definition.id === "identity_check") {
             stepPayload = {
-                primaryColor: values.primaryColor,
-                logoUrl: values.logoUrl,
                 hasVisualIdentity: values.hasVisualIdentity ? values.hasVisualIdentity : undefined
             };
-        } else if (definition.id === "content") {
+        } else if (definition.id === "branding") {
+            stepPayload = {
+                primaryColor: values.primaryColor,
+                logoUrl: values.logoUrl
+            };
+        } else if (definition.id === "message") {
             stepPayload = {
                 welcomePhrase: values.welcomePhrase,
-                mainServices: values.mainServices,
+                mainServices: values.mainServices
+            };
+        } else if (definition.id === "infos") {
+            stepPayload = {
                 importantInfo: values.importantInfo
             };
         }
@@ -562,16 +605,16 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                 </div>
                             )}
 
-                            {currentStep.id === "activity" && (
+                            {currentStep.id === "contact" && (
                                 <div className="grid gap-6">
                                     <FormField
                                         control={control}
                                         name="companyName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg">Nom de votre entreprise</FormLabel>
+                                                <FormLabel className="text-base">Nom de votre entreprise</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 text-lg" placeholder="Nom de votre entreprise" {...field} />
+                                                    <Input className="h-12 text-base" placeholder="Nom de votre entreprise" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -582,9 +625,9 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                         name="activity"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg">Votre activité principale</FormLabel>
+                                                <FormLabel className="text-base">Votre activité principale</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 text-lg" placeholder="Ex : traiteur, coach, artisan..." {...field} />
+                                                    <Input className="h-12 text-base" placeholder="Ex : traiteur, coach, artisan..." {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -595,20 +638,25 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                         name="phone"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg">Numéro de téléphone</FormLabel>
+                                                <FormLabel className="text-base">Numéro de téléphone</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 text-lg" type="tel" placeholder="+33 6 12 34 56 78" {...field} />
+                                                    <Input className="h-12 text-base" type="tel" placeholder="+33 6 12 34 56 78" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+                                </div>
+                            )}
+
+                            {currentStep.id === "goals" && (
+                                <div className="grid gap-6">
                                     <FormField
                                         control={control}
                                         name="siteGoal"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg mb-4 block">But du site</FormLabel>
+                                                <FormLabel className="text-base mb-4 block">But du site</FormLabel>
                                                 <div className="grid gap-3">
                                                     {SITE_GOAL_OPTIONS.map((option) => (
                                                         <label
@@ -645,9 +693,9 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                             name="siteGoalOther"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel className="text-lg">Précisez votre objectif</FormLabel>
+                                                    <FormLabel className="text-base">Précisez votre objectif</FormLabel>
                                                     <FormControl>
-                                                        <Input className="h-12 text-lg" placeholder="Votre objectif..." {...field} />
+                                                        <Input className="h-12 text-base" placeholder="Votre objectif..." {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -657,10 +705,10 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                 </div>
                             )}
 
-                            {currentStep.id === "style" && (
+                            {currentStep.id === "inspirations" && (
                                 <div className="space-y-8">
                                     <div className="space-y-4">
-                                        <FormLabel className="text-lg block">3 sites que vous aimez (optionnel)</FormLabel>
+                                        <FormLabel className="text-base block">3 sites que vous aimez (optionnel)</FormLabel>
                                         <p className="text-slate-500">Partagez des liens vers des sites, Instagram, Facebook ou n'importe quel lien qui vous inspire.</p>
                                         {inspirationUrlsArray.fields.map((field, index) => (
                                             <FormField
@@ -668,18 +716,22 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                                 control={control}
                                                 name={`inspirationUrls.${index}` as any}
                                                 render={({ field }) => (
-                                                    <Input placeholder={`Lien ${index + 1}`} className="h-12 text-lg" {...field} />
+                                                    <Input placeholder={`Lien ${index + 1}`} className="h-12 text-base" {...field} />
                                                 )}
                                             />
                                         ))}
                                     </div>
+                                </div>
+                            )}
 
+                            {currentStep.id === "style" && (
+                                <div className="space-y-8">
                                     <FormField
                                         control={control}
                                         name="preferredStyles"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg mb-4 block">Style préféré</FormLabel>
+                                                <FormLabel className="text-base mb-4 block">Style préféré</FormLabel>
                                                 <div className="grid gap-3 sm:grid-cols-2">
                                                     {STYLE_OPTIONS.map((option) => (
                                                         <label
@@ -713,14 +765,52 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                 </div>
                             )}
 
-                            {currentStep.id === "identity" && (
+                            {currentStep.id === "identity_check" && (
+                                <div className="space-y-8">
+                                    <FormField
+                                        control={control}
+                                        name="hasVisualIdentity"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-base block mb-4">Avez-vous déjà une identité visuelle ?</FormLabel>
+                                                <div className="flex gap-4">
+                                                    {[
+                                                        { value: "yes", label: "Oui" },
+                                                        { value: "no", label: "Non" },
+                                                        { value: "not_yet", label: "Pas encore" }
+                                                    ].map((option) => (
+                                                        <label
+                                                            key={option.value}
+                                                            className={cn(
+                                                                "flex-1 cursor-pointer rounded-xl border-2 border-slate-100 bg-white p-4 text-center transition-all hover:border-blue-200",
+                                                                field.value === option.value && "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                                                            )}
+                                                        >
+                                                            <input
+                                                                type="radio"
+                                                                className="sr-only"
+                                                                checked={field.value === option.value}
+                                                                onChange={() => field.onChange(option.value)}
+                                                            />
+                                                            <span className="font-medium">{option.label}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            )}
+
+                            {currentStep.id === "branding" && (
                                 <div className="space-y-8">
                                     <FormField
                                         control={control}
                                         name="primaryColor"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg" optional>Couleur principale souhaitée</FormLabel>
+                                                <FormLabel className="text-base" optional>Couleur principale souhaitée</FormLabel>
                                                 <div className="flex items-center gap-4">
                                                     <FormControl>
                                                         <Input
@@ -734,7 +824,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                                         <Input
                                                             type="text"
                                                             placeholder="#43b2b9"
-                                                            className="h-16 text-lg font-mono"
+                                                            className="h-16 text-base font-mono"
                                                             {...field}
                                                             value={field.value || "#43b2b9"}
                                                         />
@@ -750,7 +840,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                         name="logoUrl"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg" optional>Logo</FormLabel>
+                                                <FormLabel className="text-base" optional>Logo</FormLabel>
                                                 <div className="space-y-4">
                                                     {field.value && (
                                                         <div className="relative inline-block">
@@ -808,7 +898,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                                             <Input
                                                                 type="url"
                                                                 placeholder="Ou collez une URL d'image"
-                                                                className="h-12 text-lg"
+                                                                className="h-12 text-base"
                                                                 {...field}
                                                             />
                                                         )}
@@ -818,53 +908,19 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                             </FormItem>
                                         )}
                                     />
-
-                                    <FormField
-                                        control={control}
-                                        name="hasVisualIdentity"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-lg block mb-4">Avez-vous déjà une identité visuelle ?</FormLabel>
-                                                <div className="flex gap-4">
-                                                    {[
-                                                        { value: "yes", label: "Oui" },
-                                                        { value: "no", label: "Non" },
-                                                        { value: "not_yet", label: "Pas encore" }
-                                                    ].map((option) => (
-                                                        <label
-                                                            key={option.value}
-                                                            className={cn(
-                                                                "flex-1 cursor-pointer rounded-xl border-2 border-slate-100 bg-white p-4 text-center transition-all hover:border-blue-200",
-                                                                field.value === option.value && "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                                                            )}
-                                                        >
-                                                            <input
-                                                                type="radio"
-                                                                className="sr-only"
-                                                                checked={field.value === option.value}
-                                                                onChange={() => field.onChange(option.value)}
-                                                            />
-                                                            <span className="font-medium">{option.label}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
                                 </div>
                             )}
 
-                            {currentStep.id === "content" && (
+                            {currentStep.id === "message" && (
                                 <div className="space-y-8">
                                     <FormField
                                         control={control}
                                         name="welcomePhrase"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg">Votre phrase d'accueil</FormLabel>
+                                                <FormLabel className="text-base">Votre phrase d'accueil</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 text-lg" placeholder="Ex : Bienvenue chez X, votre expert en..." {...field} />
+                                                    <Input className="h-12 text-base" placeholder="Ex : Bienvenue chez X, votre expert en..." {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -872,29 +928,33 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                     />
 
                                     <div className="space-y-4">
-                                        <FormLabel className="text-lg block">Vos 3 services principaux</FormLabel>
+                                        <FormLabel className="text-base block">Vos 3 services principaux</FormLabel>
                                         {mainServicesArray.fields.map((field, index) => (
                                             <FormField
                                                 key={field.id}
                                                 control={control}
                                                 name={`mainServices.${index}` as any}
                                                 render={({ field }) => (
-                                                    <Input placeholder={`Service ${index + 1}`} className="h-12 text-lg" {...field} />
+                                                    <Input placeholder={`Service ${index + 1}`} className="h-12 text-base" {...field} />
                                                 )}
                                             />
                                         ))}
                                     </div>
+                                </div>
+                            )}
 
+                            {currentStep.id === "infos" && (
+                                <div className="space-y-8">
                                     <FormField
                                         control={control}
                                         name="importantInfo"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-lg" optional>Informations importantes</FormLabel>
+                                                <FormLabel className="text-base" optional>Informations importantes</FormLabel>
                                                 <FormControl>
                                                     <Textarea
                                                         placeholder='Ex : "Je veux un site simple", "J&apos;ai déjà un site", "Je veux un système de réservation"'
-                                                        className="min-h-[120px] p-4 text-lg"
+                                                        className="min-h-[120px] p-4 text-base"
                                                         {...field}
                                                     />
                                                 </FormControl>
