@@ -40,9 +40,10 @@ const adminNavItems: Array<{ href: string; label: string; icon: LucideIcon }> = 
 export interface SidebarProps {
   className?: string;
   role?: UserRole;
+  hasDeliveredProject?: boolean;
 }
 
-export function Sidebar({ className, role = "client" }: SidebarProps) {
+export function Sidebar({ className, role = "client", hasDeliveredProject = false }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -77,6 +78,11 @@ export function Sidebar({ className, role = "client" }: SidebarProps) {
 
           // Masquer les items non pertinents pour le staff
           if (role === "staff" && ["/onboarding", "/services", "/referral"].includes(item.href)) {
+            return null;
+          }
+
+          // Masquer les tickets si aucun projet livré (sauf pour le staff)
+          if (item.href === "/tickets" && role !== "staff" && !hasDeliveredProject) {
             return null;
           }
 

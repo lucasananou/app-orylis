@@ -1,19 +1,45 @@
 "use client";
 
+import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, CheckCircle, MessageSquare } from "lucide-react";
+import { ExternalLink, CheckCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { ModificationRequestDialog } from "@/components/projects/modification-request-dialog";
+import { toast } from "@/components/ui/use-toast";
 
 interface SiteReviewCardProps {
     project: {
+        id: string;
         name: string;
         demoUrl: string | null;
     };
 }
 
 export function SiteReviewCard({ project }: SiteReviewCardProps) {
+    const router = useRouter();
+    const [isValidating, setIsValidating] = React.useState(false);
+
     if (!project.demoUrl) return null;
+
+    const handleValidate = async () => {
+        setIsValidating(true);
+        try {
+            const response = await fetch(`/api/projects/${project.id}/validate-review`, {
+                method: "POST",
+            });
+
+            if (!response.ok) throw new Error("Erreur lors de la validation");
+
+            toast.success("Site validé ! Félicitations !");
+            router.refresh();
+        } catch (error) {
+            toast.error("Impossible de valider le site.");
+        } finally {
+            setIsValidating(false);
+        }
+    };
 
     return (
         <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
@@ -38,18 +64,18 @@ export function SiteReviewCard({ project }: SiteReviewCardProps) {
                             Voir mon site
                         </Link>
                     </Button>
-                    <Button asChild variant="outline" className="gap-2">
-                        <Link href={"/tickets/new?category=validation" as any}>
-                            <CheckCircle className="h-4 w-4" />
-                            Valider le site
-                        </Link>
+
+                    <Button
+                        onClick={handleValidate}
+                        disabled={isValidating}
+                        variant="outline"
+                        className="gap-2 border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+                    >
+                        {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                        Valider le site
                     </Button>
-                    <Button asChild variant="ghost" className="gap-2">
-                        <Link href={"/tickets/new?category=modification" as any}>
-                            <MessageSquare className="h-4 w-4" />
-                            Demander des modifications
-                        </Link>
-                    </Button>
+
+                    <ModificationRequestDialog projectId={project.id} />
                 </div>
             </CardContent>
         </Card>

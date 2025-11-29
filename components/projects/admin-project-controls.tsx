@@ -36,6 +36,13 @@ interface AdminProjectControlsProps {
         status: string;
         demoUrl: string | null;
     };
+    latestBrief?: {
+        id: string;
+        version: number;
+        status: string;
+        content: string;
+        clientComment: string | null;
+    };
 }
 
 const STATUS_STEPS: { value: ProjectStatus; label: string }[] = [
@@ -46,7 +53,7 @@ const STATUS_STEPS: { value: ProjectStatus; label: string }[] = [
     { value: "delivered", label: "Livré" }
 ];
 
-export function AdminProjectControls({ project }: AdminProjectControlsProps) {
+export function AdminProjectControls({ project, latestBrief }: AdminProjectControlsProps) {
     const router = useRouter();
     const [isUpdating, startTransition] = React.useTransition();
     const [demoUrl, setDemoUrl] = React.useState(project.demoUrl ?? "");
@@ -90,6 +97,8 @@ export function AdminProjectControls({ project }: AdminProjectControlsProps) {
             })();
         });
     };
+
+    const hasModificationRequest = latestBrief?.status === "sent" && project.status === "build";
 
     return (
         <Card className="border-blue-100 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/10 mb-6">
@@ -154,6 +163,22 @@ export function AdminProjectControls({ project }: AdminProjectControlsProps) {
                     </div>
                 </div>
 
+                {/* Modification Request Alert */}
+                {hasModificationRequest && (
+                    <div className="mb-6 rounded-md bg-orange-50 p-4 border border-orange-200 text-orange-800">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 mt-0.5 text-orange-600" />
+                            <div>
+                                <h4 className="font-semibold">Modifications demandées (v{latestBrief?.version})</h4>
+                                <p className="text-sm mt-1 mb-2">{latestBrief?.content}</p>
+                                <p className="text-xs text-orange-600/80">
+                                    Implémentez les changements puis renvoyez en review.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Actions Contextuelles */}
                 <div className="flex items-center justify-end gap-3 border-t border-blue-200/50 pt-4 dark:border-blue-800/50">
                     {project.status === "onboarding" && (
@@ -173,7 +198,7 @@ export function AdminProjectControls({ project }: AdminProjectControlsProps) {
                             <DialogTriggerComp asChild>
                                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Send className="mr-2 h-4 w-4" />
-                                    Envoyer en Review Client
+                                    {hasModificationRequest ? "Renvoyer en Review (V2+)" : "Envoyer en Review Client"}
                                 </Button>
                             </DialogTriggerComp>
                             <DialogContentComp>

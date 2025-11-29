@@ -10,7 +10,8 @@ import {
   onboardingResponses,
   profiles,
   projects,
-  tickets
+  tickets,
+  projectBriefs
 } from "@/lib/schema";
 import { summarizeOnboardingPayload } from "@/lib/onboarding-summary";
 import { formatDate, formatProgress, isStaff } from "@/lib/utils";
@@ -88,7 +89,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
       .then((rows) => rows.map((r) => ({ id: r.id, name: r.name ?? "Sans nom" })));
   }
 
-  const [onboardingEntry, ticketCountRow, fileCountRow, billingCountRow] = await Promise.all([
+  const [onboardingEntry, ticketCountRow, fileCountRow, billingCountRow, latestBrief] = await Promise.all([
     db
       .select({
         payload: onboardingResponses.payload,
@@ -112,7 +113,11 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
       .select({ value: sql<number>`count(*)` })
       .from(billingLinks)
       .where(eq(billingLinks.projectId, projectRow.id))
-      .then((rows) => rows.at(0))
+      .then((rows) => rows.at(0)),
+    db.query.projectBriefs.findFirst({
+      where: eq(projectBriefs.projectId, projectRow.id),
+      orderBy: (briefs, { desc }) => [desc(briefs.version)]
+    })
   ]);
 
   const onboardingSummary = onboardingEntry
@@ -147,6 +152,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
                 status: projectRow.status,
                 demoUrl: projectRow.demoUrl
               }}
+              latestBrief={latestBrief}
             />
           )}
 

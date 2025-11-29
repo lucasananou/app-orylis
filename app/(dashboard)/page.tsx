@@ -742,6 +742,9 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
   }
 
   // Vue normale pour clients et staff
+  const isDelivered = projectsData.some(p => p.status === "delivered");
+  const projectInReview = projectsData.find(p => p.status === "review");
+
   return (
     <>
       <DashboardHeader
@@ -791,6 +794,19 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
           </div>
         }
       />
+
+      {/* Site Review Card - Top Priority */}
+      {projectInReview && (
+        <div className="mt-6">
+          <SiteReviewCard
+            project={{
+              id: projectInReview.id,
+              name: projectInReview.name,
+              demoUrl: projectInReview.demoUrl
+            }}
+          />
+        </div>
+      )}
 
       <DashboardStats highlights={highlights} className="mt-6" />
 
@@ -920,14 +936,8 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Button asChild size="lg" variant="outline" className="rounded-full w-full sm:w-auto">
-                    <Link href="/tickets">
-                      Voir mes tickets
-                      <span className="ml-2">→</span>
-                    </Link>
-                  </Button>
                   <p className="text-sm text-slate-500 max-w-md">
-                    Si vous souhaitez demander des modifications ou ajouter des informations, vous pouvez créer un ticket.
+                    Votre onboarding est terminé. Nous reviendrons vers vous dès que la phase de design commencera.
                   </p>
                 </CardContent>
               </Card>
@@ -939,12 +949,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
       {(!projectsData[0] || projectsData[0].status !== "delivered") && (
         <section className={`mt-4 grid gap-4 sm:mt-6 sm:gap-6 ${onboardingCardProject && !onboardingCompleted ? "xl:grid-cols-[2fr_1fr]" : "grid-cols-1"}`}>
 
-          {/* Site Review Card */}
-          {projectsData.length > 0 && projectsData[0].status === "review" && (
-            <div className="mb-6">
-              <SiteReviewCard project={projectsData[0]} />
-            </div>
-          )}
+
 
           {onboardingCardProject && !onboardingCompleted && (
             <DashboardOnboardingCard project={onboardingCardProject} role={role} />

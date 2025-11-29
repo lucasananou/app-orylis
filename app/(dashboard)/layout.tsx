@@ -28,26 +28,31 @@ async function loadLayoutData() {
 
   const accessibleProjects = staff
     ? await db
-        .select({
-          id: projects.id,
-          name: projects.name
-        })
-        .from(projects)
-        .orderBy(asc(projects.name))
+      .select({
+        id: projects.id,
+        name: projects.name,
+        status: projects.status
+      })
+      .from(projects)
+      .orderBy(asc(projects.name))
     : await db
-        .select({
-          id: projects.id,
-          name: projects.name
-        })
-        .from(projects)
-        .where(eq(projects.ownerId, user.id))
-        .orderBy(asc(projects.name));
+      .select({
+        id: projects.id,
+        name: projects.name,
+        status: projects.status
+      })
+      .from(projects)
+      .where(eq(projects.ownerId, user.id))
+      .orderBy(asc(projects.name));
+
+  const hasDeliveredProject = accessibleProjects.some(p => p.status === "delivered");
 
   return {
     role: user.role,
     userEmail: user.email ?? "—",
     userName: user.name,
-    accessibleProjects
+    accessibleProjects,
+    hasDeliveredProject
   };
 }
 
@@ -60,7 +65,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar role={data.role} />
+      <Sidebar role={data.role} hasDeliveredProject={data.hasDeliveredProject} />
       <div className="flex flex-1 flex-col">
         <NavbarWrapper
           role={data.role}
