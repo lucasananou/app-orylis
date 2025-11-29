@@ -2,12 +2,12 @@ import { redirect } from "next/navigation";
 import { eq, sql, and, isNotNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { quotes, tickets, profiles } from "@/lib/schema";
+import { quotes, tickets, profiles, projects } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
-import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Ticket, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const revalidate = 0;
 
@@ -18,7 +18,7 @@ async function loadAdminStats() {
         redirect("/");
     }
 
-    const [pendingQuotesCount, openTicketsCount, referredClientsCount] = await Promise.all([
+    const [pendingQuotesCount, openTicketsCount, referredClientsCount, activeProjects] = await Promise.all([
         db
             .select({ count: sql<number>`count(*)` })
             .from(quotes)
@@ -33,18 +33,29 @@ async function loadAdminStats() {
             .select({ count: sql<number>`count(*)` })
             .from(profiles)
             .where(and(eq(profiles.role, "client"), isNotNull(profiles.referrerId)))
-            .then((res) => Number(res[0]?.count ?? 0))
+            .then((res) => Number(res[0]?.count ?? 0)),
+        db.query.projects.findMany({
+            where: (projects, { ne }) => ne(projects.status, "delivered"),
+            with: {
+                owner: {
+                    columns: { fullName: true }
+                }
+            },
+            orderBy: (projects, { desc }) => [desc(projects.createdAt)],
+            limit: 5
+        })
     ]);
 
     return {
         pendingQuotesCount,
         openTicketsCount,
-        referredClientsCount
+        referredClientsCount,
+        activeProjects
     };
 }
 
 export default async function AdminDashboardPage() {
-    const { pendingQuotesCount, openTicketsCount, referredClientsCount } = await loadAdminStats();
+    const { pendingQuotesCount, openTicketsCount, referredClientsCount, activeProjects } = await loadAdminStats();
 
     return (
         <div className="p-8 space-y-6">
@@ -78,7 +89,37 @@ export default async function AdminDashboardPage() {
                 </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Card className="col-span-2">
+                    <CardHeader>
+                        <CardTitle>Projets en cours</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {activeProjects.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">Aucun projet en cours.</p>
+                            ) : (
+                                activeProjects.map((project) => (
+                                    <div key={project.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                                        <div>
+                                            <p className="font-medium">{project.name}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {project.owner?.fullName} • {project.status}
+                                            </p>
+                                        </div>
+                                        <Button asChild variant="ghost" size="sm">
+                                            <Link href={`/projects/${project.id}`}>
+                                                Voir
+                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Accès Directs</CardTitle>

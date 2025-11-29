@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import {
@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { ProgressBadge } from "@/components/ui/progress-badge";
 import { ProjectRequestDialog } from "@/components/projects/project-request-dialog";
 import { ProjectFeedbackDialog } from "@/components/projects/project-feedback-dialog";
+import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -33,18 +34,8 @@ const STATUS_LABELS: Record<string, string> = {
   delivered: "Livré"
 };
 
-interface ProjectDetailPageProps {
-  params: {
-    id: string;
-  };
-}
-
 export default async function ProjectDetailPage(props: { params: Promise<{ id: string }> }): Promise<JSX.Element> {
   const params = await props.params;
-  return <ProjectDetailPageContent params={params} />;
-}
-
-async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Promise<JSX.Element> {
   const session = await auth();
 
   if (!session?.user) {
@@ -63,7 +54,11 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
       createdAt: projects.createdAt,
       ownerId: projects.ownerId,
       ownerName: profiles.fullName,
-      ownerCompany: profiles.company
+      ownerCompany: profiles.company,
+      demoUrl: projects.demoUrl,
+      hostingExpiresAt: projects.hostingExpiresAt,
+      maintenanceActive: projects.maintenanceActive,
+      deliveredAt: projects.deliveredAt
     })
     .from(projects)
     .leftJoin(profiles, eq(projects.ownerId, profiles.id))
@@ -82,6 +77,15 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
   }
 
   const canCreateRequest = staff || isOwner;
+
+  let owners: { id: string; name: string }[] = [];
+  if (staff) {
+    owners = await db
+      .select({ id: profiles.id, name: profiles.fullName })
+      .from(profiles)
+      .where(inArray(profiles.role, ["client", "prospect"]))
+      .then((rows) => rows.map((r) => ({ id: r.id, name: r.name ?? "Sans nom" })));
+  }
 
   const [onboardingEntry, ticketCountRow, fileCountRow, billingCountRow] = await Promise.all([
     db
@@ -170,6 +174,25 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
               <div className="flex flex-wrap gap-3">
                 {canCreateRequest ? (
                   <>
+                    {staff && (
+                      <ProjectEditorDialog
+                        mode="edit"
+                        project={{
+                          id: projectRow.id,
+                          name: projectRow.name,
+                          status: projectRow.status,
+                          progress: projectRow.progress,
+                          dueDate: projectRow.dueDate,
+                          ownerId: projectRow.ownerId,
+                          demoUrl: projectRow.demoUrl,
+                          hostingExpiresAt: projectRow.hostingExpiresAt ? projectRow.hostingExpiresAt.toISOString() : null,
+                          maintenanceActive: projectRow.maintenanceActive,
+                          deliveredAt: projectRow.deliveredAt ? projectRow.deliveredAt.toISOString() : null
+                        }}
+                        owners={owners}
+                        trigger={<Button variant="default">Modifier le projet</Button>}
+                      />
+                    )}
                     <ProjectRequestDialog projectId={projectRow.id} projectName={projectRow.name} role={user.role} />
                     <ProjectFeedbackDialog projectId={projectRow.id} projectName={projectRow.name} role={user.role} />
                   </>
@@ -260,4 +283,3 @@ async function ProjectDetailPageContent({ params }: ProjectDetailPageProps): Pro
     </>
   );
 }
-
