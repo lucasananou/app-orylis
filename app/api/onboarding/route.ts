@@ -234,7 +234,7 @@ export async function POST(req: NextRequest) {
   if (completed && project) {
     try {
       // Si c'est un onboarding CLIENT (pas prospect), on génère le Brief v1
-      if (!isProspectUser && parsedPayload) {
+      if (type === "client" && parsedPayload) {
         const { generateBriefContentFromPayload } = await import("@/lib/brief-generator");
         const { projectBriefs } = await import("@/lib/schema");
 

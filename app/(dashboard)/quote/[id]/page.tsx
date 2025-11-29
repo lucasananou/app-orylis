@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuoteSignForm } from "@/components/quote/quote-sign-form";
+import { PayDepositButton } from "@/components/quote/pay-deposit-button";
 import { QuoteTrustSection, QuoteFAQ, QuoteTimeline } from "@/components/quote/quote-trust-section";
 import { ChatWidgetClient } from "@/components/chat/chat-widget-client";
 import { CheckCircle2, Download } from "lucide-react";
@@ -164,11 +165,9 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild className="text-sm sm:text-base w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
-                  <a href="/">
-                    Accéder à mon espace client
-                  </a>
-                </Button>
+                <div className="w-full sm:w-auto">
+                  <PayDepositButton quoteId={quote.id} />
+                </div>
                 <Button variant="outline" asChild className="text-sm sm:text-base w-full sm:w-auto">
                   <a href={quote.signedPdfUrl!} target="_blank" rel="noopener noreferrer">
                     <Download className="mr-2 h-4 w-4 shrink-0" />

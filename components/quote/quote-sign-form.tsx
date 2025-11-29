@@ -33,6 +33,12 @@ export function QuoteSignForm({ quoteId, projectDetails }: QuoteSignFormProps) {
         throw new Error(data.error ?? "Erreur lors de la signature");
       }
 
+      if (data.checkoutUrl) {
+        toast.success("Devis signé ! Redirection vers le paiement...");
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
       toast.success("Devis signé avec succès !");
       router.refresh();
     } catch (error) {

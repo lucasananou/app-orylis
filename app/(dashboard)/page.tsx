@@ -1,5 +1,6 @@
 import * as React from "react";
 import { redirect } from "next/navigation";
+// @ts-expect-error React cache is available in Next.js environment
 import { cache } from "react";
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -342,9 +343,6 @@ async function loadDashboardData() {
   }
 
   // Pour les clients/staff,  // Charger l'onboarding du projet principal (le premier)
-  // Si c'est un prospect, on veut le type "prospect", sinon "client"
-  const expectedOnboardingType = isProspectUser ? "prospect" : "client";
-
   const onboardingPromise = projectsData.length > 0
     ? db
       .select({
@@ -356,9 +354,14 @@ async function loadDashboardData() {
       .where(
         and(
           eq(onboardingResponses.projectId, projectsData[0].id),
-          eq(onboardingResponses.type, expectedOnboardingType)
+          or(
+            eq(onboardingResponses.type, "client"),
+            isProspectUser ? eq(onboardingResponses.type, "prospect") : undefined
+          )
         )
       )
+      .orderBy(asc(onboardingResponses.type)) // 'client' < 'prospect', so client comes first
+      .limit(1)
       .then((rows) => rows.at(0) ?? null)
     : Promise.resolve(null);
 

@@ -43,7 +43,7 @@ export function PayDepositButton({ quoteId }: PayDepositButtonProps) {
         <button
             onClick={handlePay}
             disabled={loading}
-            className="w-full py-3 px-4 bg-[#1F66FF] hover:bg-[#1553CC] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mb-4"
+            className="w-full py-3 px-4 bg-[#1F66FF] hover:bg-[#1553CC] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
         >
             {loading ? (
                 <>
