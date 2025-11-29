@@ -455,14 +455,14 @@ export function PublicOnboardingWizard() {
                                                             key={option.value}
                                                             className={cn(
                                                                 "flex cursor-pointer items-center gap-4 rounded-xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50",
-                                                                field.value.includes(option.value) && "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                                                                field.value.includes(option.value as any) && "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
                                                             )}
                                                         >
                                                             <input
                                                                 type="checkbox"
                                                                 className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                                                 value={option.value}
-                                                                checked={field.value.includes(option.value)}
+                                                                checked={field.value.includes(option.value as any)}
                                                                 onChange={(event) => {
                                                                     if (event.target.checked) {
                                                                         field.onChange([...field.value, option.value]);
@@ -529,14 +529,14 @@ export function PublicOnboardingWizard() {
                                                             key={option.value}
                                                             className={cn(
                                                                 "flex cursor-pointer items-center justify-center text-center rounded-xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50",
-                                                                field.value.includes(option.value) && "border-blue-500 bg-blue-50 text-blue-700"
+                                                                field.value.includes(option.value as any) && "border-blue-500 bg-blue-50 text-blue-700"
                                                             )}
                                                         >
                                                             <input
                                                                 type="checkbox"
                                                                 className="sr-only"
                                                                 value={option.value}
-                                                                checked={field.value.includes(option.value)}
+                                                                checked={field.value.includes(option.value as any)}
                                                                 onChange={(event) => {
                                                                     if (event.target.checked) {
                                                                         field.onChange([...field.value, option.value]);
