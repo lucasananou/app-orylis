@@ -69,20 +69,32 @@ export function TicketsClient({
 }: TicketsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { projectId, setProjectId, ready } = useProjectSelection();
+  const { projectId: storedProjectId, setProjectId, ready } = useProjectSelection();
   const staff = isStaff(role);
   const hasProjects = projects.length > 0;
+
+  // Use URL param as primary source of truth, fallback to stored project ID
+  const urlProjectId = searchParams.get("projectId");
+  const activeProjectId = urlProjectId ?? storedProjectId;
 
   React.useEffect(() => {
     if (!ready || staff || !hasProjects) {
       return;
     }
-    if (!projectId) {
+    // Only auto-select if no project is active (neither in URL nor storage)
+    if (!activeProjectId) {
       setProjectId(projects[0].id);
     }
-  }, [hasProjects, projectId, projects, ready, setProjectId, staff]);
+  }, [hasProjects, activeProjectId, projects, ready, setProjectId, staff]);
 
-  const selectValue = staff ? projectId ?? "__all__" : projectId ?? (projects[0]?.id ?? "");
+  // Sync URL change to storage if needed (optional, but good for persistence)
+  React.useEffect(() => {
+    if (urlProjectId && urlProjectId !== storedProjectId) {
+      setProjectId(urlProjectId);
+    }
+  }, [urlProjectId, storedProjectId, setProjectId]);
+
+  const selectValue = staff ? activeProjectId ?? "__all__" : activeProjectId ?? (projects[0]?.id ?? "");
 
   const handleStatusChange = (nextStatus: StatusOption["value"]) => {
     const params = new URLSearchParams(searchParams?.toString() ?? "");
@@ -94,26 +106,24 @@ export function TicketsClient({
     router.replace(`/tickets?${params.toString()}`);
   };
 
-  const handleProjectChange = (value: string) => {
-    if (value === "__all__") {
-      setProjectId(null);
-    } else {
-      setProjectId(value);
-    }
-  };
-
   const filteredTickets = React.useMemo(() => {
     if (!ready) {
       return [];
     }
-    if (staff && projectId === null) {
+
+    // If staff and "all" (null or empty), show all
+    if (staff && !activeProjectId) {
       return tickets;
     }
-    if (!projectId) {
-      return tickets;
+
+    // If activeProjectId is set, filter by it
+    if (activeProjectId) {
+      return tickets.filter((ticket) => ticket.projectId === activeProjectId);
     }
-    return tickets.filter((ticket) => ticket.projectId === projectId);
-  }, [projectId, ready, staff, tickets]);
+
+    // Fallback for client: show all (they only see their own anyway)
+    return tickets;
+  }, [activeProjectId, ready, staff, tickets]);
 
   if (!ready) {
     return (

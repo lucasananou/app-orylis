@@ -14,7 +14,7 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
-import { ProjectSwitcher } from "@/components/project/project-switcher";
+import { ProjectSwitcher } from "@/components/projects/project-switcher";
 import { MobileMenu } from "@/components/mobile-menu";
 import { Button } from "@/components/ui/button";
 import { NotificationMenu } from "@/components/notifications/notification-menu";

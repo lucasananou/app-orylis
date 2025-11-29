@@ -7,8 +7,8 @@ import { EmptyState } from "@/components/empty-state";
 import { OnboardingStartButton } from "@/components/onboarding-start-button";
 import { PageHeader } from "@/components/page-header";
 import { ClipboardList } from "lucide-react";
-import { OnboardingForm } from "@/components/form/onboarding-form";
-import { ProspectOnboardingForm } from "@/components/form/prospect-onboarding-form";
+import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
+import { ProspectOnboardingWizard } from "@/components/onboarding/prospect-onboarding-wizard";
 import { Card, CardContent } from "@/components/ui/card";
 import { isStaff, isProspect } from "@/lib/utils";
 
@@ -197,14 +197,10 @@ export default async function OnboardingPage(): Promise<JSX.Element> {
     <>
       {isProspectUser ? (
         // Pour les prospects : titre optimisé directement dans le formulaire (pas de PageHeader séparé)
-        <ProspectOnboardingForm projects={projectEntries} userEmail={userEmail} />
+        <ProspectOnboardingWizard projects={projectEntries} userEmail={userEmail} />
       ) : (
         <>
-          <PageHeader
-            title="Onboarding projet"
-            description="Renseignez les informations clés pour lancer sereinement votre projet Orylis."
-          />
-          <OnboardingForm projects={projectEntries} role={role} />
+          <OnboardingWizard projects={projectEntries} role={role} />
         </>
       )}
     </>

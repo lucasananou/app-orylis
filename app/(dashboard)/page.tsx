@@ -1,6 +1,6 @@
 import * as React from "react";
 import { redirect } from "next/navigation";
-import { cache } from "react";
+
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -90,7 +90,7 @@ async function getCachedSession() {
   return await auth();
 }
 
-async function loadDashboardData() {
+async function loadDashboardData(selectedProjectId?: string) {
   const session = await getCachedSession();
 
   if (!session?.user) {
@@ -197,9 +197,14 @@ async function loadDashboardData() {
     };
   }));
 
+  // Determine active project
+  const activeProject = selectedProjectId
+    ? projectsData.find(p => p.id === selectedProjectId) ?? projectsData[0]
+    : projectsData[0];
+
   // Pour les prospects, gérer les redirections selon le statut du projet
-  if (isProspectUser && projectsData.length > 0) {
-    const mainProject = projectsData[0];
+  if (isProspectUser && projectsData.length > 0 && activeProject) {
+    const mainProject = activeProject;
 
     // Utiliser directement le demoUrl chargé dans projectsData
     const projectWithDemo = mainProject;
@@ -220,13 +225,13 @@ async function loadDashboardData() {
     }
   }
 
-  const onboardingProject = projectsData.find((project) => project.status === "onboarding") ?? null;
+  const onboardingProject = activeProject?.status === "onboarding" ? activeProject : null;
 
   const projectIds = projectsData.map((project) => project.id);
 
   // Pour les prospects, charger seulement les données nécessaires
-  if (isProspectUser && projectsData.length > 0) {
-    const mainProject = projectsData[0];
+  if (isProspectUser && projectsData.length > 0 && activeProject) {
+    const mainProject = activeProject;
 
     // Charger seulement l'onboarding et les messages staff pour les prospects
     const [onboardingResponseRow, staffMessagesRows] = await Promise.all([
@@ -339,12 +344,13 @@ async function loadDashboardData() {
       staffMessages,
       filesCount,
       ticketsCount,
-      quoteStatus
+      quoteStatus,
+      activeProject
     };
   }
 
   // Pour les clients/staff,  // Charger l'onboarding du projet principal (le premier)
-  const onboardingPromise = projectsData.length > 0
+  const onboardingPromise = projectsData.length > 0 && activeProject
     ? db
       .select({
         payload: onboardingResponses.payload,
@@ -354,7 +360,7 @@ async function loadDashboardData() {
       .from(onboardingResponses)
       .where(
         and(
-          eq(onboardingResponses.projectId, projectsData[0].id),
+          eq(onboardingResponses.projectId, activeProject.id),
           or(
             eq(onboardingResponses.type, "client"),
             isProspectUser ? eq(onboardingResponses.type, "prospect") : undefined
@@ -655,11 +661,12 @@ async function loadDashboardData() {
     filesCount,
     ticketsCount,
     quoteStatus: null, // Pour les clients/staff, on ne vérifie pas les devis
-    onboardingCompleted
+    onboardingCompleted,
+    activeProject
   };
 }
 
-export default async function DashboardHomePage(): Promise<JSX.Element> {
+export default async function DashboardHomePage({ searchParams }: { searchParams: { project?: string } }): Promise<JSX.Element> {
   const {
     role,
     staff,
@@ -675,22 +682,23 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
     filesCount,
     ticketsCount,
     quoteStatus,
-    onboardingCompleted
-  } = await loadDashboardData();
+    onboardingCompleted,
+    activeProject
+  } = await loadDashboardData(searchParams?.project);
 
   // Pour les clients non-staff, utiliser le nom du premier projet s'il existe
   // Sinon, utiliser le prénom comme fallback
   let greetingName: string;
-  if (!staff && projectsData.length > 0) {
-    greetingName = projectsData[0].name;
+  if (!staff && activeProject) {
+    greetingName = activeProject.name;
   } else {
     const firstName = userName?.split(" ")[0] ?? userEmail?.split("@")[0] ?? "Bienvenue";
     greetingName = firstName;
   }
 
   // Vue spéciale pour les prospects
-  if (isProspectUser && projectsData.length > 0) {
-    const mainProject = projectsData[0];
+  if (isProspectUser && projectsData.length > 0 && activeProject) {
+    const mainProject = activeProject;
     return (
       <>
         <DashboardHeader
@@ -822,7 +830,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
               <DashboardProjects projects={projectsData} role={role} ownerOptions={ownerOptions} />
             </CardContent>
           </Card>
-        ) : projectsData[0]?.status === "delivered" ? (
+        ) : activeProject?.status === "delivered" ? (
           <div className="space-y-6">
             <div className="rounded-lg bg-green-50 p-4 text-green-800 border border-green-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -834,9 +842,9 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                   <p className="text-sm text-green-700">Félicitations, votre projet est publié et accessible à tous.</p>
                 </div>
               </div>
-              {projectsData[0].demoUrl && (
+              {activeProject.demoUrl && (
                 <Button asChild variant="outline" className="w-full sm:w-auto bg-white border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800">
-                  <a href={projectsData[0].demoUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={activeProject.demoUrl} target="_blank" rel="noopener noreferrer">
                     Voir mon site
                   </a>
                 </Button>
@@ -845,22 +853,22 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
 
             <div className="grid gap-6 md:grid-cols-2">
               <HostingWidget
-                hostingExpiresAt={projectsData[0].hostingExpiresAt ? new Date(projectsData[0].hostingExpiresAt) : null}
-                maintenanceActive={projectsData[0].maintenanceActive}
+                hostingExpiresAt={activeProject.hostingExpiresAt ? new Date(activeProject.hostingExpiresAt) : null}
+                maintenanceActive={activeProject.maintenanceActive}
               />
-              <SiteHealthWidget maintenanceActive={projectsData[0].maintenanceActive} />
+              <SiteHealthWidget maintenanceActive={activeProject.maintenanceActive} />
             </div>
           </div>
         ) : (
           <>
-            {projectsData[0]?.briefs && projectsData[0].briefs.length > 0 ? (
+            {activeProject?.briefs && activeProject.briefs.length > 0 ? (
               <div className="space-y-8">
                 {/* 1. Carte d'action principale selon le statut du dernier brief */}
-                {projectsData[0].briefs[0].status === "sent" ? (
+                {activeProject.briefs[0].status === "sent" ? (
                   <BriefValidationCard
-                    brief={projectsData[0].briefs[0]}
+                    brief={activeProject.briefs[0]}
                   />
-                ) : projectsData[0].briefs[0].status === "approved" ? (
+                ) : activeProject.briefs[0].status === "approved" ? (
                   <Card className="border-l-4 border-l-green-600 border-y border-r border-slate-200 shadow-sm bg-white">
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
@@ -871,7 +879,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                       </div>
                       <CardTitle className="text-xl">Cahier des charges validé ✅</CardTitle>
                       <CardDescription className="text-base">
-                        La production est lancée sur la base de la version {projectsData[0].briefs[0].version}.
+                        La production est lancée sur la base de la version {activeProject.briefs[0].version}.
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -886,7 +894,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                       </div>
                       <CardTitle className="text-xl">Demande bien reçue 📨</CardTitle>
                       <CardDescription className="text-base">
-                        Nous avons bien reçu votre demande de modifications sur la version {projectsData[0].briefs[0].version}.
+                        Nous avons bien reçu votre demande de modifications sur la version {activeProject.briefs[0].version}.
                         Nous allons préparer une nouvelle version du cahier des charges.
                       </CardDescription>
                     </CardHeader>
@@ -894,9 +902,9 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
                 )}
 
                 {/* 2. Historique des versions */}
-                <BriefHistory briefs={projectsData[0].briefs} />
+                <BriefHistory briefs={activeProject.briefs} />
               </div>
-            ) : projectsData[0].status === "build" ? (
+            ) : activeProject?.status === "build" ? (
               <div className="space-y-6">
                 <ProjectMilestones />
                 {onboardingCardProject && !onboardingCompleted && (
@@ -954,7 +962,7 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
         )}
       </section>
 
-      {(!projectsData[0] || projectsData[0].status !== "delivered") && (
+      {(!activeProject || activeProject.status !== "delivered") && (
         <section className={`mt-4 grid gap-4 sm:mt-6 sm:gap-6 ${onboardingCardProject && !onboardingCompleted ? "xl:grid-cols-[2fr_1fr]" : "grid-cols-1"}`}>
 
 

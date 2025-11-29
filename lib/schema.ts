@@ -172,7 +172,9 @@ export const tickets = createTable(
   },
   (ticket) => ({
     projectIdx: index("tickets_project_id_idx").on(ticket.projectId),
-    authorIdx: index("tickets_author_id_idx").on(ticket.authorId)
+    authorIdx: index("tickets_author_id_idx").on(ticket.authorId),
+    statusIdx: index("tickets_status_idx").on(ticket.status),
+    createdAtIdx: index("tickets_created_at_idx").on(ticket.createdAt)
   })
 );
 

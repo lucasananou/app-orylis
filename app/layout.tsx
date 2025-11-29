@@ -35,6 +35,10 @@ import { ReferralTracker } from "@/components/referral/referral-tracker";
 
 // ... existing imports ...
 
+import { PostHogProvider } from "@/components/providers/posthog-provider";
+
+// ... existing imports ...
+
 export default function RootLayout({ children }: { children: React.ReactNode }): JSX.Element {
   return (
     <html lang="fr" suppressHydrationWarning>
@@ -48,12 +52,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
           shadow="0 0 10px #43b2b9,0 0 5px #43b2b9"
         />
         <Suspense>
-          <ReferralTracker />
+          <PostHogProvider>
+            <ReferralTracker />
+            <div className="w-full max-w-full overflow-x-hidden">
+              <Providers>{children}</Providers>
+              <SpeedInsights />
+            </div>
+          </PostHogProvider>
         </Suspense>
-        <div className="w-full max-w-full overflow-x-hidden">
-          <Providers>{children}</Providers>
-          <SpeedInsights />
-        </div>
         {/* Meta Pixel Code */}
         <Script id="fb-pixel-base" strategy="afterInteractive">
           {`

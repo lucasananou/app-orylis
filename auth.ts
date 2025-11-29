@@ -141,7 +141,10 @@ if (process.env.NODE_ENV !== "production") {
   await ensureTestUser();
 }
 
+import { authConfig } from "./auth.config";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: authAdapter,
   session: { strategy: "jwt" },
   providers: [

@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, Check, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -60,6 +61,9 @@ export function ProjectSwitcher({ projects, role }: ProjectSwitcherProps) {
     return hasProjects ? projects[0].name : "Aucun projet";
   })();
 
+  const router = useRouter();
+  const [isCreating, setIsCreating] = React.useState(false);
+
   const handleSelect = (value: string) => {
     if (value === "__all__") {
       setProjectId(null);
@@ -67,6 +71,32 @@ export function ProjectSwitcher({ projects, role }: ProjectSwitcherProps) {
       setProjectId(value);
     }
     setOpen(false);
+  };
+
+  const handleCreateProject = async () => {
+    try {
+      setIsCreating(true);
+      const response = await fetch("/api/projects/create-client", {
+        method: "POST"
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la création du projet");
+      }
+
+      const data = await response.json();
+      if (data.projectId) {
+        setProjectId(data.projectId);
+        setOpen(false);
+        router.push("/onboarding");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error(error);
+      // You might want to add a toast here if you have access to it
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -121,6 +151,19 @@ export function ProjectSwitcher({ projects, role }: ProjectSwitcherProps) {
             </CommandGroup>
           </CommandList>
         </Command>
+        {!staff && (
+          <div className="border-t p-1">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-sm font-medium"
+              onClick={handleCreateProject}
+              disabled={isCreating}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              {isCreating ? "Création..." : "Nouveau projet"}
+            </Button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
