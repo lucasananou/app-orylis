@@ -35,6 +35,7 @@ import {
   type DashboardActivityItem
 } from "@/components/dashboard/dashboard-activity";
 import { DashboardOnboardingCard } from "@/components/dashboard/dashboard-onboarding-card";
+import { SiteReviewCard } from "@/components/dashboard/site-review-card";
 import { ProspectTimeline } from "@/components/dashboard/prospect-timeline";
 import { ProspectStaffMessages } from "@/components/dashboard/prospect-staff-messages";
 import { ProspectFeaturesTeaser } from "@/components/dashboard/prospect-features-teaser";
@@ -84,9 +85,9 @@ interface DashboardProject {
 }
 
 // Cache la session pour éviter les appels multiples
-const getCachedSession = cache(async () => {
+async function getCachedSession() {
   return await auth();
-});
+}
 
 async function loadDashboardData() {
   const session = await getCachedSession();
@@ -936,8 +937,18 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
       </section>
 
       {(!projectsData[0] || projectsData[0].status !== "delivered") && (
-        <section className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 xl:grid-cols-[2fr_1fr]">
-          <DashboardOnboardingCard project={onboardingCardProject} role={role} />
+        <section className={`mt-4 grid gap-4 sm:mt-6 sm:gap-6 ${onboardingCardProject && !onboardingCompleted ? "xl:grid-cols-[2fr_1fr]" : "grid-cols-1"}`}>
+
+          {/* Site Review Card */}
+          {projectsData.length > 0 && projectsData[0].status === "review" && (
+            <div className="mb-6">
+              <SiteReviewCard project={projectsData[0]} />
+            </div>
+          )}
+
+          {onboardingCardProject && !onboardingCompleted && (
+            <DashboardOnboardingCard project={onboardingCardProject} role={role} />
+          )}
 
           <Card className="border border-border/70">
             <CardHeader className="pb-3">

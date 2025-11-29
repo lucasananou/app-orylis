@@ -223,10 +223,18 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
         const message = error instanceof Error ? error.message : "Une erreur est survenue.";
         toast.error(message);
       } finally {
-        // Déclencher l'email "Démo prête" systématiquement après le clic sur Enregistrer,
-        // même si le PATCH a échoué (pour forcer la notification au prospect)
+        // Déclencher l'email de notification si nécessaire
         if (project?.id) {
-          fetch(`/api/projects/${project.id}/demo-notify`, { method: "POST" }).catch(() => { });
+          const formValues = isCreateMode ? (values as CreateProjectFormValues) : (values as EditProjectFormValues);
+          const status = formValues.status;
+          // @ts-expect-error demoUrl exists on EditProjectFormValues
+          const demoUrl = formValues.demoUrl;
+
+          if (status === "review" && demoUrl) {
+            fetch(`/api/projects/${project.id}/review-notify`, { method: "POST" }).catch(() => { });
+          } else if (status === "demo_in_progress" && demoUrl) {
+            fetch(`/api/projects/${project.id}/demo-notify`, { method: "POST" }).catch(() => { });
+          }
         }
       }
     });

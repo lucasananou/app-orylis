@@ -799,26 +799,61 @@ export async function sendProspectDemoReadyEmailStaticTo(email: string) {
 export async function sendQuoteSignedEmailToAdmin(
   quoteId: string,
   projectName: string,
-  prospectName: string,
-  prospectEmail: string,
+  signerName: string,
+  signerEmail: string,
   signedPdfUrl: string
 ) {
   const content = `
     <h2 style="color: #1a202c; margin-top: 0;">Devis signé ! ✍️</h2>
+    <p><strong>${signerName}</strong> a signé le devis pour le projet <strong>${projectName}</strong>.</p>
+    <p>Le client a été invité à régler l'acompte.</p>
     <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
-      <p style="margin: 0;"><strong>Prospect:</strong> ${prospectName}</p>
-      <p style="margin: 6px 0 0 0;"><strong>Email:</strong> ${prospectEmail}</p>
+      <p style="margin: 0;"><strong>Client:</strong> ${signerName}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Email:</strong> ${signerEmail}</p>
       <p style="margin: 6px 0 0 0;"><strong>Projet:</strong> ${projectName}</p>
-      <p style="margin: 6px 0 0 0;"><strong>ID du devis:</strong> ${quoteId}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Devis:</strong> #${quoteId.slice(0, 8)}</p>
     </div>
-    <p>Le projet peut maintenant être lancé en phase de développement.</p>
-    <p>Vous pouvez télécharger le devis signé ci-dessous.</p>
   `;
 
   return sendEmail({
     to: ADMIN_EMAIL,
-    subject: `Devis signé : ${projectName} - ${prospectName}`,
+    subject: `Devis signé : ${projectName} - ${signerName}`,
     html: getEmailTemplate(content, "Télécharger le devis signé", signedPdfUrl)
+  });
+}
+
+/**
+ * Email : Site prêt pour review (Client)
+ */
+export async function sendClientSiteReadyEmail(
+  userId: string,
+  projectName: string,
+  demoUrl: string
+) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ?? "Bonjour";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Votre site est prêt pour validation ! 🎉</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Le développement de votre site pour le projet <strong>${projectName}</strong> est terminé.</p>
+    <p>Vous pouvez dès maintenant le consulter et vérifier que tout correspond à vos attentes.</p>
+    <p><strong>Prochaines étapes :</strong></p>
+    <ul>
+      <li>Consultez le site via le lien ci-dessous</li>
+      <li>Si tout est bon, validez-le depuis votre espace client pour lancer la mise en ligne</li>
+      <li>Sinon, vous pouvez demander des modifications via le système de tickets</li>
+    </ul>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: `Validation requise : Votre site ${projectName} est prêt`,
+    html: getEmailTemplate(content, "Voir mon site", demoUrl)
   });
 }
 
@@ -826,15 +861,15 @@ export async function sendQuoteSignedEmailToAdmin(
  * Email de réinitialisation de mot de passe
  */
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetUrl = `${appUrl}/reset-password?token=${token}`;
+  const resetUrl = `${appUrl} / reset - password ? token = ${token}`;
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Réinitialisation de mot de passe</h2>
-    <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
-    <p>Cliquez sur le lien ci-dessous pour en définir un nouveau :</p>
-    <p>Ce lien est valable pendant 1 heure.</p>
-    <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>
-  `;
+  < h2 style = "color: #1a202c; margin-top: 0;" > Réinitialisation de mot de passe </h2>
+  < p > Vous avez demandé à réinitialiser votre mot de passe.</p>
+  < p > Cliquez sur le lien ci - dessous pour en définir un nouveau : </p>
+  < p > Ce lien est valable pendant 1 heure.</p>
+  < p > Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>
+    `;
 
   return sendEmail({
     to: email,
@@ -861,17 +896,17 @@ export async function sendQuoteCreatedEmail(
   const userName = user.name ?? "Bonjour";
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Votre devis est prêt ! 📄</h2>
-    <p>Bonjour ${userName},</p>
-    <p>Suite à votre demande, voici le devis pour votre projet <strong>${projectName}</strong>.</p>
-    <p>Pour valider le lancement du projet, merci de consulter et signer le devis en ligne :</p>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Votre devis est prêt! 📄</h2>
+  < p > Bonjour ${userName}, </p>
+  < p > Suite à votre demande, voici le devis pour votre projet < strong > ${projectName} < /strong>.</p >
+  <p>Pour valider le lancement du projet, merci de consulter et signer le devis en ligne : </p>
 
-  `;
+    `;
 
   return sendEmail({
     to: user.email,
-    subject: `Votre devis pour le projet ${projectName} (Devis #${quoteNumber})`,
-    html: getEmailTemplate(content, "Consulter le devis", `${appUrl}/quotes/${quoteId}/sign`)
+    subject: `Votre devis pour le projet ${projectName}(Devis #${quoteNumber})`,
+    html: getEmailTemplate(content, "Consulter le devis", `${appUrl} / quotes / ${quoteId} / sign`)
   });
 }
 
@@ -893,48 +928,48 @@ export async function sendOnboardingReminderEmail(
 
   let subject = "";
   let content = "";
-  const onboardingUrl = `${appUrl}/onboarding`;
+  const onboardingUrl = `${appUrl} / onboarding`;
 
   switch (delay) {
     case "24h":
       subject = "Vous êtes à 2 minutes de débloquer votre démo ✨";
       content = `
-        <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName},</h2>
-        <p>Vous avez commencé l’onboarding pour votre projet <strong>${projectName}</strong>, mais il manque encore quelques informations pour que je puisse avancer.</p>
-        <p>👉 Dès que vous terminez, je vous envoie la démo personnalisée sous 24h.<br>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Bonjour ${userName}, </h2>
+  < p > Vous avez commencé l’onboarding pour votre projet < strong > ${projectName} < /strong>, mais il manque encore quelques informations pour que je puisse avancer.</p >
+  <p>👉 Dès que vous terminez, je vous envoie la démo personnalisée sous 24h.<br>
         👉 Votre devis se crée automatiquement juste après.</p>
-        <p>Ça prend 2–3 minutes maximum.</p>
-        <p style="margin: 24px 0;">
-          <a href="${onboardingUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Reprendre l’onboarding</a>
-        </p>
-        <p>Si quelque chose vous bloque, répondez simplement à cet email — je peux vous guider.</p>
-      `;
+  < p > Ça prend 2–3 minutes maximum.</p>
+  < p style = "margin: 24px 0;" >
+  <a href="${onboardingUrl}" style = "background-color: #000; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;" > Reprendre l’onboarding </a>
+  </p>
+  < p > Si quelque chose vous bloque, répondez simplement à cet email — je peux vous guider.</p>
+    `;
       break;
     case "48h":
       subject = "On avance sur votre site ? 😊";
       content = `
-        <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName},</h2>
-        <p>Je vois que l’onboarding du projet <strong>${projectName}</strong> n’est pas encore terminé.</p>
-        <p>Tant qu’il n’est pas complété, je ne peux pas :<br>
-        ✔ lancer votre démo personnalisée,<br>
-        ✔ générer votre devis,<br>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Bonjour ${userName}, </h2>
+  < p > Je vois que l’onboarding du projet < strong > ${projectName} < /strong> n’est pas encore terminé.</p >
+  <p>Tant qu’il n’est pas complété, je ne peux pas : <br>
+        ✔ lancer votre démo personnalisée, <br>
+        ✔ générer votre devis, <br>
         ✔ démarrer votre projet.</p>
-        <p>Bonne nouvelle : il ne vous reste que quelques étapes.</p>
-        <p>Si vous préférez, répondez directement à cet email et je vous explique ce qu’il manque.</p>
-      `;
+  < p > Bonne nouvelle : il ne vous reste que quelques étapes.</p>
+  < p > Si vous préférez, répondez directement à cet email et je vous explique ce qu’il manque.</p>
+    `;
       break;
     case "7days":
       subject = "Votre projet est toujours d’actualité ?";
       content = `
-        <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName},</h2>
-        <p>Cela fait maintenant 7 jours que l’onboarding du projet <strong>${projectName}</strong> n’a pas été finalisé.</p>
-        <p>Je garde encore votre créneau de production ouvert, mais je ne pourrai pas le bloquer longtemps.</p>
-        <p>Pour rappel, une fois l’onboarding complété :<br>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Bonjour ${userName}, </h2>
+  < p > Cela fait maintenant 7 jours que l’onboarding du projet < strong > ${projectName} < /strong> n’a pas été finalisé.</p >
+  <p>Je garde encore votre créneau de production ouvert, mais je ne pourrai pas le bloquer longtemps.</p>
+  < p > Pour rappel, une fois l’onboarding complété : <br>
         ✔ Démo personnalisée envoyée sous 24h<br>
         ✔ Devis généré automatiquement<br>
-        ✔ Démarrage immédiat après validation</p>
-        <p>Si vous avez une question ou si quelque chose vous freine, dites-moi — je suis là pour vous accompagner.</p>
-      `;
+        ✔ Démarrage immédiat après validation </p>
+  < p > Si vous avez une question ou si quelque chose vous freine, dites - moi — je suis là pour vous accompagner.</p>
+    `;
       break;
   }
 
@@ -961,18 +996,18 @@ export async function sendQuoteReadyEmail(
   }
 
   const userName = user.name ?? "Bonjour";
-  const quoteUrl = `${appUrl}/quote/${quoteId}`;
+  const quoteUrl = `${appUrl} / quote / ${quoteId}`;
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName},</h2>
-    <p>Bonne nouvelle : votre devis pour le projet <strong>${projectName}</strong> est maintenant disponible.</p>
-    <p>Vous pouvez le consulter et le signer directement ici :</p>
-    <p>Dès votre signature :<br>
-    1️⃣ Je lance la préparation de votre site<br>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Bonjour ${userName}, </h2>
+  < p > Bonne nouvelle : votre devis pour le projet < strong > ${projectName} < /strong> est maintenant disponible.</p >
+  <p>Vous pouvez le consulter et le signer directement ici : </p>
+  < p > Dès votre signature : <br>
+  1️⃣ Je lance la préparation de votre site<br>
     2️⃣ Vous recevez un planning sous 24h<br>
-    3️⃣ Vous débloquez l’accès complet au système de tickets</p>
-    <p>Et si vous souhaitez ajuster quelque chose, répondez simplement à ce message.</p>
-  `;
+    3️⃣ Vous débloquez l’accès complet au système de tickets </p>
+  < p > Et si vous souhaitez ajuster quelque chose, répondez simplement à ce message.</p>
+    `;
 
   return sendEmail({
     to: user.email,
@@ -996,32 +1031,32 @@ export async function sendQuoteReminderEmail(
   }
 
   const userName = user.name ?? "Bonjour";
-  const quoteUrl = `${appUrl}/quote/${quoteId}`;
+  const quoteUrl = `${appUrl} / quote / ${quoteId}`;
   let subject = "";
   let content = "";
 
   if (delay === "3days") {
-    subject = `Toujours partant pour votre site ${projectName} ?`;
+    subject = `Toujours partant pour votre site ${projectName} ? `;
     content = `
-      <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName},</h2>
-      <p>Vous avez reçu votre devis pour <strong>${projectName}</strong> il y a quelques jours, mais il n’a pas encore été signé.</p>
-      <p>Bonne nouvelle : il est toujours valable.</p>
-      <p>Pour rappel, la signature débloque :<br>
+    < h2 style = "color: #1a202c; margin-top: 0;" > Bonjour ${userName}, </h2>
+    < p > Vous avez reçu votre devis pour < strong > ${projectName} < /strong> il y a quelques jours, mais il n’a pas encore été signé.</p >
+  <p>Bonne nouvelle : il est toujours valable.</p>
+  < p > Pour rappel, la signature débloque : <br>
       ✔ Le lancement immédiat du projet<br>
       ✔ Votre planning de livraison<br>
-      ✔ Votre espace client complet</p>
-      <p>Si quelque chose vous bloque, dites-moi — je peux ajuster le devis ou répondre à vos questions.</p>
+      ✔ Votre espace client complet </p>
+  < p > Si quelque chose vous bloque, dites - moi — je peux ajuster le devis ou répondre à vos questions.</p>
     `;
   } else {
     subject = "Je garde votre créneau encore 48h";
     content = `
-      <h2 style="color: #1a202c; margin-top: 0;">Bonjour ${userName},</h2>
-      <p>Votre devis pour le projet <strong>${projectName}</strong> n’a toujours pas été signé après plusieurs relances.</p>
-      <p>Je préfère être transparent :<br>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Bonjour ${userName}, </h2>
+  < p > Votre devis pour le projet < strong > ${projectName} < /strong> n’a toujours pas été signé après plusieurs relances.</p >
+  <p>Je préfère être transparent : <br>
       ➡️ Votre créneau de production est encore réservé 48h.<br>
       Après ce délai, je ne pourrai plus garantir le même délai de livraison.</p>
-      <p>Votre devis est toujours accessible ici :</p>
-      <p>Si vous souhaitez modifier un point, ajuster le budget ou si quelque chose vous freine, répondez simplement à cet email.</p>
+  < p > Votre devis est toujours accessible ici : </p>
+  < p > Si vous souhaitez modifier un point, ajuster le budget ou si quelque chose vous freine, répondez simplement à cet email.</p>
     `;
   }
 
@@ -1044,24 +1079,24 @@ export async function sendInternalInactivityNotification(
   const statusText = status === "onboarding_incomplete" ? "Onboarding incomplet" : "Devis non signé";
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Prospect inactif : ${prospectName}</h2>
-    <p>Le prospect <strong>${prospectName}</strong> (projet : <strong>${projectName}</strong>) est inactif depuis 7 jours.</p>
-    <div style="background-color: #FEF2F2; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #FECACA;">
-      <p style="margin: 0; color: #991B1B;"><strong>Statut :</strong> ${statusText}</p>
-    </div>
-    <p>Tu devrais probablement :</p>
-    <ul>
-      <li>📞 tenter un appel</li>
-      <li>📱 envoyer un SMS rapide</li>
-      <li>💬 ou un WhatsApp si plus adapté</li>
-    </ul>
+  < h2 style = "color: #1a202c; margin-top: 0;" > Prospect inactif : ${prospectName} </h2>
+  < p > Le prospect < strong > ${prospectName} < /strong> (projet : <strong>${projectName}</strong >) est inactif depuis 7 jours.</p>
+    < div style = "background-color: #FEF2F2; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #FECACA;" >
+      <p style="margin: 0; color: #991B1B;" > <strong>Statut : </strong> ${statusText}</p >
+        </div>
+        < p > Tu devrais probablement: </p>
+          < ul >
+          <li>📞 tenter un appel </li>
+            <li>📱 envoyer un SMS rapide </li>
+              <li>💬 ou un WhatsApp si plus adapté </li>
+                </ul>
     ${crmLink ? `<p><a href="${crmLink}">Voir dans le CRM</a></p>` : ""}
   `;
 
   return sendEmail({
     to: ADMIN_EMAIL,
-    subject: `Prospect inactif : ${prospectName} - ${projectName}`,
-    html: getEmailTemplate(content, "Ouvrir le dashboard", `${appUrl}/admin/clients`)
+    subject: `Prospect inactif: ${prospectName} - ${projectName} `,
+    html: getEmailTemplate(content, "Ouvrir le dashboard", `${appUrl} /admin/clients`)
   });
 }
 
@@ -1078,16 +1113,16 @@ export async function sendBriefSentEmail(userId: string, projectName: string) {
   const userName = user.name ?? "Bonjour";
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Nouveau brief à valider 📝</h2>
-    <p>Bonjour ${userName},</p>
-    <p>Nous avons rédigé le brief de production pour votre projet <strong>${projectName}</strong>.</p>
-    <p>Ce document récapitule les fonctionnalités et le contenu de votre futur site, basé sur vos réponses au questionnaire.</p>
-    <p><strong>Action requise :</strong> Merci de le lire attentivement et de le valider (ou demander des modifications) pour que nous puissions lancer la production.</p>
-  `;
+    < h2 style = "color: #1a202c; margin-top: 0;" > Nouveau brief à valider 📝</h2>
+      < p > Bonjour ${userName}, </p>
+        < p > Nous avons rédigé le brief de production pour votre projet < strong > ${projectName} </strong>.</p >
+          <p>Ce document récapitule les fonctionnalités et le contenu de votre futur site, basé sur vos réponses au questionnaire.</p>
+            < p > <strong>Action requise: </strong> Merci de le lire attentivement et de le valider (ou demander des modifications) pour que nous puissions lancer la production.</p >
+              `;
 
   return sendEmail({
     to: user.email,
-    subject: `Action requise : Validez le brief pour ${projectName}`,
+    subject: `Action requise: Validez le brief pour ${projectName} `,
     html: getEmailTemplate(content, "Lire le brief", `${appUrl}/`)
   });
 }
