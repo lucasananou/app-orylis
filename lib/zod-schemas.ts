@@ -602,27 +602,30 @@ export const ProspectOnboardingDraftSchema = z.object({
 });
 
 // Schéma complet pour la validation finale prospect
-export const ProspectOnboardingFinalSchema = ProspectContactSchema
+// Schéma de base sans refinement pour permettre le merge
+export const ProspectOnboardingBaseSchema = ProspectContactSchema
   .merge(ProspectGoalSchema)
   .merge(ProspectInspirationSchema)
   .merge(ProspectStyleSchema)
   .merge(ProspectIdentitySchema)
   .merge(ProspectBrandingSchema)
   .merge(ProspectMessageSchema)
-  .merge(ProspectInfoSchema)
-  .refine(
-    (data) => {
-      // Si siteGoal contient "other", siteGoalOther doit être rempli
-      if (data.siteGoal?.includes("other") && (!data.siteGoalOther || data.siteGoalOther.trim().length === 0)) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Précisez votre objectif si vous avez choisi 'Autre'.",
-      path: ["siteGoalOther"]
+  .merge(ProspectInfoSchema);
+
+// Schéma complet pour la validation finale prospect
+export const ProspectOnboardingFinalSchema = ProspectOnboardingBaseSchema.refine(
+  (data) => {
+    // Si siteGoal contient "other", siteGoalOther doit être rempli
+    if (data.siteGoal?.includes("other") && (!data.siteGoalOther || data.siteGoalOther.trim().length === 0)) {
+      return false;
     }
-  );
+    return true;
+  },
+  {
+    message: "Précisez votre objectif si vous avez choisi 'Autre'.",
+    path: ["siteGoalOther"]
+  }
+);
 
 export type ProspectOnboardingPayload = z.infer<typeof ProspectOnboardingFinalSchema>;
 export type ProspectOnboardingDraftPayload = z.infer<typeof ProspectOnboardingDraftSchema>;
@@ -653,5 +656,17 @@ export const PublicIdentitySchema = z.object({
   email: z.string().email({ message: "Email invalide." })
 });
 
-export const PublicOnboardingSchema = PublicIdentitySchema.merge(ProspectOnboardingFinalSchema);
+export const PublicOnboardingSchema = PublicIdentitySchema.merge(ProspectOnboardingBaseSchema).refine(
+  (data) => {
+    // Si siteGoal contient "other", siteGoalOther doit être rempli
+    if (data.siteGoal?.includes("other") && (!data.siteGoalOther || data.siteGoalOther.trim().length === 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Précisez votre objectif si vous avez choisi 'Autre'.",
+    path: ["siteGoalOther"]
+  }
+);
 export type PublicOnboardingPayload = z.infer<typeof PublicOnboardingSchema>;
