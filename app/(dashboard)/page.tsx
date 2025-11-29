@@ -49,6 +49,7 @@ import { HostingWidget } from "@/components/dashboard/hosting-widget";
 import { SiteHealthWidget } from "@/components/dashboard/site-health-widget";
 import { BriefValidationCard } from "@/components/dashboard/brief-validation-card";
 import { BriefHistory } from "@/components/dashboard/brief-history";
+import { ProjectMilestones } from "@/components/dashboard/project-milestones";
 
 // Cache intelligent : revalider toutes les 30 secondes
 // Les données changent peu souvent, pas besoin de force-dynamic
@@ -894,6 +895,13 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
 
                 {/* 2. Historique des versions */}
                 <BriefHistory briefs={projectsData[0].briefs} />
+              </div>
+            ) : projectsData[0].status === "build" ? (
+              <div className="space-y-6">
+                <ProjectMilestones />
+                {onboardingCardProject && !onboardingCompleted && (
+                  <DashboardOnboardingCard project={onboardingCardProject} role={role} />
+                )}
               </div>
             ) : onboardingCardProject && !onboardingCompleted ? (
               <Card className="border-l-4 border-l-blue-600 border-y border-r border-slate-200 shadow-sm bg-white">

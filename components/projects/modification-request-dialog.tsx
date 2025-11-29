@@ -75,7 +75,20 @@ export function ModificationRequestDialog({ projectId, trigger }: ModificationRe
                         Détaillez vos retours sur cette version. Nous allons prendre en compte vos remarques et préparer une nouvelle version.
                     </DialogDescriptionComp>
                 </DialogHeader>
-                <div className="py-4">
+                <div className="py-4 space-y-4">
+                    <div className="rounded-md bg-blue-50 p-3 border border-blue-100">
+                        <p className="text-sm font-medium text-blue-800 mb-2">Avant d'envoyer, avez-vous :</p>
+                        <ul className="space-y-2">
+                            <li className="flex items-center gap-2">
+                                <input type="checkbox" id="check-mobile" className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <label htmlFor="check-mobile" className="text-sm text-blue-700">Testé l'affichage sur mobile ?</label>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <input type="checkbox" id="check-cache" className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <label htmlFor="check-cache" className="text-sm text-blue-700">Vidé le cache de votre navigateur ?</label>
+                            </li>
+                        </ul>
+                    </div>
                     <Textarea
                         placeholder="Ex: La couleur du bouton contact n'est pas la bonne, il manque une section sur..."
                         className="min-h-[150px]"
