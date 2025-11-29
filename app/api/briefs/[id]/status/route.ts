@@ -57,6 +57,13 @@ export async function PATCH(
         .where(eq(projectBriefs.id, briefId))
         .returning();
 
+    if (status === "approved") {
+        await db
+            .update(projects)
+            .set({ status: "design" })
+            .where(eq(projects.id, brief.project.id));
+    }
+
     // TODO: Send email notification to admin
 
     return NextResponse.json(updatedBrief);

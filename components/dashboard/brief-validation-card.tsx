@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+import { useRouter } from "next/navigation";
+
 interface Brief {
     id: string;
     version: number;
@@ -21,13 +23,14 @@ interface Brief {
 
 interface BriefValidationCardProps {
     brief: Brief;
-    onUpdate: () => void;
 }
 
-export function BriefValidationCard({ brief, onUpdate }: BriefValidationCardProps) {
+export function BriefValidationCard({ brief }: BriefValidationCardProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showRejectForm, setShowRejectForm] = useState(false);
     const [comment, setComment] = useState("");
+
+    const router = useRouter();
 
     const handleStatusUpdate = async (status: "approved" | "rejected") => {
         if (status === "rejected" && !comment.trim()) {
@@ -46,7 +49,7 @@ export function BriefValidationCard({ brief, onUpdate }: BriefValidationCardProp
             if (!res.ok) throw new Error("Failed to update status");
 
             toast.success(status === "approved" ? "Brief validé avec succès ! 🎉" : "Demande de modifications envoyée.");
-            onUpdate();
+            router.refresh();
         } catch (error) {
             console.error(error);
             toast.error("Une erreur est survenue.");

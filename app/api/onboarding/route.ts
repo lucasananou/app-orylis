@@ -233,6 +233,33 @@ export async function POST(req: NextRequest) {
   // Attendre les notifications et emails pour garantir l'envoi (Serverless)
   if (completed && project) {
     try {
+      // Si c'est un onboarding CLIENT (pas prospect), on génère le Brief v1
+      if (!isProspectUser && parsedPayload) {
+        const { generateBriefContentFromPayload } = await import("@/lib/brief-generator");
+        const { projectBriefs } = await import("@/lib/schema");
+
+        const briefContent = generateBriefContentFromPayload(parsedPayload as any); // Cast as any to avoid strict type issues with partial payloads
+
+        // Créer le Brief v1
+        await db.insert(projectBriefs).values({
+          projectId,
+          version: 1,
+          content: briefContent,
+          status: "sent", // "sent" signifie "En attente de validation client" (ou ici "En attente de revue Orylis" ?)
+          // Disons "sent" pour l'instant, ou on pourrait ajouter un statut "pending_review"
+          // Pour simplifier : "sent" = le brief est émis. 
+          // Mais ici c'est l'inverse, c'est le client qui émet.
+          // On va dire que v1 est "draft" pour l'admin, ou "sent" pour que le client le voie ?
+          // Le user a dit : "L'onboarding devient le premier brief... une fois les modifs faites, je veux pouvoir côté admin dire que c'est fait"
+          // Donc v1 = Onboarding brut.
+          // L'admin va le relire et créer la v2.
+          // Donc v1 peut être "approved" par défaut (c'est ce que le client a dit) ?
+          // Ou "draft" ?
+          // Allons sur "sent" (envoyé à l'admin).
+        });
+        console.log("[Onboarding] Brief v1 generated");
+      }
+
       await Promise.all([
         notifyProjectParticipants({
           projectId,
@@ -253,7 +280,7 @@ export async function POST(req: NextRequest) {
       ]);
       console.log("[Onboarding] Emails sent successfully");
     } catch (error) {
-      console.error("[Onboarding] Failed to send emails/notifications:", error);
+      console.error("[Onboarding] Failed to send emails/notifications or generate brief:", error);
       // On ne bloque pas la réponse si les emails échouent, mais on log l'erreur
     }
   }

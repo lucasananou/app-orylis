@@ -47,6 +47,7 @@ import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 import { HostingWidget } from "@/components/dashboard/hosting-widget";
 import { SiteHealthWidget } from "@/components/dashboard/site-health-widget";
 import { BriefValidationCard } from "@/components/dashboard/brief-validation-card";
+import { BriefHistory } from "@/components/dashboard/brief-history";
 
 // Cache intelligent : revalider toutes les 30 secondes
 // Les données changent peu souvent, pas besoin de force-dynamic
@@ -75,6 +76,7 @@ interface DashboardProject {
     status: "draft" | "sent" | "approved" | "rejected";
     clientComment: string | null;
     createdAt: string;
+    updatedAt: string;
   }>;
   ownerId: string;
   ownerName: string | null;
@@ -187,7 +189,8 @@ async function loadDashboardData() {
       deliveredAt: project.deliveredAt ? project.deliveredAt.toISOString() : null,
       briefs: projectBriefs.map(b => ({
         ...b,
-        createdAt: b.createdAt.toISOString()
+        createdAt: b.createdAt.toISOString(),
+        updatedAt: b.updatedAt.toISOString()
       }))
     };
   }));
@@ -830,19 +833,49 @@ export default async function DashboardHomePage(): Promise<JSX.Element> {
           </div>
         ) : (
           <>
-            {projectsData[0]?.briefs?.[0]?.status === "sent" ? (
-              <BriefValidationCard
-                brief={projectsData[0].briefs[0]}
-                onUpdate={() => {
-                  // Force refresh via server action or router refresh would be better
-                  // For now, we rely on the fact that the component handles its own state for immediate feedback
-                  // But to update the UI globally, we might need a refresh.
-                  // Since this is a server component, we can't easily pass a refresh handler that re-runs the server query.
-                  // The card itself shows success message. The user will likely reload or navigate.
-                  // Ideally: router.refresh()
-                  window.location.reload();
-                }}
-              />
+            {projectsData[0]?.briefs && projectsData[0].briefs.length > 0 ? (
+              <div className="space-y-8">
+                {/* 1. Carte d'action principale selon le statut du dernier brief */}
+                {projectsData[0].briefs[0].status === "sent" ? (
+                  <BriefValidationCard
+                    brief={projectsData[0].briefs[0]}
+                  />
+                ) : projectsData[0].briefs[0].status === "approved" ? (
+                  <Card className="border-l-4 border-l-green-600 border-y border-r border-slate-200 shadow-sm bg-white">
+                    <CardHeader>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center justify-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                          Validé
+                        </span>
+                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cahier des charges</span>
+                      </div>
+                      <CardTitle className="text-xl">Cahier des charges validé ✅</CardTitle>
+                      <CardDescription className="text-base">
+                        La production est lancée sur la base de la version {projectsData[0].briefs[0].version}.
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                ) : (
+                  <Card className="border-l-4 border-l-orange-500 border-y border-r border-slate-200 shadow-sm bg-white">
+                    <CardHeader>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
+                          En attente
+                        </span>
+                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Modifications demandées</span>
+                      </div>
+                      <CardTitle className="text-xl">Demande bien reçue 📨</CardTitle>
+                      <CardDescription className="text-base">
+                        Nous avons bien reçu votre demande de modifications sur la version {projectsData[0].briefs[0].version}.
+                        Nous allons préparer une nouvelle version du cahier des charges.
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                )}
+
+                {/* 2. Historique des versions */}
+                <BriefHistory briefs={projectsData[0].briefs} />
+              </div>
             ) : onboardingCardProject && !onboardingCompleted ? (
               <Card className="border-l-4 border-l-blue-600 border-y border-r border-slate-200 shadow-sm bg-white">
                 <CardHeader>

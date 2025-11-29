@@ -53,7 +53,18 @@ async function loadOnboardingData() {
       responseUpdatedAt: onboardingResponses.updatedAt
     })
     .from(projects)
-    .leftJoin(onboardingResponses, eq(onboardingResponses.projectId, projects.id))
+    .leftJoin(
+      onboardingResponses,
+      and(
+        eq(onboardingResponses.projectId, projects.id),
+        // Si c'est un prospect, on veut sa réponse prospect
+        // Si c'est un client, on veut sa réponse client
+        // Si c'est le staff, on prend tout (ou on pourrait affiner)
+        isProspectUser
+          ? eq(onboardingResponses.type, "prospect")
+          : eq(onboardingResponses.type, "client")
+      )
+    )
     .where(
       staff
         ? eq(projects.status, "onboarding")

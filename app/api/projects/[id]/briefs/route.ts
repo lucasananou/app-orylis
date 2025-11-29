@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { projectBriefs, projects } from "@/lib/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { isStaff } from "@/lib/utils";
 
@@ -19,19 +19,17 @@ export async function GET(
     // Verify access
     const project = await db.query.projects.findFirst({
         where: eq(projects.id, projectId),
-        with: {
-            owner: true
-        }
+        columns: { ownerId: true }
     });
 
     if (!project) {
         return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const isOwner = project.owner.id === session.user.id;
-    const staff = isStaff(session.user.role);
+    const isOwner = project.ownerId === session.user.id;
+    const isStaffUser = isStaff(session.user.role);
 
-    if (!isOwner && !staff) {
+    if (!isOwner && !isStaffUser) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -60,25 +58,25 @@ export async function POST(
         return NextResponse.json({ error: "Content is required" }, { status: 400 });
     }
 
-    // Get last version
-    const lastBrief = await db.query.projectBriefs.findFirst({
+    // Get latest version
+    const latestBrief = await db.query.projectBriefs.findFirst({
         where: eq(projectBriefs.projectId, projectId),
         orderBy: [desc(projectBriefs.version)]
     });
 
-    const newVersion = (lastBrief?.version || 0) + 1;
+    const nextVersion = (latestBrief?.version || 0) + 1;
 
-    const [brief] = await db
+    const [newBrief] = await db
         .insert(projectBriefs)
         .values({
             projectId,
-            version: newVersion,
+            version: nextVersion,
             content,
             status: "sent"
         })
         .returning();
 
-    // TODO: Send email notification to client
+    // Notify client? (TODO)
 
-    return NextResponse.json(brief);
+    return NextResponse.json(newBrief);
 }

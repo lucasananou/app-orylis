@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { subscriptions, profiles, projects } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
+// import { promoteProspectToClient } from "@/lib/actions";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -38,11 +39,20 @@ export async function POST(req: Request) {
 
       if (userId && projectId) {
         try {
+          // 1. Mettre à jour le rôle du profil
           await db
             .update(profiles)
             .set({ role: "client" })
             .where(eq(profiles.id, userId));
-          console.log("[Webhook] User role updated to client");
+
+          // 2. Mettre à jour le statut du projet
+          // On le remet explicitement à "onboarding" pour être sûr que le client tombe sur le formulaire
+          await db
+            .update(projects)
+            .set({ status: "onboarding" })
+            .where(eq(projects.id, projectId));
+
+          console.log("[Webhook] User promoted to client and project set to onboarding");
 
           // Fetch project name for email
           const project = await db.query.projects.findFirst({
