@@ -83,18 +83,17 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
             return null;
           }
 
-          // Masquer les tickets si aucun projet livré (sauf pour le staff)
-          if (item.href === "/tickets" && role !== "staff" && !hasDeliveredProject) {
-            return null;
-          }
-
-          // Masquer les items pour les prospects (sauf Dashboard et Onboarding)
-          if (role === "prospect" && !["/", "/onboarding"].includes(item.href)) {
+          // Masquer les tickets si aucun projet livré (uniquement pour les clients, les prospects les voient grisés)
+          if (item.href === "/tickets" && role === "client" && !hasDeliveredProject) {
             return null;
           }
 
           // Vérifier les permissions pour tickets, files, billing
+          // Pour les prospects, tout est restreint sauf Dashboard et Onboarding
+          const isProspectRestricted = role === "prospect" && !["/", "/onboarding"].includes(item.href);
+
           const isRestricted =
+            isProspectRestricted ||
             (item.href === "/tickets" && !canAccessTickets(role)) ||
             (item.href === "/files" && !canAccessFiles(role)) ||
             (item.href === "/billing" && !canAccessBilling(role));
@@ -117,7 +116,7 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
 
           if (isRestricted) {
             return (
-              <div key={item.href} title="Réservé aux clients">
+              <div key={item.href} title={role === "prospect" ? "Complétez votre onboarding pour accéder" : "Réservé aux clients"}>
                 {content}
               </div>
             );

@@ -642,3 +642,16 @@ export const notificationPreferencesSchema = z
   });
 
 export type NotificationPreferencesPayload = z.infer<typeof notificationPreferencesSchema>;
+
+// ============================================
+// Schémas pour l'onboarding PUBLIC (Direct Signup)
+// ============================================
+
+export const PublicIdentitySchema = z.object({
+  firstName: z.string().min(2, { message: "Prénom requis (2 car. min)." }),
+  lastName: z.string().min(2, { message: "Nom requis (2 car. min)." }),
+  email: z.string().email({ message: "Email invalide." })
+});
+
+export const PublicOnboardingSchema = PublicIdentitySchema.merge(ProspectOnboardingFinalSchema);
+export type PublicOnboardingPayload = z.infer<typeof PublicOnboardingSchema>;
