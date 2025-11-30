@@ -1,7 +1,44 @@
 import { db } from "@/lib/db";
-import { projects, quotes, onboardingResponses, profiles, authUsers } from "@/lib/schema";
+import { projects, quotes, onboardingResponses, profiles, authUsers, notifications } from "@/lib/schema";
 import { eq, and, lt, sql } from "drizzle-orm";
 import { sendOnboardingReminderEmail, sendQuoteReadyEmail, sendQuoteReminderEmail, sendInternalInactivityNotification } from "./emails";
+import { createNotification } from "./notifications";
+
+/**
+ * Vérifie si un rappel a déjà été envoyé pour un projet donné
+ */
+async function hasReminderBeenSent(projectId: string, reminderType: string): Promise<boolean> {
+  const existing = await db
+    .select({ id: notifications.id })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.projectId, projectId),
+        sql`${notifications.metadata}->>'reminderType' = ${reminderType}`
+      )
+    )
+    .limit(1);
+
+  return existing.length > 0;
+}
+
+/**
+ * Vérifie si un rappel a déjà été envoyé pour un devis donné
+ */
+async function hasQuoteReminderBeenSent(quoteId: string, reminderType: string): Promise<boolean> {
+  const existing = await db
+    .select({ id: notifications.id })
+    .from(notifications)
+    .where(
+      and(
+        sql`${notifications.metadata}->>'quoteId' = ${quoteId}`,
+        sql`${notifications.metadata}->>'reminderType' = ${reminderType}`
+      )
+    )
+    .limit(1);
+
+  return existing.length > 0;
+}
 
 /**
  * Envoie des rappels pour les onboarding incomplets
@@ -78,6 +115,10 @@ export async function checkAndSendOnboardingReminders() {
 
   // Envoyer les rappels 24h
   for (const project of projects24h) {
+    if (await hasReminderBeenSent(project.projectId, "onboarding_24h")) {
+      continue;
+    }
+
     const user = await db.query.authUsers.findFirst({
       where: eq(authUsers.id, project.ownerId),
       columns: { email: true }
@@ -86,6 +127,16 @@ export async function checkAndSendOnboardingReminders() {
     if (user?.email) {
       try {
         await sendOnboardingReminderEmail(project.ownerId, project.projectName, project.projectId, "24h");
+
+        await createNotification({
+          userId: project.ownerId,
+          projectId: project.projectId,
+          type: "system",
+          title: "Rappel Onboarding",
+          body: "N'oubliez pas de terminer votre onboarding pour débloquer votre démo.",
+          metadata: { reminderType: "onboarding_24h" }
+        });
+
         results.push({ type: "onboarding_24h", projectId: project.projectId, success: true });
       } catch (error) {
         console.error(`Error sending 24h reminder for project ${project.projectId}:`, error);
@@ -96,6 +147,10 @@ export async function checkAndSendOnboardingReminders() {
 
   // Envoyer les rappels 48h
   for (const project of projects48h) {
+    if (await hasReminderBeenSent(project.projectId, "onboarding_48h")) {
+      continue;
+    }
+
     const user = await db.query.authUsers.findFirst({
       where: eq(authUsers.id, project.ownerId),
       columns: { email: true }
@@ -104,6 +159,16 @@ export async function checkAndSendOnboardingReminders() {
     if (user?.email) {
       try {
         await sendOnboardingReminderEmail(project.ownerId, project.projectName, project.projectId, "48h");
+
+        await createNotification({
+          userId: project.ownerId,
+          projectId: project.projectId,
+          type: "system",
+          title: "On avance sur votre site ?",
+          body: "Terminez votre onboarding pour que nous puissions lancer votre démo.",
+          metadata: { reminderType: "onboarding_48h" }
+        });
+
         results.push({ type: "onboarding_48h", projectId: project.projectId, success: true });
       } catch (error) {
         console.error(`Error sending 48h reminder for project ${project.projectId}:`, error);
@@ -114,6 +179,10 @@ export async function checkAndSendOnboardingReminders() {
 
   // Envoyer les rappels 7 jours + Notification interne
   for (const project of projects7days) {
+    if (await hasReminderBeenSent(project.projectId, "onboarding_7days")) {
+      continue;
+    }
+
     const user = await db.query.authUsers.findFirst({
       where: eq(authUsers.id, project.ownerId),
       columns: { email: true, name: true }
@@ -123,6 +192,16 @@ export async function checkAndSendOnboardingReminders() {
       try {
         // Relance client
         await sendOnboardingReminderEmail(project.ownerId, project.projectName, project.projectId, "7days");
+
+        await createNotification({
+          userId: project.ownerId,
+          projectId: project.projectId,
+          type: "system",
+          title: "Votre projet est toujours d'actualité ?",
+          body: "Cela fait 7 jours que votre onboarding est en attente.",
+          metadata: { reminderType: "onboarding_7days" }
+        });
+
         results.push({ type: "onboarding_7days", projectId: project.projectId, success: true });
 
         // Notification interne
@@ -169,9 +248,13 @@ export async function checkAndSendQuoteReadyNotifications() {
   const results = [];
 
   for (const quote of readyQuotes) {
+    if (await hasQuoteReminderBeenSent(quote.quoteId, "quote_ready")) {
+      continue;
+    }
+
     const project = await db.query.projects.findFirst({
       where: eq(projects.id, quote.projectId),
-      columns: { ownerId: true, name: true }
+      columns: { ownerId: true, name: true, id: true }
     });
 
     if (project) {
@@ -183,6 +266,16 @@ export async function checkAndSendQuoteReadyNotifications() {
       if (user?.email) {
         try {
           await sendQuoteReadyEmail(project.ownerId, project.name, quote.quoteId);
+
+          await createNotification({
+            userId: project.ownerId,
+            projectId: project.id,
+            type: "system",
+            title: "Votre devis est prêt",
+            body: "Vous pouvez maintenant consulter et signer votre devis.",
+            metadata: { reminderType: "quote_ready", quoteId: quote.quoteId }
+          });
+
           results.push({ type: "quote_ready", quoteId: quote.quoteId, success: true });
         } catch (error) {
           console.error(`Error sending quote ready notification for quote ${quote.quoteId}:`, error);
@@ -195,9 +288,6 @@ export async function checkAndSendQuoteReadyNotifications() {
   return results;
 }
 
-/**
- * Envoie des rappels pour les devis non signés après 3 jours
- */
 /**
  * Envoie des rappels pour les devis non signés après 3 jours et 7 jours
  */
@@ -248,9 +338,13 @@ export async function checkAndSendQuoteReminders() {
 
   // Traitement J+3
   for (const quote of quotes3Days) {
+    if (await hasQuoteReminderBeenSent(quote.quoteId, "quote_reminder_3d")) {
+      continue;
+    }
+
     const project = await db.query.projects.findFirst({
       where: eq(projects.id, quote.projectId),
-      columns: { ownerId: true, name: true }
+      columns: { ownerId: true, name: true, id: true }
     });
 
     if (project) {
@@ -262,6 +356,16 @@ export async function checkAndSendQuoteReminders() {
       if (user?.email) {
         try {
           await sendQuoteReminderEmail(project.ownerId, project.name, quote.quoteId, "3days");
+
+          await createNotification({
+            userId: project.ownerId,
+            projectId: project.id,
+            type: "system",
+            title: "Rappel devis",
+            body: "Votre devis est toujours en attente de signature.",
+            metadata: { reminderType: "quote_reminder_3d", quoteId: quote.quoteId }
+          });
+
           results.push({ type: "quote_reminder_3d", quoteId: quote.quoteId, success: true });
         } catch (error) {
           console.error(`Error sending 3-day quote reminder for quote ${quote.quoteId}:`, error);
@@ -273,9 +377,13 @@ export async function checkAndSendQuoteReminders() {
 
   // Traitement J+7 + Notification interne
   for (const quote of quotes7Days) {
+    if (await hasQuoteReminderBeenSent(quote.quoteId, "quote_reminder_7d")) {
+      continue;
+    }
+
     const project = await db.query.projects.findFirst({
       where: eq(projects.id, quote.projectId),
-      columns: { ownerId: true, name: true }
+      columns: { ownerId: true, name: true, id: true }
     });
 
     if (project) {
@@ -288,6 +396,16 @@ export async function checkAndSendQuoteReminders() {
         try {
           // Relance client
           await sendQuoteReminderEmail(project.ownerId, project.name, quote.quoteId, "7days");
+
+          await createNotification({
+            userId: project.ownerId,
+            projectId: project.id,
+            type: "system",
+            title: "Dernier rappel devis",
+            body: "Votre créneau de production va bientôt expirer.",
+            metadata: { reminderType: "quote_reminder_7d", quoteId: quote.quoteId }
+          });
+
           results.push({ type: "quote_reminder_7d", quoteId: quote.quoteId, success: true });
 
           // Notification interne
@@ -319,4 +437,3 @@ export async function processAllReminders() {
 
   return results;
 }
-
