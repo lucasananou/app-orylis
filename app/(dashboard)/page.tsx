@@ -214,11 +214,6 @@ async function loadDashboardData(selectedProjectId?: string) {
       redirect("/onboarding");
     }
 
-    // Si démo en cours mais pas encore prête, rediriger vers la page d'attente
-    if (mainProject.status === "demo_in_progress" && !mainProject.demoUrl) {
-      redirect("/demo-in-progress");
-    }
-
     // Si démo prête, rediriger vers la page de conversion
     if (mainProject.demoUrl) {
       redirect("/demo");

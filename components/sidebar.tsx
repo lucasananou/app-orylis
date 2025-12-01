@@ -16,7 +16,8 @@ import {
   Sparkles,
   Gift,
   BookOpen,
-  Rocket
+  Rocket,
+  LogOut
 } from "lucide-react";
 import { cn, canAccessTickets, canAccessFiles, canAccessBilling, type UserRole } from "@/lib/utils";
 
@@ -156,9 +157,19 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
           </>
         )}
       </nav>
-      <footer className="mt-auto pt-6 text-xs text-muted-foreground lg:pt-8">
-        Version MVP · {new Date().getFullYear()}
-      </footer>
+
+      <div className="mt-auto pt-6 lg:pt-8">
+        <button
+          onClick={() => import("next-auth/react").then(({ signOut }) => signOut())}
+          className="inline-flex min-h-[44px] w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-red-50 hover:text-red-600 lg:px-4 lg:py-3"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>Se déconnecter</span>
+        </button>
+        <footer className="mt-4 text-xs text-muted-foreground">
+          Version MVP · {new Date().getFullYear()}
+        </footer>
+      </div>
     </aside>
   );
 }

@@ -89,6 +89,10 @@ export async function POST(req: Request) {
                 source: "public_onboarding"
             };
 
+            // Send confirmation email
+            const { sendProspectOnboardingCompletedEmail } = await import("@/lib/emails");
+            await sendProspectOnboardingCompletedEmail(userId, onboardingData.companyName);
+
             // Brevo Nurturing Webhook
             fetch("https://hook.eu2.make.com/6inqljar2or4jxl74uprzx4s15nucgjj", {
                 method: "POST",
