@@ -36,6 +36,7 @@ const adminNavItems: Array<{ href: string; label: string; icon: LucideIcon }> = 
   { href: "/admin/clients", label: "Gestion des clients", icon: UserRound },
   { href: "/admin/invite", label: "Inviter un prospect", icon: UserRound },
   { href: "/admin/quotes", label: "Gestion des devis", icon: Receipt },
+  { href: "/admin/invoices", label: "Gestion des factures", icon: FileText },
   { href: "/admin/emails", label: "Gestion des emails", icon: Settings }
 ];
 

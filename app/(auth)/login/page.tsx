@@ -85,9 +85,9 @@ export default async function LoginPage(): Promise<JSX.Element> {
             </div>
 
             <p className="text-center text-sm text-slate-600">
-              Pas encore de compte ?{" "}
+              Toujours pas de site internet ?{" "}
               <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-                Créer un compte
+                Demander ma démo
               </Link>
             </p>
 

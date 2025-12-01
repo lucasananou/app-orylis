@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { subscriptions, profiles, projects } from "@/lib/schema";
+import { subscriptions, profiles, projects, authUsers } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 // import { promoteProspectToClient } from "@/lib/actions";
@@ -57,10 +57,62 @@ export async function POST(req: Request) {
           // Fetch project name for email
           const project = await db.query.projects.findFirst({
             where: eq(projects.id, projectId),
-            columns: { name: true }
+            columns: { name: true, ownerId: true }
           });
 
           if (project) {
+            // --- Generate Invoice ---
+            try {
+              // 1. Get next invoice number
+              const lastInvoice = await db.query.invoices.findFirst({
+                orderBy: (invoices, { desc }) => [desc(invoices.number)],
+              });
+              const nextNumber = (lastInvoice?.number ?? 2024000) + 1;
+
+              // 2. Get client info
+              const clientProfile = await db.query.profiles.findFirst({
+                where: eq(profiles.id, userId),
+                columns: { fullName: true, company: true }
+              });
+              const clientUser = await db.query.authUsers.findFirst({
+                where: eq(authUsers.id, userId),
+                columns: { name: true }
+              });
+
+              const clientName = clientProfile?.company || clientProfile?.fullName || clientUser?.name || "Client";
+
+              // 3. Generate PDF
+              const { generateInvoicePdf } = await import("@/lib/invoice-generator");
+              const amount = session.amount_total ? session.amount_total / 100 : 500;
+
+              const pdfUrl = await generateInvoicePdf({
+                invoiceNumber: nextNumber.toString(),
+                date: new Date(),
+                clientName,
+                projectName: project.name,
+                description: `Acompte sur création site internet - Projet ${project.name}`,
+                amount,
+                type: "deposit"
+              });
+
+              // 4. Save to DB
+              const { invoices } = await import("@/lib/schema");
+              await db.insert(invoices).values({
+                projectId,
+                userId,
+                number: nextNumber,
+                amount: session.amount_total || 50000, // Store in cents
+                status: "paid",
+                type: "deposit",
+                pdfUrl
+              });
+
+              console.log("[Webhook] Invoice generated:", nextNumber);
+
+            } catch (invError) {
+              console.error("[Webhook] Error generating invoice:", invError);
+            }
+
             const { sendDepositReceivedEmail, sendDepositReceivedEmailToAdmin } = await import("@/lib/emails");
             await Promise.all([
               sendDepositReceivedEmail(userId, project.name),

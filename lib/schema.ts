@@ -460,6 +460,7 @@ export const profilesRelations = relations(profiles, ({ many, one }) => ({
   ticketMessages: many(ticketMessages),
   files: many(files),
   notifications: many(notifications),
+  invoices: many(invoices),
   notificationPreferences: one(notificationPreferences, {
     fields: [profiles.id],
     references: [notificationPreferences.userId]
@@ -471,6 +472,10 @@ export const profilesRelations = relations(profiles, ({ many, one }) => ({
   }),
   referrals: many(profiles, {
     relationName: "referral"
+  }),
+  authUser: one(authUsers, {
+    fields: [profiles.id],
+    references: [authUsers.id]
   })
 }));
 
@@ -538,7 +543,8 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   notifications: many(notifications),
   quotes: many(quotes),
   subscriptions: many(subscriptions),
-  briefs: many(projectBriefs)
+  briefs: many(projectBriefs),
+  invoices: many(invoices)
 }));
 
 
@@ -634,6 +640,46 @@ export const passwordResetTokensRelations = relations(passwordResetTokens, ({ on
   user: one(authUsers, {
     fields: [passwordResetTokens.userId],
     references: [authUsers.id]
+  })
+}));
+
+export const invoiceStatusEnum = pgEnum("invoice_status", ["paid", "pending", "void"]);
+export const invoiceTypeEnum = pgEnum("invoice_type", ["deposit", "balance", "standard"]);
+
+export const invoices = createTable(
+  "invoices",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    number: integer("number").notNull(), // Séquentiel, ex: 2024001
+    amount: integer("amount").notNull(), // En centimes
+    status: invoiceStatusEnum("status").notNull().default("pending"),
+    type: invoiceTypeEnum("type").notNull().default("standard"),
+    pdfUrl: text("pdf_url").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+  },
+  (invoice) => ({
+    projectIdx: index("invoices_project_id_idx").on(invoice.projectId),
+    userIdx: index("invoices_user_id_idx").on(invoice.userId),
+    numberIdx: index("invoices_number_idx").on(invoice.number)
+  })
+);
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  project: one(projects, {
+    fields: [invoices.projectId],
+    references: [projects.id]
+  }),
+  user: one(profiles, {
+    fields: [invoices.userId],
+    references: [profiles.id]
   })
 }));
 
