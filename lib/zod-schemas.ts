@@ -556,8 +556,9 @@ export const ProspectBrandingSchema = z.object({
 export const ProspectMessageSchema = z.object({
   welcomePhrase: z
     .string()
-    .min(5, { message: "Au moins 5 caractères." })
-    .max(200, { message: "200 caractères maximum." }),
+    .max(200, { message: "200 caractères maximum." })
+    .optional()
+    .or(z.literal("")),
   mainServices: z
     .array(z.string().max(100))
     .length(3, { message: "Indiquez exactement 3 services principaux." })

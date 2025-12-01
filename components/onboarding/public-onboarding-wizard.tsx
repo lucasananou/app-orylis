@@ -95,13 +95,7 @@ const stepDefinitions = [
         schema: ProspectGoalSchema,
         fields: ["siteGoal", "siteGoalOther"]
     },
-    {
-        id: "inspirations",
-        label: "Vos inspirations",
-        description: "Avez-vous des exemples de sites qui vous plaisent ?",
-        schema: ProspectInspirationSchema,
-        fields: ["inspirationUrls"]
-    },
+
     {
         id: "style",
         label: "Votre style",
@@ -109,13 +103,7 @@ const stepDefinitions = [
         schema: ProspectStyleSchema,
         fields: ["preferredStyles"]
     },
-    {
-        id: "identity_check",
-        label: "Identité visuelle",
-        description: "Avez-vous déjà une charte graphique ?",
-        schema: ProspectIdentitySchema,
-        fields: ["hasVisualIdentity"]
-    },
+
     {
         id: "branding",
         label: "Vos éléments",
@@ -125,7 +113,7 @@ const stepDefinitions = [
     },
     {
         id: "message",
-        label: "Votre message",
+        label: "Votre site arrive bientôt !",
         description: "Comment souhaitez-vous accueillir vos visiteurs ?",
         schema: ProspectMessageSchema,
         fields: ["welcomePhrase", "mainServices"]
@@ -170,7 +158,7 @@ export function PublicOnboardingWizard() {
     });
 
     const { control, formState: { errors } } = form;
-    const inspirationUrlsArray = { fields: [0, 1, 2].map(i => ({ id: i })) }; // Mock field array
+
     const mainServicesArray = { fields: [0, 1, 2].map(i => ({ id: i })) }; // Mock field array
 
     // --- Handlers ---
@@ -223,10 +211,7 @@ export function PublicOnboardingWizard() {
         });
 
         // Special handling for arrays/objects if needed (similar to ProspectWizard)
-        if (definition.id === "inspirations") {
-            const filteredUrls = values.inspirationUrls?.filter((url: string) => url.trim().length > 0);
-            stepPayload = { inspirationUrls: filteredUrls && filteredUrls.length > 0 ? filteredUrls : undefined };
-        }
+
 
         const result = definition.schema.safeParse(stepPayload);
         if (!result.success) {
@@ -309,7 +294,7 @@ export function PublicOnboardingWizard() {
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Progress Bar */}
-            <div className="fixed left-0 top-0 z-50 h-1 w-full bg-slate-100">
+            <div className="fixed left-0 top-0 z-50 h-2 w-full bg-slate-100">
                 <div
                     className="h-full bg-primary transition-all duration-500 ease-out"
                     style={{ width: `${progressPercentage}%` }}
@@ -322,9 +307,7 @@ export function PublicOnboardingWizard() {
 
                         {/* Header */}
                         <div className="text-center space-y-2 mb-8">
-                            <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                                Étape {currentStepIndex + 1} sur {stepDefinitions.length}
-                            </div>
+
                             <h2 className="text-3xl font-bold tracking-tight text-slate-900">
                                 {currentStep.label}
                             </h2>
@@ -497,23 +480,7 @@ export function PublicOnboardingWizard() {
                                 </div>
                             )}
 
-                            {currentStep.id === "inspirations" && (
-                                <div className="space-y-8">
-                                    <div className="space-y-4">
-                                        <FormLabel className="text-base block">3 sites que vous aimez (optionnel)</FormLabel>
-                                        {inspirationUrlsArray.fields.map((field, index) => (
-                                            <FormField
-                                                key={field.id}
-                                                control={control}
-                                                name={`inspirationUrls.${index}` as any}
-                                                render={({ field }) => (
-                                                    <Input placeholder={`Lien ${index + 1}`} className="h-12 text-base" {...field} />
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+
 
                             {currentStep.id === "style" && (
                                 <div className="space-y-8">
@@ -556,43 +523,7 @@ export function PublicOnboardingWizard() {
                                 </div>
                             )}
 
-                            {currentStep.id === "identity_check" && (
-                                <div className="space-y-8">
-                                    <FormField
-                                        control={control}
-                                        name="hasVisualIdentity"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base block mb-4">Avez-vous déjà une identité visuelle ?</FormLabel>
-                                                <div className="flex gap-4">
-                                                    {[
-                                                        { value: "yes", label: "Oui" },
-                                                        { value: "no", label: "Non" },
-                                                        { value: "not_yet", label: "Pas encore" }
-                                                    ].map((option) => (
-                                                        <label
-                                                            key={option.value}
-                                                            className={cn(
-                                                                "flex-1 cursor-pointer rounded-xl border-2 border-slate-100 bg-white p-4 text-center transition-all hover:border-blue-200",
-                                                                field.value === option.value && "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                                                            )}
-                                                        >
-                                                            <input
-                                                                type="radio"
-                                                                className="sr-only"
-                                                                checked={field.value === option.value}
-                                                                onChange={() => field.onChange(option.value)}
-                                                            />
-                                                            <span className="font-medium">{option.label}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            )}
+
 
                             {currentStep.id === "branding" && (
                                 <div className="space-y-8">
