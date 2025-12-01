@@ -4,9 +4,10 @@ import { onboardingDrafts, onboardingResponses } from "@/lib/schema";
 import { eq, lt, isNull, and, sql } from "drizzle-orm";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     try {
         // 1. Find stale drafts (> 10 mins, not alerted)
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);

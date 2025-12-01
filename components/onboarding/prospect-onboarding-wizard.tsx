@@ -57,7 +57,7 @@ const STYLE_OPTIONS = [
 type ProspectOnboardingFormState = {
     companyName: string;
     activity: string;
-    phone: string;
+
     siteGoal: string[];
     siteGoalOther: string;
     inspirationUrls: string[];
@@ -98,7 +98,7 @@ const stepDefinitions = [
         label: "Vos coordonnées",
         description: "Pour mieux vous connaître.",
         schema: ProspectContactSchema,
-        fields: ["companyName", "activity", "phone"]
+        fields: ["companyName", "activity"]
     },
     {
         id: "goals",
@@ -168,7 +168,7 @@ const buildDefaultValues = (
     return {
         companyName: ensureString(payload.companyName),
         activity: ensureString(payload.activity),
-        phone: ensureString((payload as any).phone),
+
         siteGoal: ensureStringArray(payload.siteGoal),
         siteGoalOther: ensureString(payload.siteGoalOther),
         inspirationUrls: inspirationUrls.length > 0 ? inspirationUrls : ["", "", ""],
@@ -189,7 +189,7 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
 
     if (values.companyName.trim().length > 0) draft.companyName = trimmed(values.companyName);
     if (values.activity.trim().length > 0) draft.activity = trimmed(values.activity);
-    if (values.phone.trim().length > 0) draft.phone = trimmed(values.phone);
+
 
     if (values.siteGoal && values.siteGoal.length > 0) {
         draft.siteGoal = values.siteGoal as ProspectOnboardingDraftPayload["siteGoal"];
@@ -228,14 +228,14 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
     const trimmed = (input: string) => input.trim();
 
     if (!values.siteGoal || values.siteGoal.length === 0) throw new Error("siteGoal est requis");
-    if (!values.phone || values.phone.trim().length === 0) throw new Error("phone est requis");
+
     if (!values.hasVisualIdentity) throw new Error("hasVisualIdentity est requis");
     if (!values.companyName || values.companyName.trim().length === 0) throw new Error("Le nom de l'entreprise est requis");
 
     return {
         companyName: trimmed(values.companyName),
         activity: trimmed(values.activity),
-        phone: trimmed(values.phone),
+
         siteGoal: values.siteGoal as ProspectOnboardingPayload["siteGoal"],
         siteGoalOther: values.siteGoal.includes("other") ? trimmed(values.siteGoalOther) : undefined,
         inspirationUrls: values.inspirationUrls
@@ -428,8 +428,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
         if (definition.id === "contact") {
             stepPayload = {
                 companyName: values.companyName,
-                activity: values.activity,
-                phone: values.phone
+                activity: values.activity
             };
         } else if (definition.id === "goals") {
             stepPayload = {
@@ -633,19 +632,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
-                                        control={control}
-                                        name="phone"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base">Numéro de téléphone</FormLabel>
-                                                <FormControl>
-                                                    <Input className="h-12 text-base" type="tel" placeholder="+33 6 12 34 56 78" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+
                                 </div>
                             )}
 

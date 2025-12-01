@@ -58,7 +58,7 @@ const STYLE_OPTIONS = [
 type ProspectOnboardingFormState = {
   companyName: string;
   activity: string;
-  phone: string;
+
   siteGoal: string[];
   siteGoalOther: string;
   inspirationUrls: string[];
@@ -134,7 +134,7 @@ const buildDefaultValues = (
   return {
     companyName: ensureString(payload.companyName),
     activity: ensureString(payload.activity),
-    phone: ensureString((payload as any).phone),
+
     siteGoal: ensureStringArray(payload.siteGoal),
     siteGoalOther: ensureString(payload.siteGoalOther),
     inspirationUrls: inspirationUrls.length > 0 ? inspirationUrls : ["", "", ""],
@@ -160,9 +160,7 @@ const normalizeDraftPayload = (values: ProspectOnboardingFormState): ProspectOnb
   if (values.activity.trim().length > 0) {
     draft.activity = trimmed(values.activity);
   }
-  if (values.phone.trim().length > 0) {
-    draft.phone = trimmed(values.phone);
-  }
+
 
   if (values.siteGoal && values.siteGoal.length > 0) {
     draft.siteGoal = values.siteGoal as ProspectOnboardingDraftPayload["siteGoal"];
@@ -218,9 +216,7 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
   if (!values.siteGoal || values.siteGoal.length === 0) {
     throw new Error("siteGoal est requis");
   }
-  if (!values.phone || values.phone.trim().length === 0) {
-    throw new Error("phone est requis");
-  }
+
 
   if (!values.hasVisualIdentity) {
     throw new Error("hasVisualIdentity est requis");
@@ -233,7 +229,7 @@ const normalizeFinalPayload = (values: ProspectOnboardingFormState): ProspectOnb
   return {
     companyName: trimmed(values.companyName),
     activity: trimmed(values.activity),
-    phone: trimmed(values.phone),
+
     siteGoal: values.siteGoal as ProspectOnboardingPayload["siteGoal"],
     siteGoalOther: values.siteGoal.includes("other") ? trimmed(values.siteGoalOther) : undefined,
     inspirationUrls: values.inspirationUrls
@@ -471,7 +467,7 @@ export function ProspectOnboardingForm({ projects, userEmail }: ProspectOnboardi
       stepPayload = {
         companyName: values.companyName,
         activity: values.activity,
-        phone: values.phone,
+
         siteGoal: values.siteGoal.length > 0 ? values.siteGoal : undefined,
         siteGoalOther: values.siteGoalOther
       };
@@ -722,24 +718,7 @@ export function ProspectOnboardingForm({ projects, userEmail }: ProspectOnboardi
                   )}
                 />
 
-                <FormField
-                  control={control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel required>Numéro de téléphone</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="tel"
-                          autoComplete="tel"
-                          placeholder="+33 6 12 34 56 78"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 <FormField
                   control={control}
