@@ -147,6 +147,29 @@ export const onboardingResponses = createTable(
   })
 );
 
+export const onboardingDrafts = createTable(
+  "onboarding_drafts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").unique().notNull(),
+    phone: text("phone"),
+    payload: jsonb("payload").notNull(),
+    step: integer("step").notNull().default(0),
+    alertedAt: timestamp("alerted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (draft) => ({
+    emailIdx: index("onboarding_drafts_email_idx").on(draft.email),
+    createdIdx: index("onboarding_drafts_created_at_idx").on(draft.createdAt)
+  })
+);
+
 export const tickets = createTable(
   "tickets",
   {

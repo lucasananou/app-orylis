@@ -79,14 +79,14 @@ const stepDefinitions = [
         label: "Votre identité",
         description: "Dites-nous qui vous êtes.",
         schema: PublicIdentitySchema,
-        fields: ["firstName", "lastName", "email"]
+        fields: ["firstName", "lastName", "email", "phone"]
     },
     {
         id: "contact",
         label: "Vos coordonnées",
         description: "Parlez-nous de votre entreprise.",
         schema: ProspectContactSchema,
-        fields: ["companyName", "activity", "phone"]
+        fields: ["companyName", "activity"]
     },
     {
         id: "goals",
@@ -224,8 +224,30 @@ export function PublicOnboardingWizard() {
         return true;
     };
 
+    const autoSave = async (stepIndex: number) => {
+        const values = form.getValues();
+        if (!values.email) return; // Need email to save draft
+
+        try {
+            await fetch("/api/public-onboarding/draft", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...values,
+                    step: stepIndex
+                })
+            });
+        } catch (e) {
+            console.error("Auto-save failed", e);
+        }
+    };
+
     const handleNextStep = () => {
         if (!validateStep(currentStepIndex)) return;
+
+        // Auto-save before moving
+        autoSave(currentStepIndex);
+
         setCurrentStepIndex((prev) => Math.min(prev + 1, stepDefinitions.length - 1));
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -377,6 +399,19 @@ export function PublicOnboardingWizard() {
                                             </FormItem>
                                         )}
                                     />
+                                    <FormField
+                                        control={control}
+                                        name="phone"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-base">Numéro de téléphone</FormLabel>
+                                                <FormControl>
+                                                    <Input className="h-12 text-base" type="tel" placeholder="+33 6..." {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
                             )}
 
@@ -403,19 +438,6 @@ export function PublicOnboardingWizard() {
                                                 <FormLabel className="text-base">Votre activité principale</FormLabel>
                                                 <FormControl>
                                                     <Input className="h-12 text-base" placeholder="Ex : traiteur, coach..." {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={control}
-                                        name="phone"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base">Numéro de téléphone</FormLabel>
-                                                <FormControl>
-                                                    <Input className="h-12 text-base" type="tel" placeholder="+33 6..." {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>

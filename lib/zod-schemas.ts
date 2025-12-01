@@ -495,13 +495,7 @@ export const ProspectContactSchema = z.object({
   activity: z
     .string()
     .min(2, { message: "Merci d'indiquer votre activité principale." })
-    .max(200, { message: "200 caractères maximum." }),
-  phone: z
-    .string()
-    .min(1, { message: "Le numéro de téléphone est obligatoire." })
-    .regex(/^[0-9\s+().-]{8,30}$/, {
-      message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
-    })
+    .max(200, { message: "200 caractères maximum." })
 });
 
 // 2. Objectifs
@@ -654,7 +648,13 @@ export type NotificationPreferencesPayload = z.infer<typeof notificationPreferen
 export const PublicIdentitySchema = z.object({
   firstName: z.string().min(2, { message: "Prénom requis (2 car. min)." }),
   lastName: z.string().min(2, { message: "Nom requis (2 car. min)." }),
-  email: z.string().email({ message: "Email invalide." })
+  email: z.string().email({ message: "Email invalide." }),
+  phone: z
+    .string()
+    .min(1, { message: "Le numéro de téléphone est obligatoire." })
+    .regex(/^[0-9\s+().-]{8,30}$/, {
+      message: "Indiquez un numéro valide (chiffres, +, espaces, . ou -)."
+    })
 });
 
 export const PublicOnboardingSchema = PublicIdentitySchema.merge(ProspectOnboardingBaseSchema).refine(
