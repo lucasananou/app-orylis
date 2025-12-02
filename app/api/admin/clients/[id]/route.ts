@@ -108,6 +108,29 @@ export async function DELETE(
   }
 
   try {
+    // Récupérer les projets du client pour vérifier s'il y a des démos à supprimer
+    const userProjects = await db.query.projects.findMany({
+      where: eq(projects.ownerId, id),
+      columns: { demoUrl: true }
+    });
+
+    // Trigger webhook pour chaque démo trouvée
+    for (const project of userProjects) {
+      if (project.demoUrl) {
+        try {
+          console.log(`[Admin/Clients] Triggering delete demo webhook for ${project.demoUrl}`);
+          await fetch("https://orylis.app.n8n.cloud/webhook/81f2145f-0aa8-4dac-a9ed-18e99389014b", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ demoUrl: project.demoUrl })
+          });
+        } catch (error) {
+          console.error("[Admin/Clients] Failed to trigger delete demo webhook:", error);
+          // On continue la suppression même si le webhook échoue
+        }
+      }
+    }
+
     // Suppression en cascade via la base de données
     // La suppression de l'utilisateur auth entraîne la suppression du profil, des projets, etc.
     await db.delete(authUsers).where(eq(authUsers.id, id));
