@@ -36,11 +36,6 @@ import {
 } from "@/components/dashboard/dashboard-activity";
 import { DashboardOnboardingCard } from "@/components/dashboard/dashboard-onboarding-card";
 import { SiteReviewCard } from "@/components/dashboard/site-review-card";
-import { ProspectTimeline } from "@/components/dashboard/prospect-timeline";
-import { ProspectStaffMessages } from "@/components/dashboard/prospect-staff-messages";
-import { ProspectFeaturesTeaser } from "@/components/dashboard/prospect-features-teaser";
-import { ProspectCTASticky } from "@/components/dashboard/prospect-cta-sticky";
-import { ProspectCTAWidget } from "@/components/dashboard/prospect-cta-widget";
 import { ClientTodoWidget } from "@/components/dashboard/client-todo-widget";
 import { ProjectTimeline } from "@/components/dashboard/project-timeline";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -50,6 +45,7 @@ import { SiteHealthWidget } from "@/components/dashboard/site-health-widget";
 import { BriefValidationCard } from "@/components/dashboard/brief-validation-card";
 import { BriefHistory } from "@/components/dashboard/brief-history";
 import { ProjectMilestones } from "@/components/dashboard/project-milestones";
+import type { Route } from "next";
 
 // Cache intelligent : revalider toutes les 30 secondes
 // Les données changent peu souvent, pas besoin de force-dynamic
@@ -206,9 +202,6 @@ async function loadDashboardData(selectedProjectId?: string) {
   if (isProspectUser && projectsData.length > 0 && activeProject) {
     const mainProject = activeProject;
 
-    // Utiliser directement le demoUrl chargé dans projectsData
-    const projectWithDemo = mainProject;
-
     // Si onboarding non complété, rediriger vers l'onboarding
     // MAIS d'abord vérifier si l'onboarding est déjà complété dans la DB
     const onboardingCompleted = await db.query.onboardingResponses.findFirst({
@@ -223,134 +216,15 @@ async function loadDashboardData(selectedProjectId?: string) {
       redirect("/onboarding");
     }
 
+    // Si onboarding complété mais pas de démo, rediriger vers demo-in-progress
+    if (onboardingCompleted && !mainProject.demoUrl) {
+      redirect("/demo-in-progress");
+    }
+
     // Si démo prête, rediriger vers la page de conversion
     if (mainProject.demoUrl) {
       redirect("/demo");
     }
-  }
-
-  const onboardingProject = activeProject?.status === "onboarding" ? activeProject : null;
-
-  const projectIds = projectsData.map((project) => project.id);
-
-  // Pour les prospects, charger seulement les données nécessaires
-  if (isProspectUser && projectsData.length > 0 && activeProject) {
-    const mainProject = activeProject;
-
-    // Charger seulement l'onboarding et les messages staff pour les prospects
-    const [onboardingResponseRow, staffMessagesRows] = await Promise.all([
-      db
-        .select({
-          payload: onboardingResponses.payload,
-          updatedAt: onboardingResponses.updatedAt
-        })
-        .from(onboardingResponses)
-        .where(
-          and(
-            eq(onboardingResponses.projectId, mainProject.id),
-            eq(onboardingResponses.type, "prospect")
-          )
-        )
-        .then((rows) => rows.at(0) ?? null),
-      db
-        .select({
-          id: projectMessages.id,
-          message: projectMessages.message,
-          authorName: profiles.fullName,
-          createdAt: projectMessages.createdAt
-        })
-        .from(projectMessages)
-        .innerJoin(profiles, eq(projectMessages.authorId, profiles.id))
-        .where(eq(projectMessages.projectId, mainProject.id))
-        .orderBy(desc(projectMessages.createdAt))
-        .limit(5)
-    ]);
-
-    const onboardingPayload = onboardingResponseRow
-      ? ((onboardingResponseRow.payload as Record<string, unknown> | null) ?? null)
-      : null;
-    const onboardingUpdatedAt = onboardingResponseRow?.updatedAt ?? null;
-    const onboardingSummary = mainProject.status === "onboarding"
-      ? summarizeOnboardingPayload(onboardingPayload)
-      : null;
-
-    const staffMessages: Array<{
-      id: string;
-      message: string;
-      authorName: string | null;
-      createdAt: string;
-    }> = staffMessagesRows.map((row) => ({
-      id: row.id,
-      message: row.message,
-      authorName: row.authorName,
-      createdAt: row.createdAt.toISOString()
-    }));
-
-    // Compter les fichiers et tickets pour le teaser, et vérifier si un devis existe
-    const [filesCountResult, ticketsCountResult, quoteResult] = await Promise.all([
-      db
-        .select({ value: sql<number>`count(*)` })
-        .from(files)
-        .where(eq(files.projectId, mainProject.id))
-        .then((rows) => rows.at(0)),
-      db
-        .select({ value: sql<number>`count(*)` })
-        .from(tickets)
-        .where(eq(tickets.projectId, mainProject.id))
-        .then((rows) => rows.at(0)),
-      db.query.quotes.findFirst({
-        where: eq(quotes.projectId, mainProject.id),
-        columns: { id: true, status: true }
-      })
-    ]);
-
-    const filesCount = filesCountResult?.value ?? 0;
-    const ticketsCount = ticketsCountResult?.value ?? 0;
-    const quoteStatus = quoteResult?.status ?? null;
-
-    const onboardingCardProject = mainProject.status === "onboarding"
-      ? {
-        id: mainProject.id,
-        name: mainProject.name,
-        progress: mainProject.progress,
-        dueDate: mainProject.dueDate,
-        updatedAt: onboardingUpdatedAt ? onboardingUpdatedAt.toISOString() : null,
-        payload: onboardingPayload
-      }
-      : null;
-
-    return {
-      role: user.role,
-      staff: false,
-      isProspectUser: true,
-      ownerOptions: [],
-      projectsData: [mainProject],
-      highlights: [
-        {
-          id: "projects",
-          label: "Mon projet",
-          value: "1",
-          helper: "En cours"
-        },
-        {
-          id: "onboarding",
-          label: "Onboarding",
-          value: mainProject.status === "onboarding" ? `${formatProgress(mainProject.progress)}%` : "0%",
-          helper: mainProject.status === "onboarding" && onboardingSummary?.nextAction
-            ? `Prochaine étape : ${onboardingSummary.nextAction}`
-            : "Aucun onboarding actif"
-        }
-      ],
-      onboardingCardProject,
-      activityItems: [],
-      userName: user.name,
-      userEmail: user.email,
-      staffMessages,
-      filesCount,
-      ticketsCount,
-      quoteStatus,
-      activeProject
-    };
   }
 
   // Pour les clients/staff,  // Charger l'onboarding du projet principal (le premier)
@@ -377,6 +251,8 @@ async function loadDashboardData(selectedProjectId?: string) {
     : Promise.resolve(null);
 
   const unreadNotificationsPromise = countUnreadNotifications(user.id);
+
+  const projectIds = projectsData.map((project) => project.id);
 
   // Charger toutes les données en parallèle
   const [
@@ -451,6 +327,9 @@ async function loadDashboardData(selectedProjectId?: string) {
     : null;
   const onboardingUpdatedAt = onboardingResponseRow?.updatedAt ?? null;
   const onboardingCompleted = onboardingResponseRow?.completed ?? false;
+
+  const onboardingProject = activeProject?.status === "onboarding" ? activeProject : null;
+
   const onboardingSummary = onboardingProject
     ? summarizeOnboardingPayload(onboardingPayload)
     : null;
@@ -666,7 +545,8 @@ async function loadDashboardData(selectedProjectId?: string) {
     ticketsCount,
     quoteStatus: null, // Pour les clients/staff, on ne vérifie pas les devis
     onboardingCompleted,
-    activeProject
+    activeProject,
+    unreadNotifications
   };
 }
 
@@ -687,7 +567,8 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
     ticketsCount,
     quoteStatus,
     onboardingCompleted,
-    activeProject
+    activeProject,
+    unreadNotifications
   } = await loadDashboardData(searchParams?.project);
 
   // Pour les clients non-staff, utiliser le nom du premier projet s'il existe
@@ -700,63 +581,65 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
     greetingName = firstName;
   }
 
-  // Vue spéciale pour les prospects
-  if (isProspectUser && projectsData.length > 0 && activeProject) {
-    const mainProject = activeProject;
-    return (
-      <>
-        <DashboardHeader
-          userName={userName}
-          userEmail={userEmail}
-          greetingName={greetingName}
-          isProspect={true}
-          projectName={mainProject.name}
-        />
-
-        {/* CTA Widget pour prospects */}
-        <div className="mb-6">
-          <ProspectCTAWidget
-            hasOnboarding={mainProject.status === "onboarding"}
-            onboardingProgress={mainProject.progress}
-            quoteStatus={quoteStatus}
-            projectName={mainProject.name}
-          />
-        </div>
-
-        {/* Timeline et progression */}
-        <div className="mb-6">
-          <ProspectTimeline
-            projectName={mainProject.name}
-            currentStatus={mainProject.status}
-            progress={mainProject.progress}
-            createdAt={mainProject.createdAt}
-          />
-        </div>
-
-        {/* Messages staff */}
-        {staffMessages.length > 0 && (
-          <div className="mb-6">
-            <ProspectStaffMessages messages={staffMessages} projectName={mainProject.name} />
-          </div>
-        )}
-
-        {/* Teaser fonctionnalités client */}
-        <div className="mb-6">
-          <ProspectFeaturesTeaser filesCount={filesCount} ticketsCount={ticketsCount} />
-        </div>
-
-        {/* CTA Sticky */}
-        <ProspectCTASticky
-          projectStatus={mainProject.status}
-          projectProgress={mainProject.progress}
-        />
-      </>
-    );
-  }
-
   // Vue normale pour clients et staff
   const isDelivered = projectsData.some(p => p.status === "delivered");
   const projectInReview = projectsData.find(p => p.status === "review");
+
+  // Generate Timeline Steps
+  const timelineSteps = activeProject ? [
+    {
+      id: "onboarding",
+      label: "Onboarding",
+      status: "completed" as const,
+      date: activeProject.createdAt ? formatDate(activeProject.createdAt) : undefined
+    },
+    {
+      id: "design",
+      label: "Design & Développement",
+      status: activeProject.status === "onboarding" ? "upcoming" : (activeProject.status === "review" || activeProject.status === "delivered" ? "completed" : "current") as "upcoming" | "completed" | "current",
+    },
+    {
+      id: "review",
+      label: "Révision & Validation",
+      status: activeProject.status === "delivered" ? "completed" : (activeProject.status === "review" ? "current" : "upcoming") as "upcoming" | "completed" | "current",
+    },
+    {
+      id: "delivery",
+      label: "Mise en ligne",
+      status: activeProject.status === "delivered" ? "completed" : "upcoming" as "upcoming" | "completed" | "current",
+      date: activeProject.deliveredAt ? formatDate(activeProject.deliveredAt) : undefined
+    }
+  ] : [];
+
+  // Generate Todos
+  const todos = [];
+  if (unreadNotifications > 0) {
+    todos.push({
+      id: "notifications",
+      type: "notification" as const,
+      title: "Notifications non lues",
+      count: unreadNotifications,
+      href: "/notifications" as Route
+    });
+  }
+  if (ticketsCount > 0) {
+    // Note: ticketsCount here is total tickets, not open tickets. 
+    // But we don't have open tickets count for the widget specifically passed down except in highlights.
+    // Let's use a generic link for now.
+    // Actually we have `highlights` which has open tickets count.
+    const openTicketsHighlight = highlights.find(h => h.id === "tickets");
+    const openTickets = openTicketsHighlight ? parseInt(openTicketsHighlight.value) : 0;
+
+    if (openTickets > 0) {
+      todos.push({
+        id: "tickets",
+        type: "ticket" as const,
+        title: "Tickets en attente",
+        count: openTickets,
+        href: "/tickets" as Route
+      });
+    }
+  }
 
   return (
     <>
@@ -808,200 +691,95 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
         }
       />
 
-      {/* Site Review Card - Top Priority */}
-      {projectInReview && (
-        <div className="mt-6">
-          <SiteReviewCard
-            project={{
-              id: projectInReview.id,
-              name: projectInReview.name,
-              demoUrl: projectInReview.demoUrl
-            }}
-          />
-        </div>
-      )}
+      <div className="grid gap-6">
+        {/* Stats Cards */}
+        <DashboardStats highlights={highlights} />
 
-      <DashboardStats highlights={highlights} className="mt-6" />
+        {/* Main Content */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            {/* Onboarding Card (if active) */}
+            {onboardingCardProject && (
+              <DashboardOnboardingCard
+                project={onboardingCardProject}
+                role={role}
+              />
+            )}
 
-      <section className="mt-6 space-y-6">
-        {staff ? (
-          <Card className="border border-border/70 bg-white/90">
-            <CardHeader>
-              <CardTitle>Tous les projets actifs</CardTitle>
-              <CardDescription>Vue globale des projets clients et de leur statut.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DashboardProjects projects={projectsData} role={role} ownerOptions={ownerOptions} />
-            </CardContent>
-          </Card>
-        ) : activeProject?.status === "delivered" ? (
+            {/* Site Review Card (if in review) */}
+            {projectInReview && (
+              <SiteReviewCard
+                project={{
+                  id: projectInReview.id,
+                  name: projectInReview.name,
+                  demoUrl: projectInReview.demoUrl
+                }}
+              />
+            )}
+
+            {/* Brief Validation Card (if brief sent) */}
+            {activeProject && activeProject.briefs.length > 0 && activeProject.briefs[0].status === "sent" && (
+              <BriefValidationCard
+                brief={activeProject.briefs[0]}
+              />
+            )}
+
+            {/* Project Timeline */}
+            {activeProject && (
+              <ProjectTimeline
+                steps={timelineSteps}
+                projectName={activeProject.name}
+              />
+            )}
+
+            {/* Project Milestones */}
+            {activeProject && (
+              <ProjectMilestones />
+            )}
+
+            {/* Brief History */}
+            {activeProject && activeProject.briefs.length > 0 && (
+              <BriefHistory
+                briefs={activeProject.briefs}
+              />
+            )}
+
+            {/* Recent Activity */}
+            <DashboardActivity items={activityItems} />
+          </div>
+
           <div className="space-y-6">
-            <div className="rounded-lg bg-green-50 p-4 text-green-800 border border-green-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
-                  🚀
-                </span>
-                <div>
-                  <h3 className="font-semibold">Votre site est en ligne !</h3>
-                  <p className="text-sm text-green-700">Félicitations, votre projet est publié et accessible à tous.</p>
-                </div>
-              </div>
-              {activeProject.demoUrl && (
-                <Button asChild variant="outline" className="w-full sm:w-auto bg-white border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800">
-                  <a href={activeProject.demoUrl} target="_blank" rel="noopener noreferrer">
-                    Voir mon site
-                  </a>
-                </Button>
-              )}
-            </div>
+            {/* Projects List */}
+            <DashboardProjects
+              projects={projectsData}
+              role={role}
+              ownerOptions={ownerOptions}
+            />
 
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* Site Health (if delivered) */}
+            {activeProject && activeProject.status === "delivered" && (
+              <SiteHealthWidget
+                maintenanceActive={activeProject.maintenanceActive}
+              />
+            )}
+
+            {/* Hosting Widget (if delivered) */}
+            {activeProject && activeProject.status === "delivered" && (
               <HostingWidget
                 hostingExpiresAt={activeProject.hostingExpiresAt ? new Date(activeProject.hostingExpiresAt) : null}
                 maintenanceActive={activeProject.maintenanceActive}
               />
-              <SiteHealthWidget maintenanceActive={activeProject.maintenanceActive} />
-            </div>
-          </div>
-        ) : (
-          <>
-            {activeProject?.briefs && activeProject.briefs.length > 0 ? (
-              <div className="space-y-8">
-                {/* 1. Carte d'action principale selon le statut du dernier brief */}
-                {activeProject.briefs[0].status === "sent" ? (
-                  <BriefValidationCard
-                    brief={activeProject.briefs[0]}
-                  />
-                ) : activeProject.briefs[0].status === "approved" ? (
-                  <Card className="border-l-4 border-l-green-600 border-y border-r border-slate-200 shadow-sm bg-white">
-                    <CardHeader>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                          Validé
-                        </span>
-                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cahier des charges</span>
-                      </div>
-                      <CardTitle className="text-xl">Cahier des charges validé ✅</CardTitle>
-                      <CardDescription className="text-base">
-                        La production est lancée sur la base de la version {activeProject.briefs[0].version}.
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                ) : (
-                  <Card className="border-l-4 border-l-orange-500 border-y border-r border-slate-200 shadow-sm bg-white">
-                    <CardHeader>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
-                          En attente
-                        </span>
-                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Modifications demandées</span>
-                      </div>
-                      <CardTitle className="text-xl">Demande bien reçue 📨</CardTitle>
-                      <CardDescription className="text-base">
-                        Nous avons bien reçu votre demande de modifications sur la version {activeProject.briefs[0].version}.
-                        Nous allons préparer une nouvelle version du cahier des charges.
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                )}
-
-                {/* 2. Historique des versions */}
-                <BriefHistory briefs={activeProject.briefs} />
-              </div>
-            ) : activeProject?.status === "build" ? (
-              <div className="space-y-6">
-                <ProjectMilestones />
-                {onboardingCardProject && !onboardingCompleted && (
-                  <DashboardOnboardingCard project={onboardingCardProject} role={role} />
-                )}
-              </div>
-            ) : onboardingCardProject && !onboardingCompleted ? (
-              <Card className="border-l-4 border-l-blue-600 border-y border-r border-slate-200 shadow-sm bg-white">
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-                      Étape 1
-                    </span>
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Action requise</span>
-                  </div>
-                  <CardTitle className="text-xl">Lancement de la production 🚀</CardTitle>
-                  <CardDescription className="text-base">
-                    Pour démarrer le développement de votre site, nous avons besoin de votre cahier des charges.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Button asChild size="lg" className="rounded-full shadow-md bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                    <Link href="/onboarding">
-                      Remplir le cahier des charges
-                      <span className="ml-2 text-blue-200">→</span>
-                    </Link>
-                  </Button>
-                  <p className="text-sm text-slate-500 max-w-md">
-                    Ce formulaire définit vos pages, vos contenus et vos préférences techniques. <span className="font-medium text-slate-700">Temps estimé : 15 min.</span>
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-l-4 border-l-green-600 border-y border-r border-slate-200 shadow-sm bg-white">
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="inline-flex items-center justify-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                      Terminé
-                    </span>
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Onboarding</span>
-                  </div>
-                  <CardTitle className="text-xl">Onboarding site terminé 🎉</CardTitle>
-                  <CardDescription className="text-base">
-                    Merci d'avoir rempli le cahier des charges. Notre équipe va maintenant analyser vos besoins.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <p className="text-sm text-slate-500 max-w-md">
-                    Votre onboarding est terminé. Nous reviendrons vers vous dès que la phase de design commencera.
-                  </p>
-                </CardContent>
-              </Card>
             )}
-          </>
-        )}
-      </section>
 
-      {(!activeProject || activeProject.status !== "delivered") && (
-        <section className={`mt-4 grid gap-4 sm:mt-6 sm:gap-6 ${onboardingCardProject && !onboardingCompleted ? "xl:grid-cols-[2fr_1fr]" : "grid-cols-1"}`}>
-
-
-
-          {onboardingCardProject && !onboardingCompleted && (
-            <DashboardOnboardingCard project={onboardingCardProject} role={role} />
-          )}
-
-          <Card className="border border-border/70">
-            <CardHeader className="pb-3">
-              <CardTitle>Guide & Support</CardTitle>
-              <CardDescription>Accédez à la base de connaissances et au support.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/guide">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Base de connaissances
-                </Link>
-              </Button>
-              <div className="flex justify-between rounded-2xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                <span>Email support</span>
-                <Button size="sm" variant="ghost" asChild>
-                  <a href="mailto:contact@orylis.fr">contact@orylis.fr</a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      )}
-
-      <section className="mt-6">
-        <DashboardActivity items={activityItems} />
-      </section>
+            {/* Client Todo Widget */}
+            {activeProject && (
+              <ClientTodoWidget
+                todos={todos}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 }
-
