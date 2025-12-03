@@ -37,6 +37,9 @@ export async function POST(req: Request) {
         const hashedPassword = await hash(password, 10);
         const userId = randomUUID();
 
+        // 3. Create Project
+        const projectId = randomUUID();
+
         await db.transaction(async (tx) => {
             // Insert User (authUsers)
             await tx.insert(authUsers).values({
@@ -59,9 +62,6 @@ export async function POST(req: Request) {
                 userId,
                 passwordHash: hashedPassword,
             });
-
-            // 3. Create Project
-            const projectId = randomUUID();
             await tx.insert(projects).values({
                 id: projectId,
                 ownerId: userId,
