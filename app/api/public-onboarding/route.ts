@@ -78,42 +78,53 @@ export async function POST(req: Request) {
                 type: "prospect",
             });
 
-            // 5. Trigger Webhooks (Fire and Forget)
-            const webhookPayload = {
-                userId,
-                projectId,
-                email,
-                firstName,
-                lastName,
-                ...onboardingData,
-                source: "public_onboarding"
-            };
-
-            // Send confirmation email
-            const { sendProspectOnboardingCompletedEmail, sendWelcomeEmail } = await import("@/lib/emails");
-
-            // 1. Send Account Created Email (with password)
-            await sendWelcomeEmail(userId, onboardingData.companyName, { email, password });
-
-            // 2. Send Onboarding Completed Email (Demo in progress)
-            await sendProspectOnboardingCompletedEmail(userId, onboardingData.companyName);
-
-            // Brevo Nurturing Webhook
-            fetch("https://hook.eu2.make.com/6inqljar2or4jxl74uprzx4s15nucgjj", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(webhookPayload),
-            }).catch(console.error);
-
-            // n8n Demo Creation Webhook
-            fetch("https://orylis.app.n8n.cloud/webhook/3bc9c601-c3b6-422b-9f1e-90c2b576c761", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(webhookPayload),
-            }).catch(console.error);
+            // 5. Trigger Webhooks (Fire and Forget) - Moved outside transaction
         });
 
-        return NextResponse.json({ success: true, email, password });
+        // --- Post-Transaction Actions ---
+
+        const webhookPayload = {
+            userId,
+            projectId,
+            email,
+            firstName,
+            lastName,
+            ...onboardingData,
+            source: "public_onboarding"
+        };
+
+        // Send confirmation email
+        const { sendProspectOnboardingCompletedEmail, sendWelcomeEmail } = await import("@/lib/emails");
+
+        // 1. Send Account Created Email (with password)
+        const email1 = await sendWelcomeEmail(userId, onboardingData.companyName, { email, password });
+
+        // 2. Send Onboarding Completed Email (Demo in progress)
+        const email2 = await sendProspectOnboardingCompletedEmail(userId, onboardingData.companyName);
+
+        // Brevo Nurturing Webhook
+        fetch("https://hook.eu2.make.com/6inqljar2or4jxl74uprzx4s15nucgjj", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(webhookPayload),
+        }).catch(console.error);
+
+        // n8n Demo Creation Webhook
+        fetch("https://orylis.app.n8n.cloud/webhook/3bc9c601-c3b6-422b-9f1e-90c2b576c761", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(webhookPayload),
+        }).catch(console.error);
+
+        return NextResponse.json({
+            success: true,
+            email,
+            password,
+            debug: {
+                email1: email1,
+                email2: email2
+            }
+        });
     } catch (error) {
         console.error("Public onboarding error:", error);
         return NextResponse.json(
