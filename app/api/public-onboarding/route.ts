@@ -66,8 +66,8 @@ export async function POST(req: Request) {
                 id: projectId,
                 ownerId: userId,
                 name: onboardingData.companyName,
-                status: "onboarding",
-                progress: 0,
+                status: "demo_in_progress",
+                progress: 10,
             });
 
             // 4. Save Onboarding Data
