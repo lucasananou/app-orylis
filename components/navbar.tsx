@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -85,26 +83,6 @@ export function Navbar({ userName, userEmail, role, projects }: NavbarProps) {
           <AvatarFallback className="text-xs sm:text-sm">{(userName ?? userEmail).slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         {role === "staff" ? <NotificationMenu /> : null}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="hidden min-h-[44px] sm:inline-flex"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span className="hidden md:inline">Se déconnecter</span>
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-[44px] w-[44px] sm:hidden"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          aria-label="Se déconnecter"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
       </div>
     </header>
   );

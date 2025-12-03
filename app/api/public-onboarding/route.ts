@@ -90,7 +90,12 @@ export async function POST(req: Request) {
             };
 
             // Send confirmation email
-            const { sendProspectOnboardingCompletedEmail } = await import("@/lib/emails");
+            const { sendProspectOnboardingCompletedEmail, sendWelcomeEmail } = await import("@/lib/emails");
+
+            // 1. Send Account Created Email (with password)
+            await sendWelcomeEmail(userId, onboardingData.companyName, { email, password });
+
+            // 2. Send Onboarding Completed Email (Demo in progress)
             await sendProspectOnboardingCompletedEmail(userId, onboardingData.companyName);
 
             // Brevo Nurturing Webhook

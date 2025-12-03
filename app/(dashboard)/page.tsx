@@ -210,7 +210,16 @@ async function loadDashboardData(selectedProjectId?: string) {
     const projectWithDemo = mainProject;
 
     // Si onboarding non complété, rediriger vers l'onboarding
-    if (mainProject.status === "onboarding") {
+    // MAIS d'abord vérifier si l'onboarding est déjà complété dans la DB
+    const onboardingCompleted = await db.query.onboardingResponses.findFirst({
+      where: and(
+        eq(onboardingResponses.projectId, mainProject.id),
+        eq(onboardingResponses.type, "prospect"),
+        eq(onboardingResponses.completed, true)
+      )
+    });
+
+    if (mainProject.status === "onboarding" && !onboardingCompleted) {
       redirect("/onboarding");
     }
 

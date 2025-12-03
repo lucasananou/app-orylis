@@ -189,11 +189,14 @@ export function PublicOnboardingWizard() {
 
     const setSchemaErrors = (result: z.SafeParseReturnType<unknown, unknown>) => {
         if (result.success) return;
-        const fieldErrors = result.error.flatten().fieldErrors;
-        Object.entries(fieldErrors).forEach(([field, messages]) => {
-            const items = Array.isArray(messages) ? messages : [];
-            if (items.length === 0) return;
-            form.setError(field as any, { type: "manual", message: items[0] });
+
+        // Use issues directly to handle paths correctly (e.g. mainServices.0)
+        result.error.issues.forEach((issue) => {
+            const path = issue.path.join(".");
+            form.setError(path as any, {
+                type: "manual",
+                message: issue.message
+            });
         });
     };
 
@@ -220,7 +223,16 @@ export function PublicOnboardingWizard() {
             return false;
         }
 
-        definition.fields.forEach((field) => form.clearErrors(field as any));
+        // Clear errors for current step fields
+        definition.fields.forEach((field) => {
+            form.clearErrors(field as any);
+            // Also clear potential array errors
+            if (field === "mainServices") {
+                form.clearErrors("mainServices.0" as any);
+                form.clearErrors("mainServices.1" as any);
+                form.clearErrors("mainServices.2" as any);
+            }
+        });
         return true;
     };
 
@@ -281,20 +293,17 @@ export function PublicOnboardingWizard() {
             // 2. Auto Login
             const signInResult = await signIn("credentials", {
                 email: payload.email,
-                password: data.password, // Use the password returned by API (generated)
+                password: data.password,
                 redirect: false
             });
 
             if (signInResult?.error) {
-                toast.error("Compte créé, mais échec de la connexion automatique. Veuillez vous connecter.");
-                router.push("/auth/login" as any);
+                toast.error("Compte créé mais échec de la connexion automatique.");
+                router.push("/login");
             } else {
-                toast.success("Compte créé avec succès ! Redirection...");
+                toast.success("Compte créé avec succès !");
                 router.push("/");
             }
-
-            setIsCompleted(true);
-
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Une erreur est survenue.");
             setIsSubmitting(false);
@@ -329,7 +338,6 @@ export function PublicOnboardingWizard() {
 
                         {/* Header */}
                         <div className="text-center space-y-2 mb-8">
-
                             <h2 className="text-3xl font-bold tracking-tight text-slate-900">
                                 {currentStep.label}
                             </h2>
@@ -619,7 +627,12 @@ export function PublicOnboardingWizard() {
                                                 control={control}
                                                 name={`mainServices.${index}` as any}
                                                 render={({ field }) => (
-                                                    <Input placeholder={`Service ${index + 1}`} className="h-12 text-base" {...field} />
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <Input placeholder={`Service ${index + 1}`} className="h-12 text-base" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
                                                 )}
                                             />
                                         ))}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
@@ -160,7 +161,7 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
 
       <div className="mt-auto pt-6 lg:pt-8">
         <button
-          onClick={() => import("next-auth/react").then(({ signOut }) => signOut())}
+          onClick={() => signOut({ callbackUrl: "/login" })}
           className="inline-flex min-h-[44px] w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-red-50 hover:text-red-600 lg:px-4 lg:py-3"
         >
           <LogOut className="h-4 w-4 shrink-0" />

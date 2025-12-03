@@ -410,11 +410,14 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
 
     const setSchemaErrors = (result: z.SafeParseReturnType<unknown, unknown>) => {
         if (result.success) return;
-        const fieldErrors = result.error.flatten().fieldErrors;
-        Object.entries(fieldErrors).forEach(([field, messages]) => {
-            const items = Array.isArray(messages) ? messages : [];
-            if (items.length === 0) return;
-            form.setError(field as keyof ProspectOnboardingFormState, { type: "manual", message: items[0] });
+
+        // Use issues directly to handle paths correctly (e.g. mainServices.0)
+        result.error.issues.forEach((issue) => {
+            const path = issue.path.join(".");
+            form.setError(path as any, {
+                type: "manual",
+                message: issue.message
+            });
         });
     };
 
@@ -471,7 +474,16 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
             return false;
         }
 
-        definition.fields.forEach((field) => form.clearErrors(field as keyof ProspectOnboardingFormState));
+        // Clear errors for current step fields
+        definition.fields.forEach((field) => {
+            form.clearErrors(field as keyof ProspectOnboardingFormState);
+            // Also clear potential array errors
+            if (field === "mainServices") {
+                form.clearErrors("mainServices.0" as any);
+                form.clearErrors("mainServices.1" as any);
+                form.clearErrors("mainServices.2" as any);
+            }
+        });
         return true;
     };
 
@@ -827,68 +839,37 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                         name="logoUrl"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-base" optional>Logo</FormLabel>
-                                                <div className="space-y-4">
-                                                    {field.value && (
-                                                        <div className="relative inline-block">
-                                                            <img
-                                                                src={field.value}
-                                                                alt="Logo"
-                                                                className="h-32 w-32 rounded-xl border border-slate-200 object-contain bg-white p-2"
-                                                            />
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                onClick={() => field.onChange("")}
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex flex-col gap-4">
-                                                        <div className="flex gap-4">
-                                                            <Input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                className="hidden"
-                                                                id="logo-upload"
-                                                                disabled={isUploadingLogo}
-                                                                onChange={(e) => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) handleLogoUpload(file);
-                                                                }}
-                                                            />
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="lg"
-                                                                disabled={isUploadingLogo}
-                                                                onClick={() => document.getElementById("logo-upload")?.click()}
-                                                                className="h-12"
-                                                            >
-                                                                {isUploadingLogo ? (
-                                                                    <>
-                                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                                                        Upload...
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <Upload className="mr-2 h-5 w-5" />
-                                                                        {field.value ? "Remplacer le logo" : "Uploader un logo"}
-                                                                    </>
-                                                                )}
-                                                            </Button>
-                                                        </div>
-                                                        {!field.value && (
-                                                            <Input
-                                                                type="url"
-                                                                placeholder="Ou collez une URL d'image"
-                                                                className="h-12 text-base"
-                                                                {...field}
-                                                            />
-                                                        )}
+                                                <FormLabel className="text-base" optional>Logo (URL ou Upload)</FormLabel>
+                                                <div className="flex gap-2">
+                                                    <FormControl>
+                                                        <Input className="h-12 text-base" placeholder="https://..." {...field} />
+                                                    </FormControl>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="file"
+                                                            id="logo-upload"
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) handleLogoUpload(file);
+                                                            }}
+                                                            disabled={isUploadingLogo}
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-12 w-12"
+                                                            onClick={() => document.getElementById("logo-upload")?.click()}
+                                                            disabled={isUploadingLogo}
+                                                        >
+                                                            {isUploadingLogo ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <Upload className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <FormMessage />
@@ -907,7 +888,7 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                             <FormItem>
                                                 <FormLabel className="text-base">Votre phrase d'accueil</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 text-base" placeholder="Ex : Bienvenue chez X, votre expert en..." {...field} />
+                                                    <Input className="h-12 text-base" placeholder="Ex : Bienvenue chez X..." {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -922,7 +903,12 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                                 control={control}
                                                 name={`mainServices.${index}` as any}
                                                 render={({ field }) => (
-                                                    <Input placeholder={`Service ${index + 1}`} className="h-12 text-base" {...field} />
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <Input placeholder={`Service ${index + 1}`} className="h-12 text-base" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
                                                 )}
                                             />
                                         ))}
@@ -950,11 +936,12 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                         )}
                                     />
                                 </div>
-                            )}
-                        </div>
+                            )
+                            }
+                        </div >
 
                         {/* Navigation Footer */}
-                        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-100 bg-white p-4 sm:static sm:border-t-0 sm:bg-transparent sm:p-0 sm:pt-8">
+                        < div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-100 bg-white p-4 sm:static sm:border-t-0 sm:bg-transparent sm:p-0 sm:pt-8" >
                             <div className="mx-auto flex max-w-2xl items-center justify-between">
                                 <Button
                                     type="button"
@@ -1004,11 +991,11 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </div >
 
-                    </div>
-                </Form>
-            </div>
-        </div>
+                    </div >
+                </Form >
+            </div >
+        </div >
     );
 }
