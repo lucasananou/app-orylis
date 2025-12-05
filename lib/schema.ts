@@ -147,6 +147,33 @@ export const onboardingResponses = createTable(
   })
 );
 
+export const salesCalls = createTable(
+  "sales_calls",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    prospectId: text("prospect_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    stepOpening: jsonb("step_opening"),
+    stepDiscovery: jsonb("step_discovery"),
+    stepNeeds: jsonb("step_needs"),
+    stepSolution: jsonb("step_solution"),
+    stepPrice: jsonb("step_price"),
+    stepObjections: jsonb("step_objections"),
+    stepClosing: jsonb("step_closing"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => sql`now()`)
+  },
+  (call) => ({
+    prospectIdx: index("sales_calls_prospect_id_idx").on(call.prospectId)
+  })
+);
+
 export const onboardingDrafts = createTable(
   "onboarding_drafts",
   {
@@ -477,8 +504,16 @@ export const projectBriefs = createTable(
   })
 );
 
+export const salesCallsRelations = relations(salesCalls, ({ one }) => ({
+  prospect: one(profiles, {
+    fields: [salesCalls.prospectId],
+    references: [profiles.id]
+  })
+}));
+
 export const profilesRelations = relations(profiles, ({ many, one }) => ({
   projects: many(projects),
+  salesCalls: many(salesCalls),
   tickets: many(tickets),
   ticketMessages: many(ticketMessages),
   files: many(files),

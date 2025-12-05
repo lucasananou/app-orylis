@@ -13,6 +13,9 @@ import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 import { BriefManager } from "@/components/admin/brief-manager";
+import { SalesCallSheet } from "@/components/admin/sales/sales-call-sheet";
+import { SalesSummary } from "@/components/admin/sales/sales-summary";
+import { getSalesCall } from "@/app/actions/sales";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
@@ -39,6 +42,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     }
 
     const project = client.projects[0]; // Assume 1 project for MVP
+    const salesCall = await getSalesCall(id);
 
     return (
         <div className="space-y-6">
@@ -52,7 +56,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     title={client.fullName || "Client sans nom"}
                     description={`Détails du compte et gestion des services.`}
                 />
+                <div className="ml-auto">
+                    <SalesCallSheet prospectId={id} initialData={salesCall} />
+                </div>
             </div>
+
+            {salesCall && <SalesSummary data={salesCall} />}
 
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
