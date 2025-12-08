@@ -106,6 +106,34 @@ export function StepDiscovery({ data, onChange }: StepProps) {
                     )}
                 </div>
 
+                <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                        <Label>Importance du site (Business)</Label>
+                        <Select
+                            value={data?.website_importance}
+                            onValueChange={(v) => onChange({ ...data, website_importance: v })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="faible">Faible</SelectItem>
+                                <SelectItem value="moyen">Moyen</SelectItem>
+                                <SelectItem value="fort">Fort (Vital)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Conséquence si rien ne change (Gap)</Label>
+                        <Textarea
+                            placeholder="Perte de CA, image dégradée..."
+                            value={data?.gap_consequence || ""}
+                            onChange={(e) => onChange({ ...data, gap_consequence: e.target.value })}
+                            className="h-10 min-h-[40px]"
+                        />
+                    </div>
+                </div>
+
                 <div className="space-y-2">
                     <Label>Objectif principal</Label>
                     <Select
@@ -212,6 +240,15 @@ export function StepSolution({ data, onChange }: StepProps) {
                     ))}
                 </div>
             </div>
+
+            <div className="space-y-2 pt-4 border-t">
+                <Label>Angle de vente choisi</Label>
+                <Input
+                    placeholder="Ex: Image + Crédibilité / Leadgen + SEO..."
+                    value={data?.sales_angle || ""}
+                    onChange={(e) => onChange({ ...data, sales_angle: e.target.value })}
+                />
+            </div>
         </div>
     );
 }
@@ -234,6 +271,35 @@ export function StepPrice({ data, onChange }: StepProps) {
                         value={data?.proposed_price}
                         onChange={(e) => onChange({ ...data, proposed_price: e.target.value })}
                     />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                        <Label>Acompte proposé (€)</Label>
+                        <Input
+                            type="number"
+                            placeholder="Ex: 300"
+                            value={data?.deposit_amount || ""}
+                            onChange={(e) => onChange({ ...data, deposit_amount: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Bonus annoncé</Label>
+                        <Select
+                            value={data?.bonus_offered}
+                            onValueChange={(v) => onChange({ ...data, bonus_offered: v })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="aucun">Aucun</SelectItem>
+                                <SelectItem value="seo_boost">🚀 Boost SEO Offert</SelectItem>
+                                <SelectItem value="formation">🎓 Formation Offerte</SelectItem>
+                                <SelectItem value="autre">Autre</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 <div className="space-y-2">
@@ -259,6 +325,19 @@ export function StepPrice({ data, onChange }: StepProps) {
 }
 
 export function StepObjections({ data, onChange }: StepProps) {
+    const getObjectionScript = (objection: string) => {
+        switch (objection) {
+            case "prix":
+                return "💡 SCRIPT PRIX : « Je comprends. C'est un budget. Mais si ce site te rapporte ne serait-ce que 1 client par mois à 500€, il est rentabilisé en 2 mois. Le reste, c'est du bonus pur. C'est un investissement, pas une dépense. »";
+            case "reflechir":
+                return "💡 SCRIPT RÉFLEXION : « Je comprends. Mais dis-moi franchement, qu'est-ce qui te fait hésiter ? C'est la valeur que tu n'es pas sûr de récupérer, ou c'est vraiment une question de trésorerie maintenant ? »";
+            case "concurrence":
+                return "💡 SCRIPT CONCURRENCE : « OK. Eux ils font des sites. Nous on fait des machines à clients avec SEO local intégré. C'est comme comparer une carte de visite et un commercial qui bosse 24/7. »";
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="bg-slate-50 p-4 rounded-lg border text-sm text-slate-700 space-y-2">
@@ -272,6 +351,32 @@ export function StepObjections({ data, onChange }: StepProps) {
                     <Select
                         value={data?.main_objection}
                         onValueChange={(v) => onChange({ ...data, main_objection: v })}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="prix">Prix</SelectItem>
+                            <SelectItem value="reflechir">Besoin de réfléchir</SelectItem>
+                            <SelectItem value="concurrence">Concurrence</SelectItem>
+                            <SelectItem value="timing">Timing / Pas le moment</SelectItem>
+                            <SelectItem value="indecision">Indécision</SelectItem>
+                            <SelectItem value="autre">Autre</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {data?.main_objection && getObjectionScript(data.main_objection) && (
+                    <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm text-blue-800 italic">
+                        {getObjectionScript(data.main_objection)}
+                    </div>
+                )}
+
+                <div className="space-y-2">
+                    <Label>Objection secondaire</Label>
+                    <Select
+                        value={data?.secondary_objection}
+                        onValueChange={(v) => onChange({ ...data, secondary_objection: v })}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Sélectionner..." />
@@ -327,6 +432,52 @@ export function StepClosing({ data, onChange }: StepProps) {
                         </SelectContent>
                     </Select>
                 </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                    <Label>Date de relance prévue</Label>
+                    <Input
+                        type="datetime-local"
+                        value={data?.follow_up_date || ""}
+                        onChange={(e) => onChange({ ...data, follow_up_date: e.target.value })}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Canal de relance</Label>
+                    <Select
+                        value={data?.follow_up_channel}
+                        onValueChange={(v) => onChange({ ...data, follow_up_channel: v })}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="tel">📞 Téléphone</SelectItem>
+                            <SelectItem value="sms">📱 SMS</SelectItem>
+                            <SelectItem value="whatsapp">💬 WhatsApp</SelectItem>
+                            <SelectItem value="email">📧 Email</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Probabilité de Closing</Label>
+                <Select
+                    value={data?.closing_probability}
+                    onValueChange={(v) => onChange({ ...data, closing_probability: v })}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="0-25">🔴 0-25% (Froid)</SelectItem>
+                        <SelectItem value="25-50">🟠 25-50% (Incertain)</SelectItem>
+                        <SelectItem value="50-75">🟡 50-75% (Possible)</SelectItem>
+                        <SelectItem value="75-100">🟢 75-100% (Très chaud)</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
         </div>
     );

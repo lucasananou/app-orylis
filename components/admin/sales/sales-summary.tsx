@@ -37,29 +37,42 @@ export function SalesSummary({ data }: SalesSummaryProps) {
 
                 <div className="space-y-1">
                     <p className="text-xs font-medium text-slate-500 uppercase flex items-center gap-1">
-                        <Target className="h-3 w-3" /> Objectif
+                        <Target className="h-3 w-3" /> Objectif / Gap
                     </p>
-                    <p className="text-sm font-medium truncate" title={stepDiscovery?.main_goal}>
-                        {stepDiscovery?.main_goal || "-"}
-                    </p>
+                    <div className="text-sm">
+                        <p className="font-medium truncate" title={stepDiscovery?.main_goal}>{stepDiscovery?.main_goal || "-"}</p>
+                        {stepDiscovery?.gap_consequence && (
+                            <p className="text-xs text-slate-500 truncate" title={stepDiscovery.gap_consequence}>Gap: {stepDiscovery.gap_consequence}</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-1">
                     <p className="text-xs font-medium text-slate-500 uppercase flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" /> Objection
                     </p>
-                    <p className="text-sm font-medium truncate" title={stepObjections?.main_objection}>
-                        {stepObjections?.main_objection || "-"}
-                    </p>
+                    <div className="text-sm">
+                        <p className="font-medium truncate" title={stepObjections?.main_objection}>{stepObjections?.main_objection || "-"}</p>
+                        {stepObjections?.secondary_objection && (
+                            <p className="text-xs text-slate-500 truncate">+ {stepObjections.secondary_objection}</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-1">
                     <p className="text-xs font-medium text-slate-500 uppercase flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" /> Closing
                     </p>
-                    <p className="text-sm font-bold text-emerald-600">
-                        {stepClosing?.closing_status || "En cours"}
-                    </p>
+                    <div className="text-sm">
+                        <p className="font-bold text-emerald-600">
+                            {stepClosing?.closing_status || "En cours"}
+                        </p>
+                        {stepClosing?.follow_up_date && (
+                            <p className="text-xs text-slate-500">
+                                {new Date(stepClosing.follow_up_date).toLocaleDateString()}
+                            </p>
+                        )}
+                    </div>
                 </div>
             </CardContent>
         </Card>
