@@ -2,18 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --accent: 216 100% 50%;
-  --muted: 214 32% 94%;
-  --border: 214 32% 85%;
-  --input: 214 32% 85%;
-  --ring: 216 100% 50%;
-  --popover: var(--background);
-  --popover-foreground: var(--foreground);
-  --card: 0 0% 100%;
-  --card-foreground: var(--foreground);
-  --shadow-subtle: 0 24px 48px -32px rgba(15, 23, 42, 0.35);
-}
 
 html,
 body {
@@ -69,6 +57,7 @@ h6 {
     opacity: 0.1;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -89,6 +78,7 @@ h6 {
   select {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2;
   }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -102,8 +92,8 @@ h6 {
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 216 100% 50%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
@@ -115,7 +105,9 @@ h6 {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --shadow-subtle: 0 24px 48px -32px rgba(15, 23, 42, 0.35);
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -129,7 +121,7 @@ h6 {
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
+    --accent: 216 100% 50%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -143,4 +135,3 @@ h6 {
     --chart-5: 340 75% 55%;
   }
 }
-
