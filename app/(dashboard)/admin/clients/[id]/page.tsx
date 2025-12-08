@@ -13,7 +13,7 @@ import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
 import { BriefManager } from "@/components/admin/brief-manager";
-import { SalesCallSheet } from "@/components/admin/sales/sales-call-sheet";
+import { SalesCallDialog } from "@/components/admin/sales/sales-call-dialog";
 import { SalesSummary } from "@/components/admin/sales/sales-summary";
 import { getSalesCall } from "@/app/actions/sales";
 
@@ -57,7 +57,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     description={`Détails du compte et gestion des services.`}
                 />
                 <div className="ml-auto">
-                    <SalesCallSheet prospectId={id} initialData={salesCall} />
+                    <SalesCallDialog prospectId={id} initialData={salesCall} />
                 </div>
             </div>
 
