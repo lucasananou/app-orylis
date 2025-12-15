@@ -462,7 +462,7 @@ export function PublicOnboardingWizard() {
                                         <div className="space-y-4 max-w-3xl mx-auto">
                                             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                                                 Votre Démo Personnalisée <br />
-                                                <span className="text-blue-600">en 4 étapes simples</span>
+                                                <span className="text-blue-600">en moins de 2 minutes</span>
                                             </h1>
                                             <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
                                                 Découvrez gratuitement la <span className="font-semibold text-slate-900">première version</span> de votre futur site internet, conçue sur-mesure pour votre activité. Sans aucun engagement.
