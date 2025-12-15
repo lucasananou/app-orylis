@@ -51,15 +51,17 @@ import {
 
 const PROFESSIONS = [
     { label: "Couvreur", icon: "🏠" },
+    { label: "Restaurateur", icon: "🍽️" },
     { label: "Plombier", icon: "💧" },
+    { label: "Coach Sportif", icon: "💪" },
     { label: "Électricien", icon: "⚡" },
+    { label: "Thérapeute", icon: "🧘" },
     { label: "Menuisier", icon: "🪚" },
+    { label: "Avocat", icon: "⚖️" },
     { label: "Peintre", icon: "🎨" },
-    { label: "Maçon", icon: "🧱" },
+    { label: "Comptable", icon: "📊" },
     { label: "Paysagiste", icon: "🌿" },
-    { label: "Serrurier", icon: "🔑" },
-    { label: "Carreleur", icon: "🟦" },
-    { label: "Façadier", icon: "🏗️" },
+    { label: "Architecte", icon: "📐" },
 ];
 
 function ProfessionsMarquee() {
@@ -138,51 +140,65 @@ const stepDefinitions = [
         label: "Votre identité",
         description: "Dites-nous qui vous êtes.",
         schema: PublicIdentitySchema,
-        fields: ["firstName", "lastName", "email", "phone"]
+        fields: ["firstName", "lastName", "email", "phone"],
+        buttonLabel: "Valider mes coordonnées",
+        badge: "🔒 Données sécurisées & confidentielles"
     },
     {
         id: "contact",
         label: "Vos coordonnées",
         description: "Parlez-nous de votre entreprise.",
         schema: ProspectContactSchema,
-        fields: ["companyName", "activity"]
+        fields: ["companyName", "activity"],
+        buttonLabel: "Confirmer mon activité",
+        badge: "✨ On avance bien !"
     },
     {
         id: "goals",
         label: "Vos objectifs",
-        description: "Quel est le but principal de votre futur site ?",
+        description: "Quel est le but de votre site ?",
         schema: ProspectGoalSchema,
-        fields: ["siteGoal", "siteGoalOther"]
+        fields: ["siteGoal", "siteGoalOther"],
+        buttonLabel: "Définir mes objectifs",
+        badge: "🎯 Objectifs clairs = Réussite assurée"
     },
 
     {
         id: "style",
-        label: "Votre style",
-        description: "Quelle ambiance souhaitez-vous donner à votre site ?",
+        label: "Vos préférences",
+        description: "Quel style vous correspond ?",
         schema: ProspectStyleSchema,
-        fields: ["preferredStyles"]
+        fields: ["preferredStyles"],
+        buttonLabel: "Valider ce style",
+        badge: "🎨 Le design commence ici"
     },
 
     {
         id: "branding",
-        label: "Vos éléments",
-        description: "Partagez votre logo et vos couleurs si vous en avez.",
+        label: "Votre image",
+        description: "Avez-vous déjà une identité visuelle ?",
         schema: ProspectBrandingSchema,
-        fields: ["primaryColor", "logoUrl"]
+        fields: ["primaryColor", "logoUrl"],
+        buttonLabel: "Enregistrer ma marque",
+        badge: "💎 Une identité unique pour vous"
     },
     {
         id: "message",
-        label: "Votre site arrive bientôt !",
-        description: "Comment souhaitez-vous accueillir vos visiteurs ?",
+        label: "Votre message",
+        description: "Personnalisez l'accueil de votre site.",
         schema: ProspectMessageSchema,
-        fields: ["welcomePhrase", "mainServices"]
+        fields: ["welcomePhrase", "mainServices"],
+        buttonLabel: "Sauvegarder mon contenu",
+        badge: "✍️ Votre touche personnelle"
     },
     {
         id: "infos",
-        label: "Infos complémentaires",
-        description: "D'autres précisions utiles pour notre équipe ?",
+        label: "Derniers détails",
+        description: "Avez-vous autre chose à nous dire ?",
         schema: ProspectInfoSchema,
-        fields: ["importantInfo"]
+        fields: ["importantInfo"],
+        buttonLabel: "Finaliser ma demande",
+        badge: "🚀 Dernière ligne droite !"
     }
 ];
 
@@ -316,6 +332,16 @@ export function PublicOnboardingWizard() {
     const handleNextStep = () => {
         if (!validateStep(currentStepIndex)) return;
 
+        // Show encouragement toast if badge exists for this step
+        const stepBadge = (stepDefinitions[currentStepIndex] as any).badge;
+        if (stepBadge) {
+            toast.success(stepBadge, {
+                icon: "👏",
+                duration: 3000,
+                className: "bg-white border-2 border-blue-100 text-blue-800 font-medium"
+            });
+        }
+
         // Auto-save before moving
         autoSave(currentStepIndex);
 
@@ -350,20 +376,31 @@ export function PublicOnboardingWizard() {
             }
 
             // 2. Auto Login
-            const signInResult = await signIn("credentials", {
-                email: payload.email,
-                password: data.password,
-                redirect: false
-            });
+            try {
+                const signInResult = await signIn("credentials", {
+                    email: payload.email,
+                    password: data.password,
+                    redirect: false
+                });
 
-            if (signInResult?.error) {
-                toast.error("Compte créé mais échec de la connexion automatique.");
-                router.push("/login");
-            } else {
-                toast.success("Compte créé avec succès !");
-                router.push("/");
+                if (signInResult?.error) {
+                    console.warn("Auto-login error (logic):", signInResult.error);
+                    toast.success("Compte créé ! Veuillez vous connecter.");
+                    router.push("/login");
+                } else {
+                    toast.success("Compte créé avec succès !");
+                    router.push("/");
+                }
+            } catch (signInError) {
+                console.error("Auto-login error (exception):", signInError);
+                // Even if auto-login crashes, the account IS created.
+                // Redirect to login with a success message.
+                toast.success("Compte créé ! Connectez-vous maintenant.");
+                router.push(("/login?email=" + encodeURIComponent(payload.email)) as any);
             }
         } catch (error) {
+            console.error("Registration error:", error);
+            // This catches errors from step 1 (API call), not step 2 (signIn) which is now handled.
             toast.error(error instanceof Error ? error.message : "Une erreur est survenue.");
             setIsSubmitting(false);
         }
@@ -386,7 +423,7 @@ export function PublicOnboardingWizard() {
             {/* Progress Bar */}
             <div className="fixed left-0 top-0 z-50 h-2 w-full bg-slate-100">
                 <div
-                    className="h-full bg-primary transition-all duration-500 ease-out"
+                    className="h-full bg-[#0166ff] transition-all duration-500 ease-out"
                     style={{ width: `${progressPercentage}%` }}
                 />
             </div>
@@ -397,7 +434,12 @@ export function PublicOnboardingWizard() {
 
                         {/* Header - Hidden for welcome step as it has its own hero */}
                         {currentStep.id !== "welcome" && (
-                            <div className="text-center space-y-2 mb-8">
+                            <div className="text-center space-y-3 mb-8">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider">
+                                        Étape {currentStepIndex} / {stepDefinitions.length - 1}
+                                    </div>
+                                </div>
                                 <h2 className="text-3xl font-bold tracking-tight text-slate-900">
                                     {currentStep.label}
                                 </h2>
@@ -786,81 +828,84 @@ export function PublicOnboardingWizard() {
                         </div>
 
                         {/* Navigation Footer */}
-                        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-100 bg-white p-4 sm:static sm:border-t-0 sm:bg-transparent sm:p-0 sm:pt-8">
-                            <div className="mx-auto flex max-w-2xl items-center justify-between">
-                                <div className="w-24">
-                                    {currentStepIndex > 0 && (
+                        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-100 bg-white p-4 sm:static sm:border-t-0 sm:bg-transparent sm:p-0 sm:pt-10">
+                            <div className="mx-auto max-w-2xl">
+                                {currentStep.id === "welcome" ? (
+                                    /* Welcome Step - Centered CTA */
+                                    <div className="flex flex-col items-center justify-center gap-3">
                                         <Button
                                             type="button"
-                                            variant="ghost"
                                             size="lg"
-                                            onClick={handlePreviousStep}
+                                            onClick={handleNextStep}
                                             disabled={isSubmitting}
-                                            className="text-slate-500 hover:text-slate-900"
+                                            className="w-full sm:w-auto min-w-[280px] h-14 rounded-full text-lg shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 transition-all bg-[#0166ff] hover:bg-[#0055d4]"
                                         >
-                                            <ArrowLeft className="mr-2 h-5 w-5" />
-                                            Retour
+                                            Demander ma démo gratuitement
+                                            <ArrowRight className="ml-2 h-5 w-5" />
                                         </Button>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col items-center">
-                                    {currentStepIndex < stepDefinitions.length - 1 ? (
-                                        <div className="text-center">
-                                            {currentStep.id === "welcome" ? (
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        size="lg"
-                                                        onClick={handleNextStep}
-                                                        disabled={isSubmitting}
-                                                        className="min-w-[280px] text-lg h-14 rounded-full shadow-xl shadow-blue-500/25 hover:shadow-blue-500/35 transition-all bg-blue-600 hover:bg-blue-700 animate-pulse-slow"
-                                                    >
-                                                        Demander ma démo gratuitement
-                                                        <ArrowRight className="ml-2 h-5 w-5" />
-                                                    </Button>
-                                                    <p className="text-xs text-slate-400 font-medium">
-                                                        Aucune carte bancaire nécessaire
-                                                    </p>
-                                                </div>
+                                        <p className="text-xs text-slate-400 font-medium">
+                                            Aucune carte bancaire nécessaire
+                                        </p>
+                                    </div>
+                                ) : (
+                                    /* Form Steps - Structured Split Layout */
+                                    <div className="flex items-center justify-between w-full">
+                                        {/* Left: Back Button */}
+                                        <div className="w-1/3 flex justify-start">
+                                            {currentStepIndex > 0 ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={handlePreviousStep}
+                                                    disabled={isSubmitting}
+                                                    className="pl-0 hover:bg-transparent text-slate-500 hover:text-slate-900 font-medium text-base"
+                                                >
+                                                    <ArrowLeft className="mr-2 h-5 w-5" />
+                                                    Retour
+                                                </Button>
                                             ) : (
+                                                <div />
+                                            )}
+                                        </div>
+
+                                        {/* Right: Next Button */}
+                                        <div className="w-2/3 flex justify-end">
+                                            {currentStepIndex < stepDefinitions.length - 1 ? (
                                                 <Button
                                                     type="button"
                                                     size="lg"
                                                     onClick={handleNextStep}
                                                     disabled={isSubmitting}
-                                                    className="min-w-[140px] text-lg h-12 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
+                                                    className="rounded-full px-8 h-12 text-base shadow-lg shadow-blue-500/20 bg-[#0166ff] hover:bg-[#0055d4]"
                                                 >
-                                                    Continuer
+                                                    {(currentStep as any).buttonLabel || "Continuer"}
                                                     <ArrowRight className="ml-2 h-5 w-5" />
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    type="button"
+                                                    size="lg"
+                                                    onClick={handleSubmit}
+                                                    disabled={isSubmitting}
+                                                    className="rounded-full px-8 h-12 text-base shadow-lg shadow-green-500/20 bg-green-600 hover:bg-green-700"
+                                                >
+                                                    {isSubmitting ? (
+                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                    ) : (
+                                                        <CheckCircle2 className="mr-2 h-5 w-5" />
+                                                    )}
+                                                    Valider & Créer
                                                 </Button>
                                             )}
                                         </div>
-                                    ) : (
-                                        <Button
-                                            type="button"
-                                            size="lg"
-                                            onClick={handleSubmit}
-                                            disabled={isSubmitting}
-                                            className="min-w-[140px] text-lg h-12 rounded-full bg-green-600 hover:bg-green-700 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 transition-all"
-                                        >
-                                            {isSubmitting ? (
-                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            ) : (
-                                                <CheckCircle2 className="mr-2 h-5 w-5" />
-                                            )}
-                                            Valider & Créer
-                                        </Button>
-                                    )}
-                                </div>
-
-                                <div className="w-24"></div> {/* Spacer for centering */}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                     </div>
                 </Form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
