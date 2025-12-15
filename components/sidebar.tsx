@@ -26,9 +26,9 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/onboarding", label: "Onboarding", icon: FileText },
   { href: "/tickets", label: "Tickets", icon: Ticket },
-  { href: "/files", label: "Fichiers", icon: FolderOpen },
-  { href: "/marketplace", label: "Booster", icon: Rocket },
-  { href: "/services", label: "Services", icon: Sparkles },
+  // { href: "/files", label: "Fichiers", icon: FolderOpen },
+  // { href: "/marketplace", label: "Booster", icon: Rocket },
+  // { href: "/services", label: "Services", icon: Sparkles },
   { href: "/guide", label: "Guide", icon: BookOpen },
   { href: "/referral", label: "Parrainage", icon: Gift },
   { href: "/profile", label: "Profil", icon: UserRound }

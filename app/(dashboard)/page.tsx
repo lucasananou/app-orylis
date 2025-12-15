@@ -44,12 +44,11 @@ import { HostingWidget } from "@/components/dashboard/hosting-widget";
 import { SiteHealthWidget } from "@/components/dashboard/site-health-widget";
 import { BriefValidationCard } from "@/components/dashboard/brief-validation-card";
 import { BriefHistory } from "@/components/dashboard/brief-history";
-import { ProjectMilestones } from "@/components/dashboard/project-milestones";
 import type { Route } from "next";
 
-// Cache intelligent : revalider toutes les 30 secondes
+// Cache intelligent : revalider toutes les 0 secondes (désactivé pour dev instantané)
 // Les données changent peu souvent, pas besoin de force-dynamic
-export const revalidate = 30;
+export const revalidate = 0;
 
 const ticketStatusLabels: Record<"open" | "in_progress" | "done", string> = {
   open: "Ouvert",
@@ -585,28 +584,59 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
   const isDelivered = projectsData.some(p => p.status === "delivered");
   const projectInReview = projectsData.find(p => p.status === "review");
 
-  // Generate Timeline Steps
+  // Explicit Timeline Logic
+  const getStepStatus = (stepId: string, currentStatus: string, onboardingDone: boolean): "completed" | "current" | "upcoming" => {
+    // 1. Onboarding
+    if (stepId === "onboarding") {
+      return onboardingDone ? "completed" : "current";
+    }
+
+    // 2. Construction (Design/Build)
+    if (stepId === "construction") {
+      if (!onboardingDone) return "upcoming";
+      if (currentStatus === "onboarding") return "upcoming";
+      if (["demo_in_progress", "design", "build"].includes(currentStatus)) return "current";
+      if (["review", "delivered"].includes(currentStatus)) return "completed";
+      return "upcoming"; // Fallback
+    }
+
+    // 3. Review
+    if (stepId === "review") {
+      if (["delivered"].includes(currentStatus)) return "completed";
+      if (currentStatus === "review") return "current";
+      return "upcoming";
+    }
+
+    // 4. Delivery
+    if (stepId === "delivery") {
+      if (currentStatus === "delivered") return "completed";
+      return "upcoming";
+    }
+
+    return "upcoming";
+  };
+
   const timelineSteps = activeProject ? [
     {
       id: "onboarding",
       label: "Onboarding",
-      status: "completed" as const,
-      date: activeProject.createdAt ? formatDate(activeProject.createdAt) : undefined
+      status: getStepStatus("onboarding", activeProject.status, onboardingCompleted),
+      date: onboardingCompleted && activeProject.createdAt ? formatDate(activeProject.createdAt) : undefined
     },
     {
-      id: "design",
-      label: "Design & Développement",
-      status: activeProject.status === "onboarding" ? "upcoming" : (activeProject.status === "review" || activeProject.status === "delivered" ? "completed" : "current") as "upcoming" | "completed" | "current",
+      id: "construction",
+      label: "Construction",
+      status: getStepStatus("construction", activeProject.status, onboardingCompleted),
     },
     {
       id: "review",
       label: "Révision & Validation",
-      status: activeProject.status === "delivered" ? "completed" : (activeProject.status === "review" ? "current" : "upcoming") as "upcoming" | "completed" | "current",
+      status: getStepStatus("review", activeProject.status, onboardingCompleted),
     },
     {
       id: "delivery",
       label: "Mise en ligne",
-      status: activeProject.status === "delivered" ? "completed" : "upcoming" as "upcoming" | "completed" | "current",
+      status: getStepStatus("delivery", activeProject.status, onboardingCompleted),
       date: activeProject.deliveredAt ? formatDate(activeProject.deliveredAt) : undefined
     }
   ] : [];
@@ -622,6 +652,18 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
       href: "/notifications" as Route
     });
   }
+
+  // If client onboarding is not completed, add it to todos
+  if (!onboardingCompleted && activeProject && !staff) {
+    todos.push({
+      id: "onboarding-todo",
+      type: "onboarding" as const,
+      title: "Lancer la création du site internet",
+      count: 1,
+      href: `/projects/${activeProject.id}/onboarding` as Route
+    });
+  }
+
   if (ticketsCount > 0) {
     // Note: ticketsCount here is total tickets, not open tickets. 
     // But we don't have open tickets count for the widget specifically passed down except in highlights.
@@ -693,7 +735,8 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
 
       <div className="grid gap-6">
         {/* Stats Cards */}
-        <DashboardStats highlights={highlights} />
+        {/* Stats Cards - Masqué temporairement car non pertinent tant que le site n'est pas en ligne */}
+        {/* <DashboardStats highlights={highlights} /> */}
 
         {/* Main Content */}
         <div className="grid gap-6 lg:grid-cols-3">
@@ -732,10 +775,8 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
               />
             )}
 
-            {/* Project Milestones */}
-            {activeProject && (
-              <ProjectMilestones />
-            )}
+            {/* Project Milestones - REMOVED as redundant with timeline */}
+
 
             {/* Brief History */}
             {activeProject && activeProject.briefs.length > 0 && (
@@ -749,12 +790,14 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
           </div>
 
           <div className="space-y-6">
-            {/* Projects List */}
-            <DashboardProjects
-              projects={projectsData}
-              role={role}
-              ownerOptions={ownerOptions}
-            />
+            {/* Projects List - Only for staff */}
+            {staff && (
+              <DashboardProjects
+                projects={projectsData}
+                role={role}
+                ownerOptions={ownerOptions}
+              />
+            )}
 
             {/* Site Health (if delivered) */}
             {activeProject && activeProject.status === "delivered" && (

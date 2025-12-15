@@ -123,7 +123,7 @@ async function fetchUserRole(userId: string) {
         columns: { role: true },
       }),
       new Promise<undefined>((_, reject) =>
-        setTimeout(() => reject(new Error("DB_TIMEOUT")), 2000)
+        setTimeout(() => reject(new Error("DB_TIMEOUT")), 10000)
       )
     ]);
 

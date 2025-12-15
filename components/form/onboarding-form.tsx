@@ -177,14 +177,14 @@ const buildDefaultValues = (
   const competitors = ensureStringArray(payload.competitors);
   const customPages = Array.isArray(payload.customPages)
     ? payload.customPages
-        .filter(
-          (entry): entry is { title?: unknown; description?: unknown } =>
-            typeof entry === "object" && entry !== null
-        )
-        .map((entry) => ({
-          title: ensureString(entry.title),
-          description: ensureString(entry.description)
-        }))
+      .filter(
+        (entry): entry is { title?: unknown; description?: unknown } =>
+          typeof entry === "object" && entry !== null
+      )
+      .map((entry) => ({
+        title: ensureString(entry.title),
+        description: ensureString(entry.description)
+      }))
     : [];
 
   return {
@@ -295,7 +295,7 @@ const normalizeDraftPayload = (values: OnboardingFormState): OnboardingDraftPayl
 const normalizeFinalPayload = (values: OnboardingFormState) => {
   // Pour la validation finale, on doit inclure tous les champs requis, même s'ils sont vides
   const draft = normalizeDraftPayload(values);
-  
+
   // S'assurer que les champs requis sont présents (même vides) pour la validation
   return {
     goals: draft.goals ?? [],
@@ -385,10 +385,10 @@ export function OnboardingForm({ projects, role }: OnboardingFormProps) {
     name: "competitors"
   });
 
-const customPagesArray = useFieldArray({
-  control,
-  name: "customPages"
-});
+  const customPagesArray = useFieldArray({
+    control,
+    name: "customPages"
+  });
 
   const watchedValues = useWatch<OnboardingFormState>({
     control
@@ -682,13 +682,7 @@ const customPagesArray = useFieldArray({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="w-full">
-          <ProgressSteps 
-            steps={stepsProgress} 
-            showPercentage={true}
-            estimatedTimeRemaining={Math.max(1, Math.round((stepDefinitions.length - currentStepIndex) * 1.5))}
-          />
-        </CardContent>
+
       </Card>
 
       {isCompleted && !isStaffRole && (
@@ -992,7 +986,7 @@ const customPagesArray = useFieldArray({
                   <p className="text-sm font-semibold text-muted-foreground">Structure du site</p>
                   <div className="mt-1 space-y-1 text-sm text-foreground">
                     {form.getValues("pages").length === 0 &&
-                    form.getValues("customPages").length === 0 ? (
+                      form.getValues("customPages").length === 0 ? (
                       <p>—</p>
                     ) : (
                       <>

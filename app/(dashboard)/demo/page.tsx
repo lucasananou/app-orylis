@@ -6,9 +6,10 @@ import { projects, quotes } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Calendar, CreditCard } from "lucide-react";
+import { ExternalLink, Calendar, CreditCard, PartyPopper } from "lucide-react";
 import { GenerateQuoteButton } from "@/components/quote/generate-quote-button";
 import { ChatWidgetClient } from "@/components/chat/chat-widget-client";
+import { StickyContactBar } from "@/components/dashboard/sticky-contact-bar";
 
 // Cache 30 secondes : la page demo change peu
 export const revalidate = 30;
@@ -75,19 +76,20 @@ export default async function DemoPage(): Promise<JSX.Element> {
   const { projectName, demoUrl, projectId, existingQuoteId } = await loadDemoData();
 
   return (
-    <div className="w-full mx-auto max-w-3xl lg:max-w-6xl safe-px space-y-6 min-w-0 pb-24">
+    <div className="w-full mx-auto max-w-3xl lg:max-w-6xl safe-px space-y-6 min-w-0 pb-32 sm:pb-40">
       {/* Titre + sous-titre */}
-      <div className="space-y-2 text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl md:text-3xl">
+      <div className="space-y-3 text-center mb-8 sm:mb-12">
+        <h1 className="flex items-center justify-center gap-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl md:text-4xl">
           Votre démo est prête !
+          <PartyPopper className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />
         </h1>
-        <p className="text-xs text-slate-600 sm:text-sm md:text-base">
+        <p className="text-sm text-slate-600 sm:text-base md:text-lg max-w-4xl mx-auto leading-relaxed">
           Découvrez votre site de démonstration personnalisé et passez à l&apos;étape suivante.
         </p>
       </div>
 
       {/* Layout desktop : colonnes à partir de lg */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[3fr,2fr] min-w-0">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-[1.4fr,1fr] xl:gap-10 min-w-0 items-start">
         {/* Colonne gauche : Aperçu de la démo */}
         <div className="space-y-4 sm:space-y-6 w-full min-w-0">
           {/* Carte "Aperçu de votre démo" */}
@@ -192,9 +194,9 @@ export default async function DemoPage(): Promise<JSX.Element> {
       <div className="w-full">
         <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <div className="space-y-4">
-            <div className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <span className="mt-0.5 shrink-0">🔒</span>
-              <p className="text-sm text-slate-700">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <span className="text-xl shrink-0">🔒</span>
+              <p className="text-sm font-medium text-slate-700">
                 Ces fonctionnalités se débloquent après la validation de votre site.
               </p>
             </div>
@@ -231,8 +233,10 @@ export default async function DemoPage(): Promise<JSX.Element> {
           </div>
         </div>
       </div>
+
+      <StickyContactBar />
       <ChatWidgetClient />
-    </div>
+    </div >
   );
 }
 

@@ -1,28 +1,25 @@
-import { notFound, redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { onboardingResponses, projects } from "@/lib/schema";
-import { PageHeader } from "@/components/page-header";
 import { OnboardingForm } from "@/components/form/onboarding-form";
-import { assertUserCanAccessProject, isStaff } from "@/lib/utils";
-import { ProspectOnboardingForm } from "@/components/form/prospect-onboarding-form";
+import { isStaff } from "@/lib/utils";
 
-export const revalidate = 0;
+// Cache 10 secondes
+export const revalidate = 10;
 
-interface ProjectOnboardingPageProps {
-    params: {
-        id: string;
-    };
-}
-
-export default async function ProjectOnboardingPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+async function loadOnboardingData(projectId: string) {
     const session = await auth();
 
     if (!session?.user) {
         redirect("/login");
     }
+
+    const user = session.user!;
+    const staff = isStaff(user.role);
+
+    console.log("[ProjectOnboarding] User:", user.id, "Staff:", staff, "ProjectID:", projectId);
 
     const project = await db
         .select({
@@ -30,57 +27,54 @@ export default async function ProjectOnboardingPage({ params }: { params: Promis
             name: projects.name,
             status: projects.status,
             progress: projects.progress,
-            ownerId: projects.ownerId,
             responseId: onboardingResponses.id,
             responsePayload: onboardingResponses.payload,
             responseCompleted: onboardingResponses.completed,
             responseUpdatedAt: onboardingResponses.updatedAt
         })
         .from(projects)
-        .leftJoin(onboardingResponses, eq(onboardingResponses.projectId, projects.id))
-        .where(eq(projects.id, id))
-        .then((rows) => rows.at(0));
+        .leftJoin(
+            onboardingResponses,
+            and(
+                eq(onboardingResponses.projectId, projects.id),
+                eq(onboardingResponses.type, "client")
+            )
+        )
+        .where(
+            staff
+                ? eq(projects.id, projectId)
+                : and(eq(projects.id, projectId), eq(projects.ownerId, user.id))
+        )
+        .limit(1)
+        .then((rows) => rows[0]);
 
     if (!project) {
-        notFound();
-    }
-
-    try {
-        assertUserCanAccessProject({
-            role: session.user.role,
-            userId: session.user.id,
-            ownerId: project.ownerId
-        });
-    } catch {
+        console.log("[ProjectOnboarding] Project not found or access denied.");
         redirect("/");
     }
-
-    const payload = (project.responsePayload as Record<string, unknown> | null) ?? null;
 
     const projectEntry = {
         id: project.id,
         name: project.name,
         status: project.status,
         progress: project.progress,
-        payload,
+        payload: (project.responsePayload as Record<string, unknown> | null) ?? null,
         completed: project.responseCompleted ?? false,
         updatedAt: project.responseUpdatedAt ? project.responseUpdatedAt.toISOString() : null
     };
 
-    // Détection simple : si le payload contient "activity", c'est un onboarding prospect
-    const isProspectPayload = payload && "activity" in payload;
+    return { projectEntry, role: user.role };
+}
+
+export default async function ProjectOnboardingPage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    console.log("[ProjectOnboarding] Loading for project:", params.id);
+
+    const { projectEntry, role } = await loadOnboardingData(params.id);
 
     return (
-        <>
-            <PageHeader
-                title="Détail de l'onboarding"
-                description={`Réponses du formulaire pour le projet ${project.name}`}
-            />
-            {isProspectPayload ? (
-                <ProspectOnboardingForm projects={[projectEntry]} />
-            ) : (
-                <OnboardingForm projects={[projectEntry]} role={session.user.role} />
-            )}
-        </>
+        <div className="mx-auto max-w-5xl py-8">
+            <OnboardingForm projects={[projectEntry]} role={role} />
+        </div>
     );
 }

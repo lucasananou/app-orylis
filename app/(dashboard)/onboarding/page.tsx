@@ -68,7 +68,9 @@ async function loadOnboardingData() {
     .where(
       staff
         ? eq(projects.status, "onboarding")
-        : and(eq(projects.status, "onboarding"), eq(projects.ownerId, user.id))
+        : isProspectUser
+          ? and(eq(projects.status, "onboarding"), eq(projects.ownerId, user.id))
+          : eq(projects.ownerId, user.id)
     )
     .orderBy(asc(projects.createdAt));
 
@@ -126,6 +128,11 @@ export default async function OnboardingPage(): Promise<JSX.Element> {
   // (le dashboard gère les redirections selon le statut)
   if (onboardingProjects.length === 0 && isProspect(role)) {
     redirect("/");
+  }
+
+  // Pour les clients : redirection vers la page projet spécifique
+  if (!staff && !isProspect(role) && onboardingProjects.length > 0) {
+    redirect(`/projects/${onboardingProjects[0].id}/onboarding`);
   }
 
   if (onboardingProjects.length === 0) {

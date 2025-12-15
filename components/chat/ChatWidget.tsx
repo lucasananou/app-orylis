@@ -164,7 +164,7 @@ export function ChatWidget(): JSX.Element {
           }
           setShowHint(false);
         }}
-        className="fixed bottom-4 right-4 z-50 inline-flex h-[56px] w-[56px] items-center justify-center rounded-full bg-[#0D69FF] text-white shadow-lg transition-transform hover:scale-105 sm:bottom-6 sm:right-6"
+        className="fixed bottom-24 right-4 z-50 inline-flex h-[56px] w-[56px] items-center justify-center rounded-full bg-[#0D69FF] text-white shadow-lg transition-transform hover:scale-105 sm:bottom-28 sm:right-6"
       >
         {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>

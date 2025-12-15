@@ -5,16 +5,16 @@ import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
 import Script from "next/script";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ChatWidgetClient } from "@/components/chat/chat-widget-client";
-import { CheckCircle2, Circle, Clock, FileText, Image as ImageIcon, Loader2, MessageCircle, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2, Circle, Clock, Loader2 } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { StickyContactBar } from "@/components/dashboard/sticky-contact-bar";
 
 // Cache 30 secondes : le statut de la démo change peu
 export const revalidate = 30;
@@ -70,126 +70,73 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
 
   return (
     <>
-      <div className="w-full safe-px min-w-0 pb-20 pt-8 sm:pt-12">
+      <div className="w-full safe-px min-w-0 pb-32 pt-8 sm:pt-12">
         <div className="mx-auto w-full max-w-4xl space-y-6">
 
-          <div className="text-center space-y-2 mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              Votre démo est en cours de préparation
+          <div className="text-center space-y-4 mb-8">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Votre démo est en cours de création 🎨
             </h1>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              Nous créons votre site de démonstration personnalisé à partir de vos informations.
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Nous construisons votre site de démonstration sur-mesure.
+              <br />
+              <span className="font-medium text-blue-600">
+                Vous recevrez votre lien d&apos;accès par email d&apos;ici 2 heures environ.
+              </span>
             </p>
           </div>
 
           {/* Hero Status Card */}
-          <Card className="border-blue-100 bg-gradient-to-b from-blue-50/50 to-white shadow-sm overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600" />
-            <CardHeader className="text-center pb-2 pt-8">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 ring-8 ring-blue-50">
-                <Sparkles className="h-8 w-8 text-blue-600 animate-pulse" />
-              </div>
-              <CardTitle className="text-2xl sm:text-3xl font-bold text-blue-950">
-                Merci ! C&apos;est parti 🚀
-              </CardTitle>
-              <CardDescription className="text-base sm:text-lg text-blue-800/80 mt-2 max-w-xl mx-auto">
-                Nous avons bien reçu vos informations pour <span className="font-semibold text-blue-900">{projectName}</span>.
-                Notre équipe s&apos;occupe de tout.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pb-8 pt-6">
+          <Card className="border-blue-100 bg-white shadow-lg shadow-blue-900/5 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600" />
+            <CardContent className="pb-8 pt-8">
               {/* Visual Timeline */}
-              <div className="relative mx-auto max-w-2xl">
-                <div className="absolute left-[19px] top-8 bottom-8 w-0.5 bg-slate-200" />
+              <div className="relative mx-auto max-w-xl">
+                <div className="absolute left-[19px] top-8 bottom-8 w-0.5 bg-slate-100" />
 
-                <div className="space-y-8 relative">
+                <div className="space-y-10 relative">
                   {/* Step 1: Done */}
-                  <div className="flex gap-4">
+                  <div className="flex gap-5">
                     <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 ring-4 ring-white">
                       <CheckCircle2 className="h-6 w-6 text-green-600" />
                     </div>
                     <div className="pt-1">
-                      <h3 className="font-semibold text-slate-900">Onboarding complété</h3>
-                      <p className="text-sm text-slate-500">Nous avons toutes les informations nécessaires.</p>
+                      <h3 className="text-lg font-semibold text-slate-900">Informations reçues</h3>
+                      <p className="text-slate-500">Nous avons bien reçu le dossier de <span className="font-medium text-slate-900">{projectName}</span>.</p>
                     </div>
                   </div>
 
                   {/* Step 2: Active */}
-                  <div className="flex gap-4">
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 ring-4 ring-blue-100 shadow-lg shadow-blue-200">
+                  <div className="flex gap-5">
+                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 ring-4 ring-blue-100 shadow-xl shadow-blue-200">
                       <Loader2 className="h-5 w-5 text-white animate-spin" />
                     </div>
                     <div className="pt-1">
-                      <h3 className="font-semibold text-blue-700">Création en cours</h3>
-                      <p className="text-sm text-blue-600/80">
-                        Design, intégration et rédaction de vos contenus.
-                        <br />
-                        <span className="inline-block mt-1 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                          ~24h ouvrées
-                        </span>
+                      <h3 className="text-lg font-semibold text-blue-700">Création en cours...</h3>
+                      <p className="text-blue-600/90 mb-2">
+                        Nos designers et développeurs construisent votre première version.
                       </p>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100">
+                        <Clock className="h-3.5 w-3.5" />
+                        Temps estimé : ~2 heures
+                      </div>
                     </div>
                   </div>
 
                   {/* Step 3: Pending */}
-                  <div className="flex gap-4 opacity-60">
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 ring-4 ring-white border border-slate-200">
+                  <div className="flex gap-5 opacity-60">
+                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-50 ring-4 ring-white border border-slate-200">
                       <Circle className="h-5 w-5 text-slate-400" />
                     </div>
                     <div className="pt-1">
-                      <h3 className="font-semibold text-slate-700">Livraison de la démo</h3>
-                      <p className="text-sm text-slate-500">Vous recevrez un email dès que c&apos;est prêt.</p>
+                      <h3 className="text-lg font-semibold text-slate-700">Livraison par email</h3>
+                      <p className="text-slate-500">Surveillez votre boîte mail, ça arrive vite !</p>
                     </div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Tips Section */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="border-border/50 bg-white/50 hover:bg-white transition-colors">
-              <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm">Vos services</h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Préparez la liste de vos prestations et leurs tarifs.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/50 bg-white/50 hover:bg-white transition-colors">
-              <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-                  <ImageIcon className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm">Vos visuels</h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Rassemblez vos logos et belles photos si vous en avez.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/50 bg-white/50 hover:bg-white transition-colors">
-              <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm">Patience...</h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    On fait au plus vite ! Profitez-en pour vous détendre.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* FAQ Section */}
           <div className="space-y-4">
@@ -226,49 +173,9 @@ export default async function DemoInProgressPage(): Promise<JSX.Element> {
             </Card>
           </div>
 
-          {/* Contact Section */}
-          <Card className="bg-slate-900 text-white border-none shadow-lg overflow-hidden relative">
-            {/* Background pattern or gradient for premium feel */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-slate-800" />
-
-            <CardContent className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="text-center sm:text-left space-y-1">
-                <h3 className="font-semibold text-lg text-white">Une question urgente ?</h3>
-                <p className="text-slate-300 text-sm">
-                  Notre équipe est disponible pour vous répondre.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <Button
-                  asChild
-                  className="bg-[#25D366] hover:bg-[#1DA851] text-white border-none w-full sm:w-auto font-semibold shadow-md"
-                  size="lg"
-                >
-                  <a
-                    href="https://wa.me/33613554022?text=Bonjour%20Lucas%2C%20j%27attends%20ma%20d%C3%A9mo%20Orylis%20et%20j%27aimerais%20%C3%A9changer%20%C3%A0%20propos%20de%20mon%20site."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    WhatsApp
-                  </a>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white w-full sm:w-auto backdrop-blur-sm"
-                  size="lg"
-                >
-                  <a href="mailto:contact@orylis.fr">
-                    contact@orylis.fr
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
         </div>
       </div>
+      <StickyContactBar />
       <ChatWidgetClient />
       {/* Facebook Pixel - Lead on demo-in-progress (formulaire complété) */}
       <Script id="fb-lead" strategy="afterInteractive">

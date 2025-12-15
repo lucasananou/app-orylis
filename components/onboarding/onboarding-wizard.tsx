@@ -478,7 +478,7 @@ export function OnboardingWizard({ projects, role }: OnboardingWizardProps) {
                 setLastSavedAt(new Date());
                 const successMessage = isStaffRole
                     ? "Onboarding validé. L'équipe démarre la phase design."
-                    : "Onboarding complété ! Votre démo est en cours de création.";
+                    : "Onboarding complété ! L'équipe va démarrer la création de votre site.";
                 toast.success(successMessage);
                 setShowEditor(false);
                 router.replace("/" as Route);

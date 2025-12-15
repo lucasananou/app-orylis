@@ -245,17 +245,7 @@ export async function POST(req: NextRequest) {
           projectId,
           version: 1,
           content: briefContent,
-          status: "sent", // "sent" signifie "En attente de validation client" (ou ici "En attente de revue Orylis" ?)
-          // Disons "sent" pour l'instant, ou on pourrait ajouter un statut "pending_review"
-          // Pour simplifier : "sent" = le brief est émis. 
-          // Mais ici c'est l'inverse, c'est le client qui émet.
-          // On va dire que v1 est "draft" pour l'admin, ou "sent" pour que le client le voie ?
-          // Le user a dit : "L'onboarding devient le premier brief... une fois les modifs faites, je veux pouvoir côté admin dire que c'est fait"
-          // Donc v1 = Onboarding brut.
-          // L'admin va le relire et créer la v2.
-          // Donc v1 peut être "approved" par défaut (c'est ce que le client a dit) ?
-          // Ou "draft" ?
-          // Allons sur "sent" (envoyé à l'admin).
+          status: "approved", // Validé automatiquement car c'est le client qui vient de le remplir
         });
         console.log("[Onboarding] Brief v1 generated");
       }

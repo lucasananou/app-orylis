@@ -9,7 +9,7 @@ import type { Route } from "next";
 
 interface TodoItem {
   id: string;
-  type: "file" | "ticket" | "notification";
+  type: "file" | "ticket" | "notification" | "onboarding";
   title: string;
   count: number;
   href: Route;
@@ -39,13 +39,15 @@ export function ClientTodoWidget({ todos }: ClientTodoWidgetProps) {
   const iconMap = {
     file: FileText,
     ticket: MessageSquare,
-    notification: AlertCircle
+    notification: AlertCircle,
+    onboarding: FileText
   };
 
   const labelMap = {
     file: "nouveaux fichiers",
     ticket: "tickets à consulter",
-    notification: "notifications"
+    notification: "notifications",
+    onboarding: "actions requises"
   };
 
   return (
@@ -71,7 +73,7 @@ export function ClientTodoWidget({ todos }: ClientTodoWidgetProps) {
             >
               <Link href={todo.href}>
                 <Icon className="mr-2 h-4 w-4 shrink-0" />
-                <span className="flex-1 text-left">{todo.title}</span>
+                <span className="flex-1 text-left whitespace-normal break-words leading-tight">{todo.title}</span>
                 <Badge variant="secondary" className="ml-2">
                   {todo.count}
                 </Badge>
