@@ -13,7 +13,11 @@ import {
     Upload,
     X,
     ClipboardList,
-    User
+    User,
+    Star,
+    Timer,
+    ShieldCheck,
+    Sparkles
 } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
@@ -42,6 +46,61 @@ import {
     PublicIdentitySchema,
     PublicOnboardingSchema
 } from "@/lib/zod-schemas";
+
+// --- Components ---
+
+const PROFESSIONS = [
+    { label: "Couvreur", icon: "🏠" },
+    { label: "Plombier", icon: "💧" },
+    { label: "Électricien", icon: "⚡" },
+    { label: "Menuisier", icon: "🪚" },
+    { label: "Peintre", icon: "🎨" },
+    { label: "Maçon", icon: "🧱" },
+    { label: "Paysagiste", icon: "🌿" },
+    { label: "Serrurier", icon: "🔑" },
+    { label: "Carreleur", icon: "🟦" },
+    { label: "Façadier", icon: "🏗️" },
+];
+
+function ProfessionsMarquee() {
+    return (
+        <div className="w-full overflow-hidden bg-slate-50/50 py-3 border-y border-slate-100/50 mb-6">
+            <div className="relative flex overflow-x-hidden group">
+                <div className="animate-marquee whitespace-nowrap flex items-center gap-4 px-4">
+                    {PROFESSIONS.map((p, i) => (
+                        <span key={i} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-sm font-medium text-slate-600 shadow-sm">
+                            <span>{p.icon}</span>
+                            {p.label}
+                        </span>
+                    ))}
+                    {/* Duplicated for smooth loop */}
+                    {PROFESSIONS.map((p, i) => (
+                        <span key={`dup-${i}`} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-sm font-medium text-slate-600 shadow-sm">
+                            <span>{p.icon}</span>
+                            {p.label}
+                        </span>
+                    ))}
+                    {PROFESSIONS.map((p, i) => (
+                        <span key={`dup2-${i}`} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-sm font-medium text-slate-600 shadow-sm">
+                            <span>{p.icon}</span>
+                            {p.label}
+                        </span>
+                    ))}
+                </div>
+            </div>
+            <style jsx>{`
+                .animate-marquee {
+                    animation: marquee 25s linear infinite;
+                }
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-33.33%); }
+                }
+            `}</style>
+        </div>
+    );
+}
+
 
 // --- Types & Schemas ---
 
@@ -336,30 +395,93 @@ export function PublicOnboardingWizard() {
                 <Form form={form} onSubmit={(event) => event.preventDefault()}>
                     <div className="space-y-8">
 
-                        {/* Header */}
-                        <div className="text-center space-y-2 mb-8">
-                            <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-                                {currentStep.label}
-                            </h2>
-                            <p className="text-lg text-slate-500 max-w-lg mx-auto">
-                                {currentStep.description}
-                            </p>
-                        </div>
+                        {/* Header - Hidden for welcome step as it has its own hero */}
+                        {currentStep.id !== "welcome" && (
+                            <div className="text-center space-y-2 mb-8">
+                                <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+                                    {currentStep.label}
+                                </h2>
+                                <p className="text-lg text-slate-500 max-w-lg mx-auto">
+                                    {currentStep.description}
+                                </p>
+                            </div>
+                        )}
 
                         {/* Steps Content */}
                         <div className="min-h-[300px]">
                             {currentStep.id === "welcome" && (
-                                <div className="text-center space-y-6 py-8">
-                                    <div className="mx-auto h-24 w-24 rounded-full bg-blue-50 flex items-center justify-center">
-                                        <ClipboardList className="h-12 w-12 text-blue-600" />
+                                <div className="space-y-8 py-4">
+                                    {/* Hero Section */}
+                                    <div className="text-center space-y-6">
+                                        <div className="inline-flex items-center justify-center p-3 bg-blue-50 rounded-2xl mb-2">
+                                            <Sparkles className="h-8 w-8 text-blue-600" />
+                                        </div>
+
+                                        <div className="space-y-4 max-w-lg mx-auto">
+                                            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                                                Votre Démo Personnalisée <br />
+                                                <span className="text-blue-600">en 4 étapes simples</span>
+                                            </h1>
+                                            <p className="text-lg text-slate-600 leading-relaxed">
+                                                Obtenez une analyse experte et découvrez comment Orylis peut transformer votre activité, sans aucun engagement.
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-4 max-w-lg mx-auto">
-                                        <h1 className="text-2xl font-bold text-slate-900">
-                                            Lancez votre projet dès maintenant 🚀
-                                        </h1>
-                                        <p className="text-lg text-slate-600">
-                                            Complétez ce formulaire pour créer votre compte et recevoir votre démo personnalisée sous 24h.
-                                        </p>
+
+                                    {/* Professions Marquee */}
+                                    <ProfessionsMarquee />
+
+                                    {/* Value Props Grid */}
+                                    <div className="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto pt-4">
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-2 transition-all hover:bg-white hover:shadow-md hover:border-blue-100">
+                                            <div className="bg-white p-2 rounded-full shadow-sm">
+                                                <Timer className="h-5 w-5 text-blue-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-900">Rapide</h3>
+                                            <p className="text-sm text-slate-500">Moins de 2 minutes chrono</p>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-2 transition-all hover:bg-white hover:shadow-md hover:border-blue-100">
+                                            <div className="bg-white p-2 rounded-full shadow-sm">
+                                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-900">Gratuit</h3>
+                                            <p className="text-sm text-slate-500">Aucun engagement requis</p>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-2 transition-all hover:bg-white hover:shadow-md hover:border-blue-100">
+                                            <div className="bg-white p-2 rounded-full shadow-sm">
+                                                <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-900">Privé</h3>
+                                            <p className="text-sm text-slate-500">Vos données sont sécurisées</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-6 flex flex-col items-center gap-3">
+                                        <div className="flex -space-x-2">
+                                            {[
+                                                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&h=64",
+                                                "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&h=64",
+                                                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=64&h=64",
+                                                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=64&h=64"
+                                            ].map((url, i) => (
+                                                <div key={i} className="h-8 w-8 rounded-full ring-2 ring-white bg-slate-200 flex items-center justify-center overflow-hidden">
+                                                    <img src={url} alt="User" className="h-full w-full object-cover" />
+                                                </div>
+                                            ))}
+                                            <div className="h-8 w-8 rounded-full ring-2 ring-white bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
+                                                +500
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-sm font-medium text-slate-700">
+                                            <div className="flex text-amber-400">
+                                                <Star className="h-4 w-4 fill-current" />
+                                                <Star className="h-4 w-4 fill-current" />
+                                                <Star className="h-4 w-4 fill-current" />
+                                                <Star className="h-4 w-4 fill-current" />
+                                                <Star className="h-4 w-4 fill-current" />
+                                            </div>
+                                            <span className="ml-1">Plébiscité par les professionnels</span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -666,30 +788,54 @@ export function PublicOnboardingWizard() {
                         {/* Navigation Footer */}
                         <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-100 bg-white p-4 sm:static sm:border-t-0 sm:bg-transparent sm:p-0 sm:pt-8">
                             <div className="mx-auto flex max-w-2xl items-center justify-between">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="lg"
-                                    onClick={handlePreviousStep}
-                                    disabled={currentStepIndex === 0 || isSubmitting}
-                                    className="text-slate-500 hover:text-slate-900"
-                                >
-                                    <ArrowLeft className="mr-2 h-5 w-5" />
-                                    Retour
-                                </Button>
-
-                                <div className="flex items-center gap-4">
-                                    {currentStepIndex < stepDefinitions.length - 1 ? (
+                                <div className="w-24">
+                                    {currentStepIndex > 0 && (
                                         <Button
                                             type="button"
+                                            variant="ghost"
                                             size="lg"
-                                            onClick={handleNextStep}
+                                            onClick={handlePreviousStep}
                                             disabled={isSubmitting}
-                                            className="min-w-[140px] text-lg h-12 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
+                                            className="text-slate-500 hover:text-slate-900"
                                         >
-                                            Continuer
-                                            <ArrowRight className="ml-2 h-5 w-5" />
+                                            <ArrowLeft className="mr-2 h-5 w-5" />
+                                            Retour
                                         </Button>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col items-center">
+                                    {currentStepIndex < stepDefinitions.length - 1 ? (
+                                        <div className="text-center">
+                                            {currentStep.id === "welcome" ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        size="lg"
+                                                        onClick={handleNextStep}
+                                                        disabled={isSubmitting}
+                                                        className="min-w-[280px] text-lg h-14 rounded-full shadow-xl shadow-blue-500/25 hover:shadow-blue-500/35 transition-all bg-blue-600 hover:bg-blue-700 animate-pulse-slow"
+                                                    >
+                                                        Demander ma démo gratuitement
+                                                        <ArrowRight className="ml-2 h-5 w-5" />
+                                                    </Button>
+                                                    <p className="text-xs text-slate-400 font-medium">
+                                                        Aucune carte bancaire nécessaire
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    type="button"
+                                                    size="lg"
+                                                    onClick={handleNextStep}
+                                                    disabled={isSubmitting}
+                                                    className="min-w-[140px] text-lg h-12 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
+                                                >
+                                                    Continuer
+                                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                                </Button>
+                                            )}
+                                        </div>
                                     ) : (
                                         <Button
                                             type="button"
@@ -707,6 +853,8 @@ export function PublicOnboardingWizard() {
                                         </Button>
                                     )}
                                 </div>
+
+                                <div className="w-24"></div> {/* Spacer for centering */}
                             </div>
                         </div>
 

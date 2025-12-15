@@ -42,7 +42,7 @@ import { PostHogProvider } from "@/components/providers/posthog-provider";
 export default function RootLayout({ children }: { children: React.ReactNode }): JSX.Element {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={cn("min-h-screen w-full bg-background font-sans antialiased", inter.variable, poppins.variable)}>
+      <body className={cn("min-h-screen w-full bg-background font-sans antialiased", inter.variable, poppins.variable)} suppressHydrationWarning>
         <NextTopLoader
           color="#43b2b9"
           height={3}
