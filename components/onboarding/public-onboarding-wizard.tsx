@@ -459,13 +459,13 @@ export function PublicOnboardingWizard() {
                                             <Sparkles className="h-8 w-8 text-blue-600" />
                                         </div>
 
-                                        <div className="space-y-4 max-w-lg mx-auto">
+                                        <div className="space-y-4 max-w-3xl mx-auto">
                                             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                                                 Votre Démo Personnalisée <br />
                                                 <span className="text-blue-600">en 4 étapes simples</span>
                                             </h1>
-                                            <p className="text-lg text-slate-600 leading-relaxed">
-                                                Obtenez une analyse experte et découvrez comment Orylis peut transformer votre activité, sans aucun engagement.
+                                            <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+                                                Découvrez gratuitement la <span className="font-semibold text-slate-900">première version</span> de votre futur site internet, conçue sur-mesure pour votre activité. Sans aucun engagement.
                                             </p>
                                         </div>
                                     </div>
