@@ -61,7 +61,7 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
       <div className="mb-8 lg:mb-10">
         <Link href="/" className="block">
           <Image
-            src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
+            src="/logo-orylis.png"
             alt="Orylis"
             width={120}
             height={40}

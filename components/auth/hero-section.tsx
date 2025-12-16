@@ -7,7 +7,7 @@ export function HeroSection() {
       {/* Logo */}
       <div className="flex items-center gap-3">
         <Image
-          src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
+          src="/logo-orylis.png"
           alt="Orylis"
           width={100}
           height={33}

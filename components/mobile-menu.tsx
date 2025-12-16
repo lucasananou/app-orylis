@@ -74,10 +74,10 @@ export function MobileMenu({ role = "client" }: MobileMenuProps) {
           <SheetTitle className="text-left">
             <Link href="/" onClick={() => setOpen(false)}>
               <Image
-                src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
+                src="/logo-orylis.png"
                 alt="Orylis"
-                width={120}
-                height={40}
+                width={100}
+                height={32}
                 className="h-auto w-auto"
                 priority
               />

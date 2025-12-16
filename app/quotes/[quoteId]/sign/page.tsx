@@ -48,7 +48,7 @@ export default async function QuoteSigningPage({ params }: PageProps) {
                 <div className="flex items-center gap-4">
                     <div className="relative h-8 w-32">
                         <img
-                            src="https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png"
+                            src="/logo-orylis.png"
                             alt="Orylis"
                             className="h-full w-full object-contain object-left"
                         />

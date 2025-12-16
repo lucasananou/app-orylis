@@ -42,10 +42,10 @@ export default async function NotificationsPage() {
                     </Card>
                 ) : (
                     userNotifications.map((notification) => (
-                        <Card key={notification.id} className={notification.read ? "opacity-70" : "border-blue-200 bg-blue-50/30"}>
+                        <Card key={notification.id} className={notification.readAt ? "opacity-70" : "border-blue-200 bg-blue-50/30"}>
                             <CardContent className="flex gap-4 p-4 md:p-6 items-start">
                                 <div className="shrink-0 mt-1">
-                                    {notification.type === "success" || notification.type === "onboarding_update" ? (
+                                    {notification.type === "onboarding_update" ? (
                                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                                     ) : (
                                         <Info className="h-5 w-5 text-blue-600" />
