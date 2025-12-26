@@ -1,4 +1,5 @@
 import * as React from "react";
+import { AnalyticsDashboard } from "@/components/dashboard/analytics-dashboard";
 import { redirect } from "next/navigation";
 
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
@@ -30,6 +31,7 @@ import { ClientCreateDialog } from "@/components/admin/client-create-dialog";
 import {
   type DashboardHighlightItem
 } from "@/components/dashboard/dashboard-highlights";
+import { AnalyticsChart } from "@/components/dashboard/analytics-chart";
 import {
   DashboardActivity,
   type DashboardActivityItem
@@ -665,7 +667,7 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
   }
 
   if (ticketsCount > 0) {
-    // Note: ticketsCount here is total tickets, not open tickets. 
+    // Note: ticketsCount here is total tickets, not open tickets.
     // But we don't have open tickets count for the widget specifically passed down except in highlights.
     // Let's use a generic link for now.
     // Actually we have `highlights` which has open tickets count.
@@ -692,7 +694,7 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
       />
 
       <PageHeader
-        title="Tableau de bord"
+        title={isDelivered ? "" : "Tableau de bord"}
         description=""
         actions={
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -733,13 +735,29 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
         }
       />
 
-      <div className="grid gap-6">
-        {/* Stats Cards */}
-        {/* Stats Cards - Masqué temporairement car non pertinent tant que le site n'est pas en ligne */}
-        {/* <DashboardStats highlights={highlights} /> */}
+      {/* Main Content Layout */}
+      {isDelivered ? (
+        /* Delivered Layout: Full Width Stack */
+        <div className="space-y-6">
+          <AnalyticsDashboard projectId={activeProject?.id} />
 
-        {/* Main Content */}
-        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Widgets Grid */}
+          {activeProject && (
+            <div className="grid gap-6 md:grid-cols-3">
+              <HostingWidget
+                hostingExpiresAt={activeProject.hostingExpiresAt ? new Date(activeProject.hostingExpiresAt) : null}
+                maintenanceActive={activeProject.maintenanceActive}
+              />
+              <SiteHealthWidget
+                maintenanceActive={activeProject.maintenanceActive}
+              />
+              <DashboardActivity items={activityItems} />
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Construction Layout: 2/3 + 1/3 Grid */
+        <div className="grid gap-6 lg:grid-cols-3 items-start">
           <div className="space-y-6 lg:col-span-2">
             {/* Onboarding Card (if active) */}
             {onboardingCardProject && (
@@ -775,9 +793,6 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
               />
             )}
 
-            {/* Project Milestones - REMOVED as redundant with timeline */}
-
-
             {/* Brief History */}
             {activeProject && activeProject.briefs.length > 0 && (
               <BriefHistory
@@ -789,8 +804,10 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
             <DashboardActivity items={activityItems} />
           </div>
 
+          {/* Sidebar for Construction Phase */}
           <div className="space-y-6">
-            {/* Projects List - Only for staff */}
+            <AnalyticsChart title="Visiteurs" description="200 derniers visiteurs" />
+
             {staff && (
               <DashboardProjects
                 projects={projectsData}
@@ -799,22 +816,6 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
               />
             )}
 
-            {/* Site Health (if delivered) */}
-            {activeProject && activeProject.status === "delivered" && (
-              <SiteHealthWidget
-                maintenanceActive={activeProject.maintenanceActive}
-              />
-            )}
-
-            {/* Hosting Widget (if delivered) */}
-            {activeProject && activeProject.status === "delivered" && (
-              <HostingWidget
-                hostingExpiresAt={activeProject.hostingExpiresAt ? new Date(activeProject.hostingExpiresAt) : null}
-                maintenanceActive={activeProject.maintenanceActive}
-              />
-            )}
-
-            {/* Client Todo Widget */}
             {activeProject && (
               <ClientTodoWidget
                 todos={todos}
@@ -822,7 +823,8 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
             )}
           </div>
         </div>
-      </div>
+      )}
+
     </>
   );
 }

@@ -20,6 +20,7 @@ interface ServiceCardProps {
     popular?: boolean;
     ctaLabel?: string;
     onCtaClick?: () => void;
+    isLoading?: boolean;
 }
 
 export function ServiceCard({
@@ -29,7 +30,8 @@ export function ServiceCard({
     features,
     popular,
     ctaLabel = "Commander",
-    onCtaClick
+    onCtaClick,
+    isLoading = false
 }: ServiceCardProps) {
     return (
         <Card className={`flex flex-col border-border/70 transition-all hover:shadow-md ${popular ? 'border-primary/50 shadow-sm relative' : ''}`}>
@@ -65,8 +67,9 @@ export function ServiceCard({
                     className="w-full gap-2"
                     variant={popular ? "default" : "outline"}
                     onClick={onCtaClick}
+                    disabled={isLoading}
                 >
-                    {ctaLabel}
+                    {isLoading ? "Redirection..." : ctaLabel}
                     <ArrowRight className="h-4 w-4" />
                 </Button>
             </CardFooter>

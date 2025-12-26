@@ -2,6 +2,9 @@
 
 import { ServiceCard } from "@/components/marketplace/service-card";
 import { PageHeader } from "@/components/page-header";
+import { createCheckoutSession } from "@/actions/stripe";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 const SERVICES = [
     {
@@ -14,6 +17,7 @@ const SERVICES = [
             "Intégration directe",
             "Recherche de sujet"
         ],
+        amount: 50,
         popular: false
     },
     {
@@ -26,6 +30,7 @@ const SERVICES = [
             "Rapport mensuel détaillé",
             "1h de modifications / mois"
         ],
+        amount: 99,
         popular: true
     },
     {
@@ -38,14 +43,23 @@ const SERVICES = [
             "Analyse des concurrents",
             "Plan d'action priorisé"
         ],
+        amount: 150,
         popular: false
     }
 ];
 
 export default function MarketplacePage() {
-    const handleOrder = (serviceTitle: string) => {
-        // For MVP, we can just open a mailto or a generic contact form
-        window.location.href = `mailto:contact@orylis.fr?subject=Commande : ${serviceTitle}`;
+    const [isPending, startTransition] = useTransition();
+
+    const handleOrder = (serviceTitle: string, amount: number) => {
+        startTransition(async () => {
+            try {
+                await createCheckoutSession(amount, serviceTitle);
+            } catch (error) {
+                toast.error("Une erreur est survenue lors de la redirection vers le paiement.");
+                console.error(error);
+            }
+        });
     };
 
     return (
@@ -60,7 +74,8 @@ export default function MarketplacePage() {
                     <ServiceCard
                         key={service.title}
                         {...service}
-                        onCtaClick={() => handleOrder(service.title)}
+                        onCtaClick={() => handleOrder(service.title, service.amount)}
+                        isLoading={isPending}
                     />
                 ))}
             </div>

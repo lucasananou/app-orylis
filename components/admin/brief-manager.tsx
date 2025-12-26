@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, History, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, Send, History, CheckCircle2, XCircle, AlertCircle, FileText } from "lucide-react";
+import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -94,10 +95,18 @@ export function BriefManager({ projectId }: BriefManagerProps) {
                         <CardTitle className="text-xl font-semibold">Brief de Production</CardTitle>
                         <CardDescription>Rédigez et validez le périmètre du projet avec le client.</CardDescription>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setShowHistory(!showHistory)}>
-                        <History className="mr-2 h-4 w-4" />
-                        {showHistory ? "Masquer l'historique" : "Voir l'historique"}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/projects/${projectId}/onboarding`} target="_blank">
+                                <FileText className="mr-2 h-4 w-4" />
+                                Voir l'onboarding
+                            </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setShowHistory(!showHistory)}>
+                            <History className="mr-2 h-4 w-4" />
+                            {showHistory ? "Masquer l'historique" : "Voir l'historique"}
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {/* Status Banner */}

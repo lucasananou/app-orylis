@@ -552,18 +552,31 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
 
     if (!showEditor) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8">
-                <div className="mx-auto h-24 w-24 rounded-full bg-green-100 flex items-center justify-center mb-6">
-                    <CheckCircle2 className="h-12 w-12 text-green-600" />
+            <div className="flex min-h-[80vh] flex-col items-center justify-center text-center p-4 sm:p-8 bg-slate-50/50">
+                <div className="mx-auto h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                    <CheckCircle2 className="h-10 w-10 text-green-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">Demande reçue ! 🚀</h2>
+                <h2 className="text-3xl font-bold text-slate-900 mb-4">Votre site est prêt à être généré 🚀</h2>
                 <p className="text-lg text-slate-600 max-w-lg mx-auto mb-8">
-                    Merci d'avoir complété votre profil. Notre équipe va maintenant créer votre démo personnalisée.
-                    Vous recevrez un email dès qu'elle sera prête (sous 24h).
+                    Félicitations ! Nous avons toutes les infos.
+                    <br />
+                    <span className="font-semibold text-slate-900">Dernière étape :</span> Réservez votre démo de lancement ci-dessous pour activer votre espace et récupérer vos accès.
                 </p>
-                <Button onClick={() => router.push("/")} size="lg" className="rounded-full">
-                    Retour au tableau de bord
-                </Button>
+
+                <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div
+                        className="calendly-inline-widget w-full"
+                        data-url="https://calendly.com/lucas-orylis/30min?hide_event_type_details=1&hide_gdpr_banner=1"
+                        style={{ minWidth: '320px', height: '700px' }}
+                    />
+                    <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+                </div>
+
+                <div className="mt-8">
+                    <Button onClick={() => router.push("/")} variant="outline" className="text-slate-400 hover:text-slate-600">
+                        Passer cette étape (non recommandé)
+                    </Button>
+                </div>
             </div>
         );
     }

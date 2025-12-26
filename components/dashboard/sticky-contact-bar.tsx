@@ -22,7 +22,7 @@ export function StickyContactBar() {
                         className="flex-1 sm:flex-none bg-[#25D366] hover:bg-[#1DA851] text-white border-none shadow-sm rounded-xl h-12"
                     >
                         <a
-                            href="https://wa.me/33757811475?text=Bonjour%20Lucas%2C%20j%27attends%20ma%20d%C3%A9mo%20Orylis%20et%20j%27aimerais%20%C3%A0%20propos%20de%20mon%20site."
+                            href="https://wa.me/33613554022?text=Bonjour%20Lucas%2C%20j%27attends%20ma%20d%C3%A9mo%20Orylis%20et%20j%27aimerais%20%C3%A0%20propos%20de%20mon%20site."
                             target="_blank"
                             rel="noopener noreferrer"
                         >

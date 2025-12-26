@@ -110,6 +110,7 @@ export const projects = createTable(
     progress: integer("progress").notNull().default(10),
     dueDate: date("due_date"),
     demoUrl: text("demo_url"),
+    googlePropertyId: text("google_property_id"),
     hostingExpiresAt: timestamp("hosting_expires_at", { withTimezone: true }),
     maintenanceActive: boolean("maintenance_active").notNull().default(false),
     deliveredAt: timestamp("delivered_at", { withTimezone: true }),

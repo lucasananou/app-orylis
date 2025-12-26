@@ -58,7 +58,8 @@ const createProjectSchema = z.object({
     .int()
     .min(0, { message: "Progression minimale 0%." })
     .max(100, { message: "Progression maximale 100%." })
-    .default(10)
+    .default(10),
+  googlePropertyId: z.string().optional()
   // dueDate retiré de la création (peut être ajouté plus tard via l'édition)
 });
 
@@ -72,6 +73,7 @@ const editProjectSchema = z.object({
     .max(100, { message: "Progression maximale 100%." }),
   dueDate: dueDateSchema,
   demoUrl: z.string().url({ message: "URL invalide." }).or(z.literal("")).optional(),
+  googlePropertyId: z.string().optional(),
   hostingExpiresAt: z.string().optional(),
   maintenanceActive: z.boolean().default(false),
   deliveredAt: z.string().optional()
@@ -93,6 +95,7 @@ type ExistingProject = {
   dueDate: string | null;
   ownerId: string;
   demoUrl?: string | null;
+  googlePropertyId?: string | null;
   hostingExpiresAt?: string | null;
   maintenanceActive?: boolean;
   deliveredAt?: string | null;
@@ -129,6 +132,7 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
         progress: project?.progress ?? 0,
         dueDate: project?.dueDate ? project.dueDate.slice(0, 10) : "",
         demoUrl: project?.demoUrl ?? "",
+        googlePropertyId: project?.googlePropertyId ?? "",
         hostingExpiresAt: project?.hostingExpiresAt ? project.hostingExpiresAt.slice(0, 10) : "",
         maintenanceActive: project?.maintenanceActive ?? false,
         deliveredAt: project?.deliveredAt ? project.deliveredAt.slice(0, 10) : ""
@@ -192,6 +196,10 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           // Toujours envoyer demoUrl pour garantir le déclenchement côté API
           const normalizedDemoUrl = editValues.demoUrl && editValues.demoUrl !== "" ? editValues.demoUrl : null;
           updates.demoUrl = normalizedDemoUrl;
+
+          // Google Analytics
+          const normalizedGAId = editValues.googlePropertyId && editValues.googlePropertyId !== "" ? editValues.googlePropertyId : null;
+          updates.googlePropertyId = normalizedGAId;
 
           // Hosting & Maintenance
           const normalizedHostingExpiresAt = editValues.hostingExpiresAt && editValues.hostingExpiresAt !== "" ? new Date(editValues.hostingExpiresAt).toISOString() : null;
@@ -376,6 +384,28 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
                     </FormItem>
                   )}
                 />
+
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="text-sm font-medium mb-4">Analytique & Performance</h4>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="googlePropertyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID de propriété Google Analytics (GA4)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: 3426542" disabled={isSubmitting} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          <p className="text-xs text-muted-foreground">
+                            Permet d'afficher les statistiques de trafic sur le tableau de bord client.
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
                 <div className="border-t pt-4 mt-4">
                   <h4 className="text-sm font-medium mb-4">Hébergement & Maintenance</h4>

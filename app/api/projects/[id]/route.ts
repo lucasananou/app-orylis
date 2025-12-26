@@ -37,6 +37,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     progress: number;
     dueDate: string | null;
     demoUrl: string | null;
+    googlePropertyId: string | null;
     hostingExpiresAt: string | null;
     maintenanceActive: boolean;
     deliveredAt: string | null;
@@ -48,6 +49,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   if (typeof body.progress === "number") update.progress = body.progress;
   if (body.dueDate !== undefined) update.dueDate = body.dueDate ? new Date(body.dueDate) : null;
   if (body.demoUrl !== undefined) update.demoUrl = body.demoUrl || null;
+  if (body.googlePropertyId !== undefined) update.googlePropertyId = body.googlePropertyId || null;
   if (body.hostingExpiresAt !== undefined) update.hostingExpiresAt = body.hostingExpiresAt ? new Date(body.hostingExpiresAt) : null;
   if (typeof body.maintenanceActive === "boolean") update.maintenanceActive = body.maintenanceActive;
   if (body.deliveredAt !== undefined) update.deliveredAt = body.deliveredAt ? new Date(body.deliveredAt) : null;
