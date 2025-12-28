@@ -29,6 +29,6 @@ export async function createCheckoutSession(priceAmount: number, serviceTitle: s
     });
 
     if (session.url) {
-        redirect(session.url);
+        redirect(session.url as any);
     }
 }
