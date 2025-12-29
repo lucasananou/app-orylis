@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { quotes, projects, profiles, authUsers } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
-import { QuotesList } from "@/components/admin/quotes-list";
+import { QuotesTable } from "@/components/admin/quotes-table";
 
 // Cache 60 secondes : les devis ne changent pas très souvent
 export const revalidate = 60;
@@ -67,7 +67,7 @@ export default async function AdminQuotesPage() {
         description="Consultez tous les devis générés et signés par les prospects."
       />
 
-      <QuotesList quotes={quotes} />
+      <QuotesTable quotes={quotes} />
     </div>
   );
 }

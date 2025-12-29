@@ -1,6 +1,6 @@
 {
-  "id": "af22d035-8b0b-4357-908d-c2453447c353",
-  "prevId": "457b7c76-4f4e-4953-a1e7-3f73f627bdb8",
+  "id": "6c428b9b-a555-44a2-b8f3-72d35cc90ff5",
+  "prevId": "af22d035-8b0b-4357-908d-c2453447c353",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1246,6 +1246,12 @@
         },
         "referrer_id": {
           "name": "referrer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "internal_notes": {
+          "name": "internal_notes",
           "type": "text",
           "primaryKey": false,
           "notNull": false

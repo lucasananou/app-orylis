@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Phone, Save, Loader2, Copy, Check } from "lucide-react";
+import { PhoneCall, Save, Loader2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { saveSalesCall } from "@/app/actions/sales";
@@ -133,7 +133,7 @@ ${data.stepClosing?.follow_up_date ? `Relance le : ${new Date(data.stepClosing.f
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                    <Phone className="mr-2 h-4 w-4" />
+                    <PhoneCall className="mr-2 h-4 w-4" />
                     Lancer l'appel
                 </Button>
             </DialogTrigger>

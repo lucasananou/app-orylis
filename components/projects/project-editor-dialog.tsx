@@ -18,12 +18,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -108,6 +110,10 @@ interface ProjectEditorDialogProps {
   project?: ExistingProject;
 }
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// ... (keep existing imports)
+
 export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectEditorDialogProps) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -124,7 +130,6 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
         name: "",
         status: "onboarding",
         progress: 10
-        // dueDate n'est pas inclus dans les valeurs par défaut pour la création
       }
       : {
         name: project?.name ?? "",
@@ -155,7 +160,6 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
             name: createValues.name,
             status: createValues.status,
             progress: createValues.progress
-            // dueDate est omis lors de la création (peut être ajouté plus tard)
           };
 
           const response = await fetch("/api/projects", {
@@ -209,8 +213,6 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           const normalizedDeliveredAt = editValues.deliveredAt && editValues.deliveredAt !== "" ? new Date(editValues.deliveredAt).toISOString() : null;
           updates.deliveredAt = normalizedDeliveredAt;
 
-          // On envoie toujours: la route PATCH gérera No-op pour les autres champs
-
           const response = await fetch(`/api/projects/${project.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -231,7 +233,6 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
         const message = error instanceof Error ? error.message : "Une erreur est survenue.";
         toast.error(message);
       } finally {
-        // Déclencher l'email de notification si nécessaire
         if (project?.id) {
           const formValues = isCreateMode ? (values as CreateProjectFormValues) : (values as EditProjectFormValues);
           const status = formValues.status;
@@ -251,7 +252,7 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger ?? <Button>{isCreateMode ? <><Plus className="mr-2 h-4 w-4" />Nouveau projet</> : "Modifier"}</Button>}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{isCreateMode ? "Créer un projet" : "Éditer le projet"}</DialogTitle>
           <DialogDescription>
@@ -261,114 +262,127 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
           </DialogDescription>
         </DialogHeader>
         <Form form={form} onSubmit={form.handleSubmit(handleSubmit)}>
-          <div className="space-y-4 py-4">
-            {isCreateMode && (
-              <FormField
-                control={form.control}
-                name="ownerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Client</FormLabel>
-                    <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez un client" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {owners.map((owner) => (
-                            <SelectItem key={owner.id} value={owner.id}>
-                              {owner.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="general">Général</TabsTrigger>
+              <TabsTrigger value="analytics">Analytique</TabsTrigger>
+              <TabsTrigger value="hosting">Technique</TabsTrigger>
+            </TabsList>
 
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom du projet</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nom interne / client" disabled={isSubmitting} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Statut</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un statut" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PROJECT_STATUSES.map((status) => (
-                          <SelectItem key={status.value} value={status.value}>
-                            {status.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="progress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Progression (%)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      disabled={isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {!isCreateMode && (
-              <>
+            <TabsContent value="general" className="space-y-4">
+              {isCreateMode && (
                 <FormField
                   control={form.control}
-                  name="dueDate"
+                  name="ownerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date d'échéance (optionnel)</FormLabel>
+                      <FormLabel>Client</FormLabel>
                       <FormControl>
-                        <Input type="date" disabled={isSubmitting} {...field} />
+                        <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez un client" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {owners.map((owner) => (
+                              <SelectItem key={owner.id} value={owner.id}>
+                                {owner.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom du projet</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nom interne / client" disabled={isSubmitting} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Statut</FormLabel>
+                      <FormControl>
+                        <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez un statut" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROJECT_STATUSES.map((status) => (
+                              <SelectItem key={status.value} value={status.value}>
+                                {status.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="progress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Progression (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          disabled={isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {!isCreateMode && (
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Echéance</FormLabel>
+                        <FormControl>
+                          <Input type="date" disabled={isSubmitting} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {!isCreateMode && (
                 <FormField
                   control={form.control}
                   name="demoUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>URL de la démo (optionnel)</FormLabel>
+                      <FormLabel>URL de la démo</FormLabel>
                       <FormControl>
                         <Input
                           type="url"
@@ -378,103 +392,90 @@ export function ProjectEditorDialog({ mode, owners, trigger, project }: ProjectE
                         />
                       </FormControl>
                       <FormMessage />
-                      <p className="text-xs text-muted-foreground">
-                        Renseignez l'URL de la démo pour permettre au prospect de la consulter.
-                      </p>
+                    </FormItem>
+                  )}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-4">
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 mb-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Configurez ici l'ID de suivi Google Analytics 4 (GA4) pour ce projet.
+                  Les données remonteront automatiquement sur le tableau de bord du client.
+                </p>
+              </div>
+              <FormField
+                control={form.control}
+                name="googlePropertyId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID de propriété GA4</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 3426542" disabled={isSubmitting} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+
+            <TabsContent value="hosting" className="space-y-4">
+              <FormField
+                control={form.control}
+                name="maintenanceActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-white">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Pack Maintenance</FormLabel>
+                      <FormDescription>
+                        Active le badge "Premium" et masque les alertes de renouvellement.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="hostingExpiresAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expiration hébergement</FormLabel>
+                      <FormControl>
+                        <Input type="date" disabled={isSubmitting} {...field} />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="border-t pt-4 mt-4">
-                  <h4 className="text-sm font-medium mb-4">Analytique & Performance</h4>
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="googlePropertyId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID de propriété Google Analytics (GA4)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: 3426542" disabled={isSubmitting} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                          <p className="text-xs text-muted-foreground">
-                            Permet d'afficher les statistiques de trafic sur le tableau de bord client.
-                          </p>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+                <FormField
+                  control={form.control}
+                  name="deliveredAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de livraison</FormLabel>
+                      <FormControl>
+                        <Input type="date" disabled={isSubmitting} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
 
-                <div className="border-t pt-4 mt-4">
-                  <h4 className="text-sm font-medium mb-4">Hébergement & Maintenance</h4>
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="maintenanceActive"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel>Pack Maintenance</FormLabel>
-                            <p className="text-xs text-muted-foreground">
-                              Active le badge "Premium" et masque les alertes de renouvellement.
-                            </p>
-                          </div>
-                          <FormControl>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                checked={field.value}
-                                onChange={field.onChange}
-                                disabled={isSubmitting}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                            </div>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="hostingExpiresAt"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date d'expiration hébergement</FormLabel>
-                          <FormControl>
-                            <Input type="date" disabled={isSubmitting} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                          <p className="text-xs text-muted-foreground">
-                            Utilisé pour le compte à rebours si la maintenance n'est pas active.
-                          </p>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="deliveredAt"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date de livraison (Mise en ligne)</FormLabel>
-                          <FormControl>
-                            <Input type="date" disabled={isSubmitting} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                          <p className="text-xs text-muted-foreground">
-                            Date officielle de mise en ligne du site.
-                          </p>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
+          <DialogFooter className="mt-6">
             <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
               {isSubmitting ? (
                 <>

@@ -11,10 +11,9 @@ import {
 } from "@/components/ui/select";
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "Tous" },
-  { value: "open", label: "Ouverts" },
-  { value: "in_progress", label: "En cours" },
-  { value: "done", label: "Résolus" }
+  { value: "active", label: "En cours" },
+  { value: "done", label: "Archivés" },
+  { value: "all", label: "Tout l'historique" }
 ] as const;
 
 const PRIORITY_OPTIONS = [
@@ -46,7 +45,9 @@ export function TicketFilters({ status, priority = "all", projectId, projects }:
 
   const updateParam = (key: string, value?: string) => {
     const params = new URLSearchParams(searchParams?.toString() ?? "");
-    if (!value || value === "all") {
+    const isDefault = key === "status" ? value === "active" : value === "all";
+
+    if (!value || isDefault) {
       params.delete(key);
     } else {
       params.set(key, value);

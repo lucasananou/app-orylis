@@ -20,19 +20,7 @@ const SERVICES = [
         amount: 50,
         popular: false
     },
-    {
-        title: "Pack Maintenance +",
-        description: "Dormez tranquille. On s'occupe des mises à jour, de la sécurité et des petites modifications.",
-        price: "99€",
-        features: [
-            "Mises à jour plugins/thème",
-            "Sauvegardes journalières",
-            "Rapport mensuel détaillé",
-            "1h de modifications / mois"
-        ],
-        amount: 99,
-        popular: true
-    },
+
     {
         title: "Audit SEO Complet",
         description: "Une analyse approfondie de votre site pour identifier les bloquants et booster votre visibilité.",
@@ -66,7 +54,7 @@ export default function MarketplacePage() {
         <div className="space-y-6">
             <PageHeader
                 title="Marketplace"
-                description="Boostez votre site avec nos services à la carte."
+                description="Débloquez tout le potentiel de votre site avec nos services à la carte."
             />
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

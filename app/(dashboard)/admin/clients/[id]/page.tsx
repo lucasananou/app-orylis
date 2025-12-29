@@ -7,15 +7,17 @@ import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ClientServicesManager } from "@/components/admin/client-services-manager";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Clock, Calendar } from "lucide-react";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
-import { BriefManager } from "@/components/admin/brief-manager";
 import { SalesCallDialog } from "@/components/admin/sales/sales-call-dialog";
 import { SalesSummary } from "@/components/admin/sales/sales-summary";
+import { ClientNotes } from "@/components/admin/client-notes";
+import { ImpersonateButton } from "@/components/admin/impersonate-button";
 import { getSalesCall } from "@/app/actions/sales";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
@@ -29,6 +31,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     const client = await db.query.profiles.findFirst({
         where: eq(profiles.id, id),
         with: {
+            authUser: true,
+            tickets: {
+                orderBy: (tickets, { desc }) => [desc(tickets.createdAt)],
+                limit: 1
+            },
             projects: {
                 with: {
                     subscriptions: true
@@ -43,6 +50,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
     const project = client.projects[0]; // Assume 1 project for MVP
     const salesCall = await getSalesCall(id);
+    const lastTicket = client.tickets[0];
+    const clientName = client.fullName || client.authUser?.name || client.authUser?.email?.split('@')[0] || "Client sans nom";
 
     return (
         <div className="space-y-6">
@@ -53,10 +62,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     </Link>
                 </Button>
                 <PageHeader
-                    title={client.fullName || "Client sans nom"}
+                    title={clientName}
                     description={`Détails du compte et gestion des services.`}
                 />
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-2">
+                    <ImpersonateButton userId={client.id} userName={clientName} />
                     <SalesCallDialog prospectId={id} initialData={salesCall} />
                 </div>
             </div>
@@ -70,14 +80,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     </CardHeader>
                     <CardContent className="space-y-2">
                         <div>
-                            <span className="font-semibold">Email:</span> {client.id} {/* ID is email in authUsers usually, but here ID is UUID. Need to fetch authUser email? Profile doesn't have email. */}
-                            {/* Actually profiles table doesn't store email directly, it's in authUsers. But we can't easily join here with query builder if not related. 
-                  Wait, profiles.id references authUsers.id. 
-                  Let's fetch email separately or assume we can get it. 
-                  Actually, I should have fetched authUsers too. */}
+                            <span className="font-semibold">Email:</span> {client.authUser?.email || "-"}
                         </div>
                         <div>
-                            <span className="font-semibold">Nom:</span> {client.fullName || "-"}
+                            <span className="font-semibold">Nom:</span> {client.fullName || client.authUser?.name || client.authUser?.email?.split('@')[0] || "-"}
                         </div>
                         <div>
                             <span className="font-semibold">Entreprise:</span> {client.company || "-"}
@@ -106,6 +112,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                                     dueDate: project.dueDate,
                                     ownerId: project.ownerId,
                                     demoUrl: project.demoUrl,
+                                    googlePropertyId: project.googlePropertyId,
                                     hostingExpiresAt: project.hostingExpiresAt ? project.hostingExpiresAt.toISOString() : null,
                                     maintenanceActive: project.maintenanceActive,
                                     deliveredAt: project.deliveredAt ? project.deliveredAt.toISOString() : null
@@ -140,24 +147,36 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 )}
             </div>
 
-            {project && (
+            <div className="grid gap-6 md:grid-cols-2">
+                <ClientNotes clientId={client.id} initialNotes={client.internalNotes} />
+
                 <Card>
                     <CardHeader>
-                        <CardTitle>Services Actifs</CardTitle>
+                        <CardTitle>Activité Récente</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <ClientServicesManager
-                            clientId={client.id}
-                            projectId={project.id}
-                            subscriptions={project.subscriptions}
-                        />
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-sm">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <span>Inscription</span>
+                            </div>
+                            <span className="text-sm font-medium">
+                                {client.createdAt ? format(new Date(client.createdAt), 'd MMM yyyy', { locale: fr }) : "-"}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2 text-sm">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span>Dernier ticket</span>
+                            </div>
+                            <span className="text-sm font-medium">
+                                {lastTicket ? format(new Date(lastTicket.createdAt), 'd MMM yyyy', { locale: fr }) : "Aucun ticket"}
+                            </span>
+                        </div>
+                        {/* More stats can go here */}
                     </CardContent>
                 </Card>
-            )}
-
-            {project && (
-                <BriefManager projectId={project.id} />
-            )}
+            </div>
         </div>
     );
 }

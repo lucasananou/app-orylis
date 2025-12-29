@@ -27,7 +27,7 @@ import { isStaff } from "@/lib/utils";
 import { TicketFilters } from "./ticket-filters";
 
 interface StatusOption {
-  value: "open" | "in_progress" | "done" | "all";
+  value: "active" | "done" | "all";
   label: string;
 }
 
@@ -160,12 +160,12 @@ export function TicketsClient({
                 icon={statusFilter === "done" ? CheckCircle2 : Clock}
                 title="Aucun ticket pour l’instant"
                 description={
-                  statusFilter === "all"
+                  statusFilter === "all" || statusFilter === "active"
                     ? "Soumettez votre première demande pour démarrer la collaboration."
                     : "Aucun ticket ne correspond à ce filtre."
                 }
-                actionLabel={statusFilter === "all" ? "Créer un ticket" : undefined}
-                actionHref={statusFilter === "all" ? "/tickets/new" : undefined}
+                actionLabel={statusFilter === "all" || statusFilter === "active" ? "Créer un ticket" : undefined}
+                actionHref={statusFilter === "all" || statusFilter === "active" ? "/tickets/new" : undefined}
               />
             ) : (
               <div className="grid gap-4 md:grid-cols-2">

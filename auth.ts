@@ -8,7 +8,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { authUsers, profiles, userCredentials } from "@/lib/schema";
+import { authUsers, profiles, userCredentials, passwordResetTokens } from "@/lib/schema";
 import { ensureNotificationDefaults } from "@/lib/notifications";
 
 async function ensureProfile(userId: string) {
@@ -32,7 +32,8 @@ async function ensureProfile(userId: string) {
 
 const credentialsSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(8).optional(),
+  impersonationToken: z.string().optional()
 });
 
 const TEST_USER_EMAIL = "demo@orylis.app";
@@ -152,7 +153,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       name: "Email et mot de passe",
       credentials: {
         email: { label: "Adresse email", type: "email" },
-        password: { label: "Mot de passe", type: "password" }
+        password: { label: "Mot de passe", type: "password" },
+        impersonationToken: { label: "Token", type: "text" }
       },
       async authorize(credentials) {
         const parsed = credentialsSchema.safeParse(credentials);
@@ -160,7 +162,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const { email, password } = parsed.data;
+
+        const { email, password, impersonationToken } = parsed.data;
+
+        // --- IMPERSONATION LOGIC ---
+        if (impersonationToken) {
+          const tokenRecord = await db.query.passwordResetTokens.findFirst({
+            where: (t, { eq }) => eq(t.token, impersonationToken),
+            with: { user: true }
+          });
+
+          if (!tokenRecord || new Date() > tokenRecord.expiresAt) {
+            return null;
+          }
+
+          // Consume token
+          await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, impersonationToken));
+
+          // Return user
+          const user = tokenRecord.user;
+          await ensureProfile(user.id);
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name
+          };
+        }
+
+        // --- STANDARD LOGIN ---
+        if (!password) return null; // Password required if no token
 
         if (!adapterGetUserByEmail) {
           return null;

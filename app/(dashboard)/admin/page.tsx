@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation";
-import { eq, sql, and, isNotNull } from "drizzle-orm";
+import { eq, sql, and, isNotNull, desc } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { quotes, tickets, profiles, projects } from "@/lib/schema";
+import { quotes, tickets, profiles, projects, invoices } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Ticket, Users, ArrowRight } from "lucide-react";
+import { FileText, Ticket, Users, ArrowRight, ReceiptEuro, Clock, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { RecentActivity, ActivityItem } from "@/components/admin/recent-activity";
 
 export const revalidate = 0;
 
@@ -18,125 +19,217 @@ async function loadAdminStats() {
         redirect("/");
     }
 
-    const [pendingQuotesCount, openTicketsCount, referredClientsCount, activeProjects] = await Promise.all([
-        db
-            .select({ count: sql<number>`count(*)` })
-            .from(quotes)
-            .where(eq(quotes.status, "pending"))
-            .then((res) => Number(res[0]?.count ?? 0)),
-        db
-            .select({ count: sql<number>`count(*)` })
-            .from(tickets)
-            .where(eq(tickets.status, "open"))
-            .then((res) => Number(res[0]?.count ?? 0)),
-        db
-            .select({ count: sql<number>`count(*)` })
+    const [
+        paidRevenue,
+        pendingRevenue,
+        prospectStats,
+        lastTickets,
+        lastProspects,
+        lastQuotes,
+        lastInvoices
+    ] = await Promise.all([
+        // CA Encaissé
+        db.select({ total: sql<number>`sum(${invoices.amount})` })
+            .from(invoices)
+            .where(eq(invoices.status, "paid"))
+            .then(res => (res[0]?.total ?? 0) / 100),
+
+        // CA En attente
+        db.select({ total: sql<number>`sum(${invoices.amount})` })
+            .from(invoices)
+            .where(eq(invoices.status, "pending"))
+            .then(res => (res[0]?.total ?? 0) / 100),
+
+        // Stats Prospects
+        db.select({
+            status: profiles.prospectStatus,
+            count: sql<number>`count(*)`
+        })
             .from(profiles)
-            .where(and(eq(profiles.role, "client"), isNotNull(profiles.referrerId)))
-            .then((res) => Number(res[0]?.count ?? 0)),
-        db.query.projects.findMany({
-            where: (projects, { ne }) => ne(projects.status, "delivered"),
-            with: {
-                owner: {
-                    columns: { fullName: true }
-                }
-            },
-            orderBy: (projects, { desc }) => [desc(projects.createdAt)],
+            .where(eq(profiles.role, "prospect"))
+            .groupBy(profiles.prospectStatus),
+
+        // Recent Tickets
+        db.query.tickets.findMany({
+            orderBy: (t, { desc }) => [desc(t.createdAt)],
+            limit: 5,
+            with: { author: true }
+        }),
+
+        // Recent Prospects
+        db.query.profiles.findMany({
+            where: (p, { eq }) => eq(p.role, "prospect"),
+            orderBy: (p, { desc }) => [desc(p.createdAt)],
             limit: 5
+        }),
+
+        // Recent Signed Quotes
+        db.query.quotes.findMany({
+            where: (q, { eq }) => eq(q.status, "signed"),
+            orderBy: (q, { desc }) => [desc(q.signedAt)],
+            limit: 5,
+            with: { project: true }
+        }),
+
+        // Recent Paid Invoices
+        db.query.invoices.findMany({
+            where: (i, { eq }) => eq(i.status, "paid"),
+            orderBy: (i, { desc }) => [desc(i.createdAt)], // utilizing createdAt as payment approximation or created
+            limit: 5,
+            with: { user: true }
         })
     ]);
 
+    // Aggregate Activity
+    const activities: ActivityItem[] = [
+        ...lastTickets.map(t => ({
+            id: t.id,
+            type: "ticket_created" as const,
+            title: `Nouveau ticket : ${t.title}`,
+            description: `${t.author.fullName} a ouvert un ticket.`,
+            timestamp: t.createdAt.toISOString()
+        })),
+        ...lastProspects.map(p => ({
+            id: p.id,
+            type: "prospect_registered" as const,
+            title: `Nouveau prospect : ${p.fullName}`,
+            description: p.company || "Inscription via le site",
+            timestamp: p.createdAt!.toISOString()
+        })),
+        ...lastQuotes.map(q => ({
+            id: q.id,
+            type: "quote_signed" as const,
+            title: "Devis signé !",
+            description: `Projet: ${q.project.name}`,
+            timestamp: q.signedAt!.toISOString()
+        })),
+        ...lastInvoices.map(i => ({
+            id: i.id,
+            type: "invoice_paid" as const,
+            title: `Facture réglée : ${(i.amount / 100).toFixed(2)}€`,
+            description: `Client: ${i.user.fullName}`,
+            timestamp: i.createdAt.toISOString()
+        }))
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
+
+    const prospectCounts = {
+        new: 0,
+        negotiation: 0,
+        signed: 0
+    };
+
+    prospectStats.forEach(stat => {
+        if (stat.status === "new" || stat.status === "contacted") prospectCounts.new += Number(stat.count);
+        if (stat.status === "negotiation" || stat.status === "offer_sent") prospectCounts.negotiation += Number(stat.count);
+        // Assuming 'signed' logic means converted to client? Or use a specific status. 
+        // For now, let's just count based on status enum usage.
+    });
+
     return {
-        pendingQuotesCount,
-        openTicketsCount,
-        referredClientsCount,
-        activeProjects
+        paidRevenue,
+        pendingRevenue,
+        prospectCounts,
+        activities
     };
 }
 
 export default async function AdminDashboardPage() {
-    const { pendingQuotesCount, openTicketsCount, referredClientsCount, activeProjects } = await loadAdminStats();
+    const { paidRevenue, pendingRevenue, prospectCounts, activities } = await loadAdminStats();
 
     return (
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-8">
+            {/* Top Stats - Revenue & Prospects */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="border-l-4 border-l-emerald-500 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Devis en attente</CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Trésorerie (Encaissé)</CardTitle>
+                        <ReceiptEuro className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{pendingQuotesCount}</div>
+                        <div className="text-2xl font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(paidRevenue)}</div>
+                        <p className="text-xs text-muted-foreground">Total factures payées</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-l-4 border-l-orange-400 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Tickets ouverts</CardTitle>
-                        <Ticket className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Factures en attente</CardTitle>
+                        <Clock className="h-4 w-4 text-orange-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{openTicketsCount}</div>
+                        <div className="text-2xl font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(pendingRevenue)}</div>
+                        <p className="text-xs text-muted-foreground">À relancer</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Clients parrainés</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Pipeline : Nouveaux</CardTitle>
+                        <UserPlus className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{referredClientsCount}</div>
+                        <div className="text-2xl font-bold">{prospectCounts.new}</div>
+                        <p className="text-xs text-muted-foreground">Prospects à contacter</p>
+                    </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pipeline : En négo</CardTitle>
+                        <Users className="h-4 w-4 text-purple-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{prospectCounts.negotiation}</div>
+                        <p className="text-xs text-muted-foreground">Offres envoyées / discussions</p>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="col-span-2">
+            <div className="grid gap-8 md:grid-cols-3">
+                {/* Recent Activity Feed */}
+                <Card className="md:col-span-2 shadow-sm">
                     <CardHeader>
-                        <CardTitle>Projets en cours</CardTitle>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-primary" />
+                            Fil d&apos;actualité
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
-                            {activeProjects.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">Aucun projet en cours.</p>
-                            ) : (
-                                activeProjects.map((project) => (
-                                    <div key={project.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
-                                        <div>
-                                            <p className="font-medium">{project.name}</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {project.owner?.fullName} • {project.status}
-                                            </p>
-                                        </div>
-                                        <Button asChild variant="ghost" size="sm">
-                                            <Link href={`/projects/${project.id}`}>
-                                                Voir
-                                                <ArrowRight className="ml-2 h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                ))
-                            )}
-                        </div>
+                        <RecentActivity activities={activities} />
                     </CardContent>
                 </Card>
 
-                <Card>
+                {/* Quick Actions / Navigation */}
+                <Card className="shadow-sm h-fit">
                     <CardHeader>
-                        <CardTitle>Accès Directs</CardTitle>
+                        <CardTitle>Accès Rapide</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid gap-2">
-                        <Link href="/admin/clients" className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors">
-                            <span className="font-medium">Gérer les clients & prospects</span>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        </Link>
-                        <Link href="/admin/quotes" className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors">
-                            <span className="font-medium">Suivre les devis</span>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        </Link>
-                        <Link href="/tickets" className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors">
-                            <span className="font-medium">Voir tous les tickets</span>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        </Link>
+                    <CardContent className="grid gap-3">
+                        <Button variant="outline" className="w-full justify-between h-auto py-4" asChild>
+                            <Link href={"/admin/prospects" as any}>
+                                <div className="flex flex-col items-start gap-1">
+                                    <span className="font-semibold">Prospects CRM</span>
+                                    <span className="text-xs text-muted-foreground">Gérer le pipeline</span>
+                                </div>
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="w-full justify-between h-auto py-4" asChild>
+                            <Link href="/admin/invoices">
+                                <div className="flex flex-col items-start gap-1">
+                                    <span className="font-semibold">Facturation</span>
+                                    <span className="text-xs text-muted-foreground">Suivre les paiements</span>
+                                </div>
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="w-full justify-between h-auto py-4" asChild>
+                            <Link href="/tickets">
+                                <div className="flex flex-col items-start gap-1">
+                                    <span className="font-semibold">Support & Tickets</span>
+                                    <span className="text-xs text-muted-foreground">Voir les demandes</span>
+                                </div>
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </Button>
                     </CardContent>
                 </Card>
             </div>

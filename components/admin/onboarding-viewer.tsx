@@ -80,14 +80,7 @@ export function OnboardingViewer({ projectId, onGenerateBrief }: OnboardingViewe
     if (isLoading) return <div className="p-4 flex justify-center"><Loader2 className="animate-spin h-5 w-5 text-slate-400" /></div>;
 
     if (!data) {
-        return (
-            <Card className="bg-slate-50 border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-8 text-slate-500">
-                    <FileText className="h-8 w-8 mb-2 opacity-50" />
-                    <p className="text-sm">Le client n'a pas encore rempli son onboarding.</p>
-                </CardContent>
-            </Card>
-        );
+        return null;
     }
 
     return (

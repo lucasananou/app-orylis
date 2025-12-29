@@ -79,8 +79,8 @@ export function ServicesPageClient({ subscriptions }: ServicesPageClientProps) {
     return (
         <div className="space-y-8 pb-12">
             <PageHeader
-                title="Mes Services & Offres"
-                description="Boostez votre site avec nos packs de maintenance, SEO et contenu."
+                title="Mes Abonnements"
+                description="Gérez vos services actifs et retrouvez vos factures."
             />
 
             <ActiveServices subscriptions={activeSubscriptions} />

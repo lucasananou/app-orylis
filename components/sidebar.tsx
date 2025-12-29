@@ -12,6 +12,7 @@ import {
   FolderOpen,
   CreditCard,
   UserRound,
+  UserPlus,
   Settings,
   Receipt,
   Sparkles,
@@ -27,8 +28,9 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/onboarding", label: "Onboarding", icon: FileText },
   { href: "/tickets", label: "Tickets", icon: Ticket },
   // { href: "/files", label: "Fichiers", icon: FolderOpen },
-  // { href: "/marketplace", label: "Booster", icon: Rocket },
-  // { href: "/services", label: "Services", icon: Sparkles },
+  { href: "/marketplace", label: "Marketplace", icon: Rocket },
+  { href: "/documents", label: "Mes Documents", icon: FolderOpen },
+  { href: "/services", label: "Mes Abonnements", icon: Sparkles },
   { href: "/guide", label: "Guide", icon: BookOpen },
   { href: "/referral", label: "Parrainage", icon: Gift },
   { href: "/profile", label: "Profil", icon: UserRound }
@@ -36,6 +38,7 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
 
 const adminNavItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/admin/clients", label: "Gestion des clients", icon: UserRound },
+  { href: "/admin/prospects", label: "Gestion des prospects", icon: UserPlus },
   { href: "/admin/invite", label: "Inviter un prospect", icon: UserRound },
   { href: "/admin/quotes", label: "Gestion des devis", icon: Receipt },
   { href: "/admin/invoices", label: "Gestion des factures", icon: FileText },

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -14,13 +14,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ProspectBanner } from "@/components/prospect/prospect-banner";
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "Tous" },
-  { value: "open", label: "Ouverts" },
-  { value: "in_progress", label: "En cours" },
-  { value: "done", label: "Résolus" }
+  { value: "active", label: "En cours" },
+  { value: "done", label: "Archivés" },
+  { value: "all", label: "Tout l'historique" }
 ] as const;
 
-type TicketStatusValue = Exclude<(typeof STATUS_OPTIONS)[number]["value"], "all">;
+type TicketFilterValue = (typeof STATUS_OPTIONS)[number]["value"];
 
 interface TicketsPageProps {
   searchParams: {
@@ -80,10 +79,10 @@ async function TicketsPageContent({
   const isProspectUser = isProspect(user.role);
   const requestedStatus = searchParams.status;
 
-  // Si c'est un prospect, afficher le bandeau et continuer (ils peuvent voir mais pas créer)
+  // Default to "active" if no status specified or invalid
   const statusFilter = STATUS_OPTIONS.some((option) => option.value === requestedStatus)
-    ? (requestedStatus as TicketStatusValue | "all")
-    : "all";
+    ? (requestedStatus as TicketFilterValue)
+    : "active";
 
   const requestedPriority = searchParams.priority;
   const priorityFilter = ["low", "medium", "high", "urgent"].includes(requestedPriority ?? "")
@@ -115,15 +114,19 @@ async function TicketsPageContent({
         conditions.push(eq(projects.ownerId, user.id));
       }
 
-      if (statusFilter !== "all") {
-        conditions.push(eq(tickets.status, statusFilter));
+      if (statusFilter === "active") {
+        conditions.push(inArray(tickets.status, ["open", "in_progress"]));
+      } else if (statusFilter === "done") {
+        conditions.push(eq(tickets.status, "done"));
       }
+      // If "all", we push no condition
 
       if (priorityFilter !== "all") {
         conditions.push(eq(tickets.priority, priorityFilter));
       }
 
       const baseQuery = db
+
         .select({
           id: tickets.id,
           title: tickets.title,

@@ -31,6 +31,7 @@ export interface Client {
     quotePdfUrl: string | null;
   } | null;
   createdAt: string | null;
+  prospectStatus?: string;
 }
 
 interface ClientsListProps {

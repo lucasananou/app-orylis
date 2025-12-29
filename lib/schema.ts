@@ -23,6 +23,13 @@ export const authUsers = pgTable("user", {
   image: text("image")
 });
 
+export const prospectStatusEnum = pgEnum("prospect_status", [
+  "new",
+  "contacted",
+  "offer_sent",
+  "negotiation",
+  "lost"
+]);
 export const profileRoleEnum = pgEnum("profile_role", ["prospect", "client", "staff"]);
 export const projectStatusEnum = pgEnum("project_status", [
   "onboarding",
@@ -88,6 +95,8 @@ export const profiles = createTable(
     company: text("company"),
     phone: text("phone"),
     referrerId: text("referrer_id"),
+    internalNotes: text("internal_notes"), // Notes internes pour le CRM (Admin uniquement)
+    prospectStatus: prospectStatusEnum("prospect_status").notNull().default("new"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`)
