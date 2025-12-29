@@ -796,6 +796,40 @@ export async function sendProspectDemoReadyEmailStaticTo(email: string) {
 /**
  * Email de notification : devis signé (envoyé à l'admin)
  */
+/**
+ * Email de relance "9-word email" pour les prospects inactifs
+ */
+export async function sendRevivalEmail(userId: string) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ? user.name.split(" ")[0] : "Bonjour";
+
+  // Template ultra-minimaliste (style texte brut) pour maximiser la délivrabilité et l'aspect personnel
+  // Pas de HTML complexe, pas d'images, juste du texte.
+  const html = `
+    <div style="font-family: Arial, sans-serif; font-size: 14px; color: #000000;">
+      <p>${userName},</p>
+      <p>Est-ce que votre projet de site est toujours d'actualité ?</p>
+      <p>Lucas</p>
+    </div>
+  `;
+
+  const text = `${userName},\n\nEst-ce que votre projet de site est toujours d'actualité ?\n\nLucas`;
+
+  return sendEmail({
+    to: user.email,
+    subject: "Votre projet ?",
+    html,
+    text
+  });
+}
+
+/**
+ * Email de notification : devis signé (envoyé à l'admin)
+ */
 export async function sendQuoteSignedEmailToAdmin(
   quoteId: string,
   projectName: string,
