@@ -23,7 +23,8 @@ import { toast } from "sonner"; // Using sonner as seen in imports
 import { updateProspectStatus } from "@/actions/admin/prospects";
 import { Client } from "./clients-list"; // Reuse type
 import { formatDate } from "@/lib/utils";
-import { Phone, Mail, MoreHorizontal, ExternalLink, FileText, ArrowRight, Loader2, PhoneCall } from "lucide-react";
+import { Phone, Mail, MoreHorizontal, ExternalLink, FileText, ArrowRight, Loader2, PhoneCall, Calendar } from "lucide-react";
+import { sendMeetingRequest } from "@/actions/admin/users";
 import Link from "next/link";
 import { ImpersonateButton } from "./impersonate-button";
 import { SalesCallDialog } from "./sales/sales-call-dialog";
@@ -184,13 +185,33 @@ export function ProspectsTable({ data }: ProspectsTableProps) {
                                             {client.createdAt ? formatDate(client.createdAt) : "-"}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end items-center gap-2">
-                                                <Button size="icon" variant="ghost" asChild>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
                                                     <Link href={`/admin/clients/${client.id}`}>
-                                                        <ArrowRight className="h-4 w-4" />
+                                                        <DropdownMenuItem className="cursor-pointer">
+                                                            <FileText className="mr-2 h-4 w-4" /> Détails
+                                                        </DropdownMenuItem>
                                                     </Link>
-                                                </Button>
-                                            </div>
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            toast.promise(sendMeetingRequest(client.id), {
+                                                                loading: 'Envoi en cours...',
+                                                                success: 'Email envoyé ! 📅',
+                                                                error: 'Erreur lors de l\'envoi'
+                                                            });
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Calendar className="mr-2 h-4 w-4" /> Proposer un RDV
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 );

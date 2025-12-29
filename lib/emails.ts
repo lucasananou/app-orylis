@@ -857,6 +857,35 @@ export async function sendQuoteSignedEmailToAdmin(
 }
 
 /**
+ * Email : Proposition de rendez-vous (Calendly)
+ */
+export async function sendMeetingRequestEmail(userId: string) {
+  const user = await getUserInfo(userId);
+  if (!user.email) {
+    return { success: false, error: "User email not found" };
+  }
+
+  const userName = user.name ? user.name.split(" ")[0] : "Bonjour";
+  const calendlyUrl = "https://calendly.com/lucas-orylis/30min";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Discutons de votre projet ☕️</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Je vous propose qu'on prenne quelques minutes pour faire le point sur votre projet et voir comment avancer concrètement.</p>
+    <p>Vous pouvez réserver un créneau qui vous arrange directement via mon agenda en ligne :</p>
+  `;
+
+  const text = `Bonjour ${userName},\n\nJe vous propose qu'on prenne quelques minutes pour faire le point sur votre projet. Vous pouvez réserver un créneau ici : ${calendlyUrl}\n\nCordialement,\nLucas`;
+
+  return sendEmail({
+    to: user.email,
+    subject: "Proposition de rendez-vous",
+    html: getEmailTemplate(content, "Réserver un créneau", calendlyUrl),
+    text
+  });
+}
+
+/**
  * Email : Site prêt pour review (Client)
  */
 export async function sendClientSiteReadyEmail(
