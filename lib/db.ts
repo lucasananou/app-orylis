@@ -29,8 +29,8 @@ const pool =
     // En prod (serverless), on limite à 3 pour permettre quelques requêtes parallèles (dashboard)
     max: process.env.NODE_ENV === "production" ? 3 : 10,
     min: 0,
-    idleTimeoutMillis: 5000, // Fermer les connexions inactives rapidement (5s)
-    connectionTimeoutMillis: 2000, // Échouer rapidement si pas de connexion (2s)
+    idleTimeoutMillis: 20000, // Fermer les connexions inactives (20s)
+    connectionTimeoutMillis: 10000, // Augmenter le timeout de connexion à 10s pour éviter les erreurs
     keepAlive: true // Maintenir la connexion active pour éviter les coupures silencieuses
   });
 
