@@ -122,7 +122,7 @@ export function QuotesTable({ quotes }: QuotesTableProps) {
                                                 </Button>
                                                 {quote.signedPdfUrl && (
                                                     <Button size="sm" variant="outline" className="h-8 w-8 p-0 border-green-200 bg-green-50 text-green-700 hover:bg-green-100" asChild title="Voir PDF Signé">
-                                                        <Link href={quote.signedPdfUrl} target="_blank">
+                                                        <Link href={quote.signedPdfUrl as any} target="_blank">
                                                             <CheckCircle className="h-4 w-4" />
                                                         </Link>
                                                     </Button>
