@@ -116,7 +116,7 @@ export function QuotesTable({ quotes }: QuotesTableProps) {
                                         <TableCell className="text-right">
                                             <div className="flex justify-end items-center gap-2">
                                                 <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild title="Voir PDF Original">
-                                                    <Link href={quote.pdfUrl} target="_blank">
+                                                    <Link href={quote.pdfUrl as any} target="_blank">
                                                         <FileText className="h-4 w-4" />
                                                     </Link>
                                                 </Button>
