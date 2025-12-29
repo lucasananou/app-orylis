@@ -38,26 +38,28 @@ export async function launchRevivalCampaign() {
     }
 
     // 3. Send Batch Emails (with rate limiting / delays handled by the helper or loop)
-    // For 200 emails, we can loop. Resend handles bulk nicely but let's be gentle.
+    // For 200 emails, we can loop. Resend handles bulk nicely but we must respect 2 req/s limit.
     let sentCount = 0;
-
-    // Process in chunks of 10 to avoid timeouts? or just loop. 
-    // Next.js server actions have a timeout limit (standard 10-60s on Vercel depending on plan).
-    // For MVP, we'll try to process them all. If many, we might want background jobs, but for ~200 it's fine.
-
-    // We'll return the count of TO BE sent emails, but triggering the actual sending might be better done 
-    // in smaller batches if we hit limits. For now, let's just do it directly.
 
     console.log(`[Campaign] Launching revival for ${ghosts.length} prospects...`);
 
-    const results = await Promise.allSettled(
-        ghosts.map(async (ghost) => {
-            // Check if we have an email helper that takes ID
+    // Sequential loop with delay to avoid 429 Too Many Requests
+    for (const ghost of ghosts) {
+        try {
             const res = await sendRevivalEmail(ghost.id);
-            if (res.success) sentCount++;
-            return res;
-        })
-    );
+            if (res.success) {
+                sentCount++;
+                console.log(`[Campaign] Email sent to ${ghost.fullName} (${ghost.id})`);
+            } else {
+                console.error(`[Campaign] Failed to send to ${ghost.fullName}:`, res.error);
+            }
+        } catch (err) {
+            console.error(`[Campaign] Error processing ${ghost.fullName}:`, err);
+        }
+
+        // Wait 600ms between each email to respect 2 req/s limit
+        await new Promise(resolve => setTimeout(resolve, 600));
+    }
 
     revalidatePath("/admin/prospects");
 
