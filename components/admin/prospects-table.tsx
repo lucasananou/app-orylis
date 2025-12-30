@@ -20,10 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"; // Using sonner as seen in imports
-import { updateProspectStatus } from "@/actions/admin/prospects";
+import { updateProspectStatus, deleteProspect, setDemoUrl } from "@/actions/admin/prospects";
 import { Client } from "./clients-list"; // Reuse type
 import { formatDate } from "@/lib/utils";
-import { Phone, Mail, MoreHorizontal, ExternalLink, FileText, ArrowRight, Loader2, PhoneCall, Calendar } from "lucide-react";
+import { Phone, Mail, MoreHorizontal, ExternalLink, FileText, ArrowRight, Loader2, PhoneCall, Calendar, Trash2 } from "lucide-react";
 import { sendMeetingRequest } from "@/actions/admin/users";
 import Link from "next/link";
 import { ImpersonateButton } from "./impersonate-button";
@@ -209,6 +209,35 @@ export function ProspectsTable({ data }: ProspectsTableProps) {
                                                         className="cursor-pointer"
                                                     >
                                                         <Calendar className="mr-2 h-4 w-4" /> Proposer un RDV
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const url = window.prompt("Entrez l'URL de la démo :");
+                                                            if (url) {
+                                                                toast.promise(setDemoUrl(client.id, url), {
+                                                                    loading: 'Ajout du lien...',
+                                                                    success: 'Lien démo ajouté ! 🔗',
+                                                                    error: 'Erreur lors de l\'ajout'
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <ExternalLink className="mr-2 h-4 w-4" /> Ajouter lien démo
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            if (window.confirm("Êtes-vous sûr de vouloir supprimer ce prospect ? Cette action est irréversible.")) {
+                                                                toast.promise(deleteProspect(client.id), {
+                                                                    loading: 'Suppression...',
+                                                                    success: 'Prospect supprimé 🗑️',
+                                                                    error: 'Erreur lors de la suppression'
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" /> Supprimer
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
