@@ -24,7 +24,7 @@ interface EmailOptions {
 /**
  * Envoie un email via Resend
  */
-async function sendEmail(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
   if (!resend) {
     console.warn("[Email] RESEND_API_KEY not configured, email not sent:", options.subject);
     return { success: false, error: "RESEND_API_KEY not configured" };

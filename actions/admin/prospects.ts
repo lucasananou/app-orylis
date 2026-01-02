@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { profiles, authUsers, projects } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
+import { sendEmail, getEmailTemplate } from "@/lib/emails";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -15,7 +16,7 @@ export async function updateProspectStatus(clientId: string, newStatus: string) 
     }
 
     // Validate status against enum values
-    const validStatuses = ["new", "contacted", "offer_sent", "negotiation", "lost"];
+    const validStatuses = ["new", "contacted", "demo_sent", "offer_sent", "negotiation", "lost"];
     if (!validStatuses.includes(newStatus)) {
         throw new Error("Statut invalide");
     }
@@ -64,20 +65,43 @@ export async function setDemoUrl(prospectId: string, url: string) {
         // Find the project for this prospect
         const project = await db.query.projects.findFirst({
             where: eq(projects.ownerId, prospectId),
+            with: {
+                owner: {
+                    with: {
+                        authUser: true
+                    }
+                }
+            }
         });
 
         if (!project) {
             return { error: "Aucun projet trouvé pour ce prospect" };
         }
 
+        const userEmail = project.owner?.authUser?.email;
+
         await db.update(projects)
             .set({ demoUrl: url, status: "demo_in_progress" })
             .where(eq(projects.id, project.id));
 
-        // Update profile status to 'negotiation' or similar? 
-        // Let's keep it simple and just update the project. 
-        // Maybe ensure prospect status is at least "contacted"?
-        // For now, just the URL.
+        // Send email to prospect
+        if (userEmail) {
+            const emailContent = getEmailTemplate(
+                `<h2 style="color: #1a202c;">Votre démo est prête ! 🚀</h2>
+                <p>Bonne nouvelle, nous avons configuré une version de démonstration pour votre projet.</p>
+                <p>Vous pouvez la consulter dès maintenant en cliquant sur le bouton ci-dessous :</p>`,
+                "Voir ma démo",
+                url
+            );
+
+            await sendEmail({
+                to: userEmail,
+                subject: "Votre démo est en ligne ! 🎨",
+                html: emailContent,
+                text: `Votre démo est prête ! Voir ici : ${url}`
+            });
+            console.log(`[Admin] Demo email sent to ${userEmail}`);
+        }
 
         revalidatePath("/admin/prospects");
         return { success: true };

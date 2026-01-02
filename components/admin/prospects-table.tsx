@@ -36,6 +36,7 @@ interface ProspectsTableProps {
 const STATUS_LABELS: Record<string, string> = {
     new: "Nouveau",
     contacted: "Contacté",
+    demo_sent: "Démo envoyée",
     offer_sent: "Offre envoyée",
     negotiation: "En négo",
     lost: "Perdu"
@@ -44,6 +45,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
     new: "bg-blue-100 text-blue-800 border-blue-200",
     contacted: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    demo_sent: "bg-cyan-100 text-cyan-800 border-cyan-200",
     offer_sent: "bg-purple-100 text-purple-800 border-purple-200",
     negotiation: "bg-orange-100 text-orange-800 border-orange-200",
     lost: "bg-gray-100 text-gray-800 border-gray-200"

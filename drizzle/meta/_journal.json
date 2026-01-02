@@ -15,6 +15,13 @@
       "when": 1767015692248,
       "tag": "0001_sparkling_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767343227113,
+      "tag": "0002_lame_random",
+      "breakpoints": true
     }
   ]
 }

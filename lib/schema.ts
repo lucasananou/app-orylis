@@ -26,6 +26,7 @@ export const authUsers = pgTable("user", {
 export const prospectStatusEnum = pgEnum("prospect_status", [
   "new",
   "contacted",
+  "demo_sent",
   "offer_sent",
   "negotiation",
   "lost"
