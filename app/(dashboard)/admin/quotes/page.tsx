@@ -6,6 +6,9 @@ import { quotes, projects, profiles, authUsers } from "@/lib/schema";
 import { isStaff } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 import { QuotesTable } from "@/components/admin/quotes-table";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 // Cache 60 secondes : les devis ne changent pas très souvent
 export const revalidate = 60;
@@ -65,6 +68,14 @@ export default async function AdminQuotesPage() {
       <PageHeader
         title="Gestion des devis"
         description="Consultez tous les devis générés et signés par les prospects."
+        actions={
+          <Button asChild>
+            <Link href={"/admin/quotes/new" as any}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nouveau devis
+            </Link>
+          </Button>
+        }
       />
 
       <QuotesTable quotes={quotes} />

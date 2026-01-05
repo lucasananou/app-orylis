@@ -16,6 +16,8 @@ import { SalesSummary } from "@/components/admin/sales/sales-summary";
 import { ClientNotes } from "@/components/admin/client-notes";
 import { ImpersonateButton } from "@/components/admin/impersonate-button";
 import { getSalesCall } from "@/app/actions/sales";
+import { generateAdminQuote } from "@/actions/admin/quotes";
+import { QuoteButton } from "../../../../../components/admin/quote-button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -66,6 +68,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     description={`Détails du compte et gestion des services.`}
                 />
                 <div className="ml-auto flex items-center gap-2">
+                    {project && (
+                        <QuoteButton projectId={project.id} />
+                    )}
                     <ImpersonateButton userId={client.id} userName={clientName} />
                     <SalesCallDialog prospectId={id} initialData={salesCall} />
                 </div>

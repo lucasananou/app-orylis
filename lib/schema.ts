@@ -477,6 +477,9 @@ export const quotes = createTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
+    amount: integer("amount"), // Montant total HT en centimes
+    services: jsonb("services"), // Liste des services inclus
+    delay: text("delay"), // Délai de livraison
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`)

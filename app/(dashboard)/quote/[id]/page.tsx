@@ -57,7 +57,10 @@ async function loadQuoteData(id: string) {
       signedPdfUrl: true,
       status: true,
       signedAt: true,
-      createdAt: true
+      createdAt: true,
+      amount: true,
+      services: true,
+      delay: true
     }
   });
 
@@ -133,7 +136,7 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
 
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              Devis – Création de site internet
+              Devis – {projectName}
             </h1>
             <p className="text-slate-500">
               Devis personnalisé pour le projet <span className="font-medium text-slate-900">{projectName}</span>
@@ -188,9 +191,9 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
                 pdfUrl={quote.pdfUrl}
                 createdAt={quote.createdAt}
                 summary={{
-                  total: "1 490,00 €",
-                  deliveryTime: "2-4 semaines",
-                  services: ["Site web personnalisé", "Design sur-mesure", "Optimisation SEO", "Support 3 mois"]
+                  total: quote.amount ? `${(quote.amount / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €` : "1 490,00 €",
+                  deliveryTime: quote.delay || "2-4 semaines",
+                  services: (quote.services as string[]) || ["Site web personnalisé", "Design sur-mesure", "Optimisation SEO", "Support 3 mois"]
                 }}
               />
             </div>
@@ -204,8 +207,8 @@ export default async function QuotePage(ctx: Ctx): Promise<JSX.Element> {
                   quoteId={id}
                   projectDetails={{
                     name: projectName,
-                    total: "1 490,00 €",
-                    delay: "2-4 semaines"
+                    total: quote.amount ? `${(quote.amount / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €` : "1 490,00 €",
+                    delay: quote.delay || "2-4 semaines"
                   }}
                 />
 

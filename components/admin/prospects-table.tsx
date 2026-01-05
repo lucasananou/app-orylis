@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"; // Using sonner as seen in imports
 import { updateProspectStatus, deleteProspect, setDemoUrl } from "@/actions/admin/prospects";
+import { generateAdminQuote } from "@/actions/admin/quotes";
 import { Client } from "./clients-list"; // Reuse type
 import { formatDate } from "@/lib/utils";
 import { Phone, Mail, MoreHorizontal, ExternalLink, FileText, ArrowRight, Loader2, PhoneCall, Calendar, Trash2 } from "lucide-react";
@@ -226,6 +227,22 @@ export function ProspectsTable({ data }: ProspectsTableProps) {
                                                         className="cursor-pointer"
                                                     >
                                                         <ExternalLink className="mr-2 h-4 w-4" /> Ajouter lien démo
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            if (client.firstProject?.id) {
+                                                                toast.promise(generateAdminQuote(client.firstProject.id), {
+                                                                    loading: 'Génération du devis...',
+                                                                    success: (data: any) => data.error ? data.error : (data.message || 'Devis généré ! 📄'),
+                                                                    error: 'Erreur lors de la génération'
+                                                                });
+                                                            } else {
+                                                                toast.error("Aucun projet trouvé pour ce prospect");
+                                                            }
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <FileText className="mr-2 h-4 w-4" /> Générer un devis
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={async () => {

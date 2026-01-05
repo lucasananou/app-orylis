@@ -18,6 +18,9 @@ export interface QuoteData {
   quoteNumber: string;
   signature?: string; // Base64 image
   signedAt?: Date;
+  amount?: number; // Total HT
+  services?: string[]; // Custom services list
+  delay?: string; // Delivery time
 }
 
 const DEFAULT_REMOTE_LOGO_URL = "https://orylis.fr/wp-content/uploads/2023/08/Frame-454507529-1.png";
@@ -240,32 +243,47 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   let servicesY = servicesBoxY + 20;
 
   // Service 1: Site internet optimisé Orylis
+  const mainService = data.services && data.services.length > 0 ? data.services[0] : "Site internet optimisé Orylis";
   doc
     .fontSize(11)
     .fillColor("#000000")
-    .text("Site internet optimisé Orylis", servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
+    .text(mainService, servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
 
-  // Prix du service 1 à droite (site internet)
+  // Prix du service 1 à droite
+  const totalAmount = data.amount ? `${data.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €` : "1 490,00 €";
   doc
     .fontSize(10)
     .fillColor("#000000")
-    // Décalage de ~200px vers la gauche pour garantir la lisibilité en marge
-    .text("1 490,00 €", servicesBoxX + servicesBoxWidth - 220, servicesY, { align: "right", width: 200 });
+    .text(totalAmount, servicesBoxX + servicesBoxWidth - 220, servicesY, { align: "right", width: 200 });
 
   servicesY += 20;
-  doc
-    .fontSize(9)
-    .fillColor("#666666")
-    .text("• Branding et design sur-mesure", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
 
-  servicesY += 15;
-  doc.text("• Responsive PC, Tablette et Smartphone", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+  if (data.services && data.services.length > 1) {
+    // Si on a des services personnalisés
+    for (let i = 1; i < data.services.length; i++) {
+      doc
+        .fontSize(9)
+        .fillColor("#666666")
+        .text(`• ${data.services[i]}`, servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+      servicesY += 15;
+    }
+  } else {
+    // Fallback services par défaut
+    doc
+      .fontSize(9)
+      .fillColor("#666666")
+      .text("• Branding et design sur-mesure", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
 
-  servicesY += 15;
-  doc.text("• Référencement Google optimisé", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+    servicesY += 15;
+    doc.text("• Responsive PC, Tablette et Smartphone", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
 
-  servicesY += 15;
-  doc.text("• Intégration de plugin premium gratuitement (valeur 290,90 € /an)", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+    servicesY += 15;
+    doc.text("• Référencement Google optimisé", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+
+    servicesY += 15;
+    doc.text("• Intégration de plugin premium gratuitement", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+    servicesY += 15;
+  }
 
   servicesY += 30;
 
@@ -303,7 +321,7 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
 
   doc.fontSize(12).fillColor("#000000");
   doc.text("Total HT :", labelX, totalY, { align: "right", width: labelBoxWidth });
-  doc.text("1 490,00 €", amountX, totalY, { align: "right", width: amountBoxWidth });
+  doc.text(totalAmount, amountX, totalY, { align: "right", width: amountBoxWidth });
 
   // Section paiement en bas
   y = servicesBoxY + servicesBoxHeight + 30;
