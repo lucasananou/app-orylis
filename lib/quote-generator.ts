@@ -219,12 +219,19 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   // Section services avec encadré
   y = Math.max(y, yPrestataire) + 50;
 
-  // Encadré gris pour les services
+  // Calculer la hauteur dynamique de l'encadré des services
+  const hasCustomServices = data.services && data.services.length > 0;
+  const numServices = hasCustomServices ? data.services!.length : 4; // 4 par défaut
+  const showMaintenance = !hasCustomServices; // Ne montrer la maintenance par défaut que si pas de services personnalisés
+
+  // Estimation de la hauteur : Titre (30) + Services (num * 15) + (Maintenance ? 120 : 0) + Padding (40)
+  const estimatedHeight = 30 + (numServices * 15) + (showMaintenance ? 120 : 0) + 60;
+  const servicesBoxHeight = Math.max(200, estimatedHeight);
+
   const servicesBoxY = y;
-  const servicesBoxHeight = 280;
   const servicesBoxX = margin;
   const servicesBoxWidth = contentWidth;
-  const servicesContentWidth = servicesBoxWidth - 30; // Padding interne
+  const servicesContentWidth = servicesBoxWidth - 30;
 
   // Fond gris clair
   doc
@@ -242,86 +249,89 @@ async function generatePDFContent(doc: PDFKit.PDFDocument, data: QuoteData) {
   // Contenu des services
   let servicesY = servicesBoxY + 20;
 
-  // Service 1: Site internet optimisé Orylis
-  const mainService = data.services && data.services.length > 0 ? data.services[0] : "Site internet optimisé Orylis";
-  doc
-    .fontSize(11)
-    .fillColor("#000000")
-    .text(mainService, servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
+  if (hasCustomServices) {
+    // AFFICHAGE PERSONNALISÉ
+    const services = data.services!;
+    // Premier service en titre
+    doc
+      .fontSize(11)
+      .fillColor("#000000")
+      .text(services[0], servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
 
-  // Prix du service 1 à droite
-  const totalAmount = data.amount ? `${data.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €` : "1 490,00 €";
-  doc
-    .fontSize(10)
-    .fillColor("#000000")
-    .text(totalAmount, servicesBoxX + servicesBoxWidth - 220, servicesY, { align: "right", width: 200 });
+    // Prix à droite
+    const totalAmount = data.amount ? `${data.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €` : "1 490,00 €";
+    doc
+      .fontSize(10)
+      .fillColor("#000000")
+      .text(totalAmount, servicesBoxX + servicesBoxWidth - 220, servicesY, { align: "right", width: 200 });
 
-  servicesY += 20;
+    servicesY += 25;
 
-  if (data.services && data.services.length > 1) {
-    // Si on a des services personnalisés
-    for (let i = 1; i < data.services.length; i++) {
+    // Autres services en puces
+    for (let i = 1; i < services.length; i++) {
       doc
         .fontSize(9)
         .fillColor("#666666")
-        .text(`• ${data.services[i]}`, servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+        .text(`• ${services[i]}`, servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
       servicesY += 15;
     }
   } else {
-    // Fallback services par défaut
+    // AFFICHAGE PAR DÉFAUT (OLD FLOW)
+    doc
+      .fontSize(11)
+      .fillColor("#000000")
+      .text("Site internet optimisé Orylis", servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
+
+    const totalAmount = "1 490,00 €";
+    doc
+      .fontSize(10)
+      .fillColor("#000000")
+      .text(totalAmount, servicesBoxX + servicesBoxWidth - 220, servicesY, { align: "right", width: 200 });
+
+    servicesY += 25;
     doc
       .fontSize(9)
       .fillColor("#666666")
       .text("• Branding et design sur-mesure", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
     servicesY += 15;
     doc.text("• Responsive PC, Tablette et Smartphone", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
     servicesY += 15;
     doc.text("• Référencement Google optimisé", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
     servicesY += 15;
     doc.text("• Intégration de plugin premium gratuitement", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+    servicesY += 35;
+
+    // Service de maintenance par défaut
+    doc
+      .fontSize(11)
+      .fillColor("#000000")
+      .text("Service de maintenance (offert pendant 90 jours)", servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
+
+    servicesY += 20;
+    doc
+      .fontSize(9)
+      .fillColor("#666666")
+      .text("• Hébergement optimisé sur serveur dédié inclus (valeur 19,90 € /mois)", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
     servicesY += 15;
+    doc.text("• Nom de domaine (.fr ou .com) inclus (valeur 9,90 € /an)", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+    servicesY += 15;
+    doc.text("• Mise à jour, maintenance et sécurité inclus", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
+    servicesY += 15;
+    doc.text("• Modification site internet illimitées inclus", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
   }
 
-  servicesY += 30;
-
-  // Service 2: Service de maintenance
-  doc
-    .fontSize(11)
-    .fillColor("#000000")
-    .text("Service de maintenance (offert pendant 90 jours)", servicesBoxX + 15, servicesY, { align: "left", width: servicesContentWidth - 100 });
-
-  servicesY += 20;
-  doc
-    .fontSize(9)
-    .fillColor("#666666")
-    .text("• Hébergement optimisé sur serveur dédié inclus (valeur 19,90 € /mois)", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
-  servicesY += 15;
-  doc.text("• Nom de domaine (.fr ou .com) inclus (valeur 9,90 € /an)", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
-  servicesY += 15;
-  doc.text("• Mise à jour, maintenance et sécurité inclus", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
-  servicesY += 15;
-  doc.text("• Modification site internet illimitées inclus", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
-  servicesY += 15;
-  doc.text("• Suivi et accompagnement pour la prise en main", servicesBoxX + 20, servicesY, { align: "left", width: servicesContentWidth });
-
-  // Total HT à droite (label et montant séparés pour éviter le chevauchement)
+  // Total HT en bas de l'encadré
   const totalY = servicesBoxY + servicesBoxHeight - 30;
   const rightEdge = servicesBoxX + servicesBoxWidth - 20;
   const amountBoxWidth = 100;
   const labelBoxWidth = 100;
   const amountX = rightEdge - amountBoxWidth;
-  const labelX = amountX - labelBoxWidth - 10; // petit espacement
+  const labelX = amountX - labelBoxWidth - 10;
+  const totalAmountStr = data.amount ? `${data.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €` : "1 490,00 €";
 
   doc.fontSize(12).fillColor("#000000");
   doc.text("Total HT :", labelX, totalY, { align: "right", width: labelBoxWidth });
-  doc.text(totalAmount, amountX, totalY, { align: "right", width: amountBoxWidth });
+  doc.text(totalAmountStr, amountX, totalY, { align: "right", width: amountBoxWidth });
 
   // Section paiement en bas
   y = servicesBoxY + servicesBoxHeight + 30;
