@@ -24,9 +24,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
   const user = session.user!;
 
-  if (!isProspect(user.role)) {
+  const isStaff = user.role === "staff";
+
+  if (!isProspect(user.role) && !isStaff) {
     return NextResponse.json(
-      { error: "Cette fonctionnalité est réservée aux prospects." },
+      { error: "Cette fonctionnalité est réservée aux prospects et à l'équipe." },
       { status: 403 }
     );
   }
@@ -60,18 +62,20 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       }
     });
 
-    if (!project || project.ownerId !== user.id) {
+    if (!project || (project.ownerId !== user.id && !isStaff)) {
       return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
     }
 
-    // Récupérer les infos du prospect
+    // Récupérer les infos du propriétaire du projet (et non du signataire si c'est un staff)
+    const targetUserId = isStaff ? project.ownerId : user.id;
+
     const [profile, authUser] = await Promise.all([
       db.query.profiles.findFirst({
-        where: eq(profiles.id, user.id),
+        where: eq(profiles.id, targetUserId),
         columns: { fullName: true }
       }),
       db.query.authUsers.findFirst({
-        where: eq(authUsers.id, user.id),
+        where: eq(authUsers.id, targetUserId),
         columns: { email: true, name: true }
       })
     ]);
@@ -171,7 +175,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       // Send Emails
       try {
         await Promise.all([
-          sendQuoteSignedEmailToProspect(user.id, project.name, id, blob.url),
+          sendQuoteSignedEmailToProspect(targetUserId, project.name, id, blob.url),
           sendQuoteSignedEmailToAdmin(id, project.name, prospectName, prospectEmail, blob.url)
         ]);
       } catch (e) { console.error("Email send failed", e); }
