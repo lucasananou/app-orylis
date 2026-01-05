@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { FileText, Download, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
+import { FileText, Download, CheckCircle, Clock, XCircle, Send, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { relaunchQuote, deleteQuote } from "@/actions/admin/quotes";
+import { toast } from "sonner";
 
 export interface Quote {
     id: string;
@@ -42,6 +44,35 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; icon: an
 
 export function QuotesTable({ quotes }: QuotesTableProps) {
     const [searchQuery, setSearchQuery] = useState("");
+    const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+
+    const handleRelaunch = async (quoteId: string) => {
+        setLoadingMap(prev => ({ ...prev, [quoteId + "-relaunch"]: true }));
+        try {
+            const res = await relaunchQuote(quoteId);
+            if (res.error) toast.error(res.error);
+            else toast.success(res.message);
+        } catch (error) {
+            toast.error("Erreur réseau");
+        } finally {
+            setLoadingMap(prev => ({ ...prev, [quoteId + "-relaunch"]: false }));
+        }
+    };
+
+    const handleDelete = async (quoteId: string) => {
+        if (!confirm("Voulez-vous vraiment supprimer ce devis ?")) return;
+
+        setLoadingMap(prev => ({ ...prev, [quoteId + "-delete"]: true }));
+        try {
+            const res = await deleteQuote(quoteId);
+            if (res.error) toast.error(res.error);
+            else toast.success(res.message);
+        } catch (error) {
+            toast.error("Erreur réseau");
+        } finally {
+            setLoadingMap(prev => ({ ...prev, [quoteId + "-delete"]: false }));
+        }
+    };
 
     const filteredQuotes = quotes.filter((quote) => {
         const query = searchQuery.toLowerCase();
@@ -55,18 +86,20 @@ export function QuotesTable({ quotes }: QuotesTableProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-2">
-                <Input
-                    placeholder="Rechercher un devis (client, projet)..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="max-w-sm"
-                />
+                <div className="relative max-w-sm w-full">
+                    <Input
+                        placeholder="Rechercher un devis (client, projet)..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-3"
+                    />
+                </div>
                 <Badge variant="outline" className="ml-auto">
                     {filteredQuotes.length} Devis
                 </Badge>
             </div>
 
-            <div className="rounded-md border bg-card">
+            <div className="rounded-md border bg-card overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -92,6 +125,8 @@ export function QuotesTable({ quotes }: QuotesTableProps) {
                                     icon: Clock
                                 };
                                 const StatusIcon = statusConfig.icon;
+                                const isRelaunching = loadingMap[quote.id + "-relaunch"];
+                                const isDeleting = loadingMap[quote.id + "-delete"];
 
                                 return (
                                     <TableRow key={quote.id}>
@@ -127,6 +162,38 @@ export function QuotesTable({ quotes }: QuotesTableProps) {
                                                         </Link>
                                                     </Button>
                                                 )}
+
+                                                {quote.status === "pending" && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-8 w-8 p-0 border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                        onClick={() => handleRelaunch(quote.id)}
+                                                        disabled={isRelaunching}
+                                                        title="Relancer le devis (Email)"
+                                                    >
+                                                        {isRelaunching ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <Send className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                )}
+
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
+                                                    onClick={() => handleDelete(quote.id)}
+                                                    disabled={isDeleting}
+                                                    title="Supprimer le devis"
+                                                >
+                                                    {isDeleting ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="h-4 w-4" />
+                                                    )}
+                                                </Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>

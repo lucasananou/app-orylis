@@ -261,3 +261,63 @@ export async function createStandaloneQuote(data: {
         return { error: `Erreur : ${error instanceof Error ? error.message : "Inconnue"}` };
     }
 }
+
+export async function relaunchQuote(quoteId: string) {
+    const session = await auth();
+
+    if (!session?.user || !isStaff(session.user.role)) {
+        return { error: "Non autorisé" };
+    }
+
+    try {
+        const quoteData = await db
+            .select({
+                id: quotes.id,
+                status: quotes.status,
+                number: quotes.number,
+                pdfUrl: quotes.pdfUrl,
+                ownerId: projects.ownerId,
+                projectName: projects.name
+            })
+            .from(quotes)
+            .innerJoin(projects, eq(quotes.projectId, projects.id))
+            .where(eq(quotes.id, quoteId))
+            .limit(1);
+
+        const quote = quoteData[0];
+
+        if (!quote) return { error: "Devis introuvable" };
+        if (quote.status !== "pending") return { error: "Seuls les devis en attente peuvent être relancés" };
+
+        const quoteNumber = (quote.number ?? 0).toString().padStart(6, "0");
+        await sendQuoteCreatedEmail(
+            quote.ownerId,
+            quote.projectName,
+            quote.pdfUrl,
+            quoteNumber,
+            quote.id
+        );
+
+        return { success: true, message: "Relance envoyée avec succès" };
+    } catch (error) {
+        console.error("[relaunchQuote] Error:", error);
+        return { error: "Erreur lors de la relance" };
+    }
+}
+
+export async function deleteQuote(quoteId: string) {
+    const session = await auth();
+
+    if (!session?.user || !isStaff(session.user.role)) {
+        return { error: "Non autorisé" };
+    }
+
+    try {
+        await db.delete(quotes).where(eq(quotes.id, quoteId));
+        revalidatePath("/admin/quotes");
+        return { success: true, message: "Devis supprimé avec succès" };
+    } catch (error) {
+        console.error("[deleteQuote] Error:", error);
+        return { error: "Erreur lors de la suppression" };
+    }
+}
