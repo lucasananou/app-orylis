@@ -44,8 +44,8 @@ export function QuoteSignatureCanvas({ onSign, disabled, projectDetails }: Quote
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d")?.scale(ratio, ratio);
-        canvasRef.current.clear(); // Need to clear because resize wipes it
-        setIsEmpty(true);
+        // canvasRef.current.clear(); // Removing this as it clears the signature on mobile resize events (scrolling, keyboard)
+        // setIsEmpty(true);
       }
     };
 

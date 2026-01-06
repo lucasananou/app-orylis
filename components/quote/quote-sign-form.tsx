@@ -19,6 +19,7 @@ export function QuoteSignForm({ quoteId, projectDetails }: QuoteSignFormProps) {
   const [isSigning, setIsSigning] = React.useState(false);
 
   const handleSign = async (signatureDataUrl: string) => {
+    setIsSigning(true);
     console.log("[SignForm] Submitting signature, length:", signatureDataUrl?.length);
     if (!signatureDataUrl || signatureDataUrl.length < 100) {
       toast.error("La signature semble vide. Merci de signer à nouveau.");
