@@ -36,14 +36,10 @@ type Ctx = { params: Promise<{ id: string }> };
 
 async function loadQuoteData(id: string) {
   const session = await auth();
+  const user = session?.user;
 
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const user = session.user!;
-
-  if (!isProspect(user.role)) {
+  // Si on est connecté mais ni staff ni prospect, on redirige vers le tableau de bord par défaut
+  if (user && user.role !== "prospect" && user.role !== "staff") {
     redirect("/");
   }
 
@@ -77,7 +73,7 @@ async function loadQuoteData(id: string) {
     }
   });
 
-  if (!project || project.ownerId !== user.id) {
+  if (!project || (user && project.ownerId !== user.id && user.role !== "staff")) {
     redirect("/demo");
   }
 

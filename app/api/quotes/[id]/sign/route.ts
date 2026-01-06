@@ -17,21 +17,11 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(req: NextRequest, ctx: Ctx) {
   const session = await auth();
+  const user = session?.user;
+  const isStaff = user?.role === "staff";
 
-  if (!session?.user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  }
-
-  const user = session.user!;
-
-  const isStaff = user.role === "staff";
-
-  if (!isProspect(user.role) && !isStaff) {
-    return NextResponse.json(
-      { error: "Cette fonctionnalité est réservée aux prospects et à l'équipe." },
-      { status: 403 }
-    );
-  }
+  // Note: On ne force plus la session ici pour permettre la signature sans compte.
+  // La sécurité repose sur le UUID du devis reçu par email.
 
   try {
     const { id } = await ctx.params;
@@ -62,12 +52,16 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       }
     });
 
-    if (!project || (project.ownerId !== user.id && !isStaff)) {
+    if (!project) {
+      return NextResponse.json({ error: "Projet introuvable." }, { status: 404 });
+    }
+
+    if (user && !isStaff && project.ownerId !== user.id) {
       return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
     }
 
-    // Récupérer les infos du propriétaire du projet (et non du signataire si c'est un staff)
-    const targetUserId = isStaff ? project.ownerId : user.id;
+    // Le signataire cible pour les emails et la base est toujours le propriétaire du projet
+    const targetUserId = project.ownerId;
 
     const [profile, authUser] = await Promise.all([
       db.query.profiles.findFirst({
@@ -167,7 +161,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
           label: `Devis signé - ${project.name}.pdf`,
           storageProvider: "blob",
           projectId: quote.projectId,
-          uploaderId: user.id,
+          uploaderId: targetUserId, // On attribue le fichier au propriétaire du projet
           createdAt: new Date()
         });
       } catch (e) { console.error("File insert failed", e); }
@@ -202,11 +196,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         ],
         metadata: {
           projectId: quote.projectId,
-          userId: user.id,
+          userId: targetUserId,
           type: "deposit",
           quoteId: id
         },
-        customer_email: user.email || undefined,
+        customer_email: prospectEmail || undefined,
         allow_promotion_codes: true,
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?success=deposit_paid`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/quotes/${id}/sign?canceled=true`,
