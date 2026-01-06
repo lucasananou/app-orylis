@@ -35,24 +35,21 @@ export function QuoteSignatureCanvas({ onSign, disabled, projectDetails }: Quote
     }
   };
 
-  // Ensure canvas is properly sized on mount/resize
-  React.useEffect(() => {
-    const resizeCanvas = () => {
-      if (canvasRef.current) {
-        const canvas = canvasRef.current.getCanvas();
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d")?.scale(ratio, ratio);
-        // canvasRef.current.clear(); // Removing this as it clears the signature on mobile resize events (scrolling, keyboard)
-        // setIsEmpty(true);
-      }
-    };
-
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
+  // Removed resize effect - it was causing issues with canvas state
+  // React.useEffect(() => {
+  //   const resizeCanvas = () => {
+  //     if (canvasRef.current) {
+  //       const canvas = canvasRef.current.getCanvas();
+  //       const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  //       canvas.width = canvas.offsetWidth * ratio;
+  //       canvas.height = canvas.offsetHeight * ratio;
+  //       canvas.getContext("2d")?.scale(ratio, ratio);
+  //     }
+  //   };
+  //   window.addEventListener("resize", resizeCanvas);
+  //   resizeCanvas();
+  //   return () => window.removeEventListener("resize", resizeCanvas);
+  // }, []);
 
   const handleSign = () => {
     if (canvasRef.current && !canvasRef.current.isEmpty()) {
@@ -78,6 +75,11 @@ export function QuoteSignatureCanvas({ onSign, disabled, projectDetails }: Quote
       }, 250);
 
       const dataUrl = canvasRef.current.toDataURL("image/png");
+      console.log("[SignatureCanvas] Data URL captured:", {
+        length: dataUrl.length,
+        startsWithData: dataUrl.startsWith("data:image/png"),
+        preview: dataUrl.substring(0, 50)
+      });
       onSign(dataUrl);
     }
   };

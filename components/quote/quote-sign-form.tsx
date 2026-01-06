@@ -28,11 +28,17 @@ export function QuoteSignForm({ quoteId, projectDetails }: QuoteSignFormProps) {
     }
 
     try {
+      console.log("[SignForm] Making fetch request with signature length:", signatureDataUrl.length);
+      const requestBody = { signatureDataUrl };
+      console.log("[SignForm] Request body keys:", Object.keys(requestBody));
+
       const response = await fetch(`/api/quotes/${quoteId}/sign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signatureDataUrl })
+        body: JSON.stringify(requestBody)
       });
+
+      console.log("[SignForm] Response received:", response.status, response.statusText);
 
       const data = await response.json();
 

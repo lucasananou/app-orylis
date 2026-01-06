@@ -25,15 +25,18 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
   try {
     const { id } = await ctx.params;
-    const body = await req.json();
-    const { signatureDataUrl } = body;
+    console.log("[SignAPI] Parsing request body for quote:", id);
 
-    console.log("[SignAPI] Request raw body keys:", Object.keys(body));
-    console.log("[SignAPI] Request received info:", {
-      id,
-      hasSignature: !!signatureDataUrl,
-      signatureLength: signatureDataUrl?.length,
-      bodyType: typeof body
+    const body = await req.json();
+    console.log("[SignAPI] Body parsed, keys:", Object.keys(body));
+    console.log("[SignAPI] Body size (JSON string):", JSON.stringify(body).length);
+
+    const { signatureDataUrl } = body;
+    console.log("[SignAPI] Signature data URL info:", {
+      exists: !!signatureDataUrl,
+      type: typeof signatureDataUrl,
+      length: signatureDataUrl?.length,
+      preview: signatureDataUrl?.substring(0, 50)
     });
 
     // Récupérer le devis
