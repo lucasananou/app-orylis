@@ -31,12 +31,14 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     console.log("[SignAPI] Body parsed, keys:", Object.keys(body));
     console.log("[SignAPI] Body size (JSON string):", JSON.stringify(body).length);
 
-    const { signatureDataUrl } = body;
+    // Accept both 'signature' and 'signatureDataUrl' for backwards compatibility
+    const { signature, signatureDataUrl } = body;
+    const actualSignature = signature || signatureDataUrl;
     console.log("[SignAPI] Signature data URL info:", {
-      exists: !!signatureDataUrl,
-      type: typeof signatureDataUrl,
-      length: signatureDataUrl?.length,
-      preview: signatureDataUrl?.substring(0, 50)
+      exists: !!actualSignature,
+      type: typeof actualSignature,
+      length: actualSignature?.length,
+      preview: actualSignature?.substring(0, 50)
     });
 
     // Récupérer le devis
@@ -97,7 +99,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
     // --- CAS 1 : SIGNATURE (Si le devis est encore "pending") ---
     if (quote.status === "pending") {
-      if (!signatureDataUrl) {
+      if (!actualSignature) {
         return NextResponse.json({ error: "Signature requise." }, { status: 400 });
       }
 
@@ -113,7 +115,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       const { width } = lastPage.getSize();
 
       // Convertir la signature en image
-      const signatureImage = await pdfDoc.embedPng(signatureDataUrl);
+      const signatureImage = await pdfDoc.embedPng(actualSignature);
 
       // Ajouter la signature
       const signatureBoxWidth = 220;
