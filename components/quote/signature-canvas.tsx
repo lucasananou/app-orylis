@@ -35,6 +35,25 @@ export function QuoteSignatureCanvas({ onSign, disabled, projectDetails }: Quote
     }
   };
 
+  // Ensure canvas is properly sized on mount/resize
+  React.useEffect(() => {
+    const resizeCanvas = () => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current.getCanvas();
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d")?.scale(ratio, ratio);
+        canvasRef.current.clear(); // Need to clear because resize wipes it
+        setIsEmpty(true);
+      }
+    };
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
+
   const handleSign = () => {
     if (canvasRef.current && !canvasRef.current.isEmpty()) {
       // Confetti animation

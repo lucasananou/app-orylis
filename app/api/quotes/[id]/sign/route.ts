@@ -28,6 +28,12 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const body = await req.json();
     const { signatureDataUrl } = body;
 
+    console.log("[SignAPI] Request received:", {
+      id,
+      hasSignature: !!signatureDataUrl,
+      signatureLength: signatureDataUrl?.length
+    });
+
     // Récupérer le devis
     const quote = await db.query.quotes.findFirst({
       where: eq(quotes.id, id),
@@ -40,8 +46,14 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     });
 
     if (!quote) {
+      console.log("[SignAPI] Quote not found:", id);
       return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
     }
+
+    console.log("[SignAPI] Quote found:", {
+      status: quote.status,
+      id: quote.id
+    });
 
     // Vérifier que le devis appartient au prospect
     const project = await db.query.projects.findFirst({
