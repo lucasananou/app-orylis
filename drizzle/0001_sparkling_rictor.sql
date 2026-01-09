@@ -1,1 +1,0 @@
-ALTER TABLE "orylis_profiles" ADD COLUMN "internal_notes" text;

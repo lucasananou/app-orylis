@@ -31,7 +31,7 @@ const labelMap: Record<string, string> = {
 export interface NavbarProps {
   userName?: string | null;
   userEmail: string;
-  role: "prospect" | "client" | "staff";
+  role: "prospect" | "client" | "staff" | "sales";
   projects: Array<{ id: string; name: string }>;
 }
 

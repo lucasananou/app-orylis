@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -10,7 +10,6 @@ import {
   FileText,
   Ticket,
   FolderOpen,
-  CreditCard,
   UserRound,
   UserPlus,
   Settings,
@@ -19,7 +18,11 @@ import {
   Gift,
   BookOpen,
   Rocket,
-  LogOut
+  LogOut,
+  LayoutGrid,
+  CalendarDays,
+  List,
+  Users
 } from "lucide-react";
 import { cn, canAccessTickets, canAccessFiles, canAccessBilling, type UserRole } from "@/lib/utils";
 
@@ -49,10 +52,23 @@ export interface SidebarProps {
   className?: string;
   role?: UserRole;
   hasDeliveredProject?: boolean;
+  counts?: {
+    clients: number;
+    prospects: number;
+  };
 }
 
-export function Sidebar({ className, role = "client", hasDeliveredProject = false }: SidebarProps) {
+export function Sidebar({ className, role = "client", hasDeliveredProject = false, counts }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentView = searchParams?.get("view");
+
+  const salesNavItems = [
+    { href: "/dashboard", label: "Pipeline", icon: LayoutDashboard, view: "pipeline" },
+    { href: "/dashboard/agenda", label: "Agenda", icon: CalendarDays, view: "agenda" },
+    { href: "/dashboard/list", label: "Liste", icon: List, view: "list" },
+    { href: "/dashboard/clients", label: `Clients (${counts?.clients || 0})`, icon: Users, view: "clients" },
+  ];
 
   return (
     <aside
@@ -86,6 +102,11 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
 
           // Masquer les items non pertinents pour le staff
           if (role === "staff" && ["/onboarding", "/services", "/referral"].includes(item.href)) {
+            return null;
+          }
+
+          // Masquer les items par défaut pour les sales (ils ont leur propre menu)
+          if (role === "sales") {
             return null;
           }
 
@@ -160,6 +181,47 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
             })}
           </>
         )}
+
+        {role === "sales" && (
+          <>
+            {salesNavItems.map((item) => {
+              const Icon = item.icon;
+              // Simple active check for dedicated routes
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href as any}
+                  prefetch
+                  className={cn(
+                    "inline-flex min-h-[44px] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:px-4 lg:py-3",
+                    isActive
+                      ? "bg-accent/10 text-accent"
+                      : "text-muted-foreground hover:bg-[rgba(0,0,0,0.03)] hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            <div className="my-2 border-t border-border" />
+            <Link
+              href="/profile"
+              prefetch
+              className={cn(
+                "inline-flex min-h-[44px] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:px-4 lg:py-3",
+                pathname === "/profile"
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted-foreground hover:bg-[rgba(0,0,0,0.03)] hover:text-foreground"
+              )}
+            >
+              <UserRound className="h-4 w-4 shrink-0" />
+              <span>Profil</span>
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="mt-auto pt-6 lg:pt-8">
@@ -177,4 +239,3 @@ export function Sidebar({ className, role = "client", hasDeliveredProject = fals
     </aside>
   );
 }
-

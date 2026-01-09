@@ -1,2 +1,0 @@
-CREATE TYPE "public"."prospect_status" AS ENUM('new', 'contacted', 'demo_sent', 'offer_sent', 'negotiation', 'lost');--> statement-breakpoint
-ALTER TABLE "orylis_profiles" ADD COLUMN "prospect_status" "prospect_status" DEFAULT 'new' NOT NULL;

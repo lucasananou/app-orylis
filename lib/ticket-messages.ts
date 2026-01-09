@@ -17,7 +17,7 @@ export interface TicketMessageWithAuthor {
     id: string;
     fullName: string | null;
     email: string | null;
-    role: "prospect" | "client" | "staff";
+    role: "prospect" | "client" | "staff" | "sales";
   };
 }
 

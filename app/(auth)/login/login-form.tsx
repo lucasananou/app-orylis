@@ -203,6 +203,8 @@ export function PasswordLoginForm() {
           </>
         )}
       </Button>
+
+      {/* Google Login Removed by user request */}
     </Form>
   );
 }

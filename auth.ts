@@ -12,22 +12,18 @@ import { authUsers, profiles, userCredentials, passwordResetTokens } from "@/lib
 import { ensureNotificationDefaults } from "@/lib/notifications";
 
 async function ensureProfile(userId: string) {
-  // Vérifier si le profil existe déjà
-  const existingProfile = await db.query.profiles.findFirst({
-    where: (profile, { eq }) => eq(profile.id, userId),
-    columns: { id: true }
-  });
+  // Tenter de créer le profil (ne rien faire s'il existe déjà)
+  await db.insert(profiles).values({
+    id: userId,
+    role: "client"
+  }).onConflictDoNothing();
 
-  // Créer le profil seulement s'il n'existe pas
-  if (!existingProfile) {
-    await db.insert(profiles).values({
-      id: userId,
-      role: "client"
-      // createdAt sera défini automatiquement par le default SQL
-    });
+  try {
+    await ensureNotificationDefaults(userId, "client");
+  } catch (error) {
+    console.warn("[Auth] Failed to ensure notification defaults:", error);
+    // Don't block sign-in for this
   }
-
-  await ensureNotificationDefaults(userId, "client");
 }
 
 const credentialsSchema = z.object({
@@ -117,6 +113,7 @@ async function ensureTestUser() {
 
 async function fetchUserRole(userId: string) {
   try {
+    console.log(`[Auth] Fetching role for user ${userId}`);
     // Timeout de 2s pour éviter de bloquer l'auth si la DB est lente
     const record = await Promise.race([
       db.query.profiles.findFirst({
@@ -127,6 +124,8 @@ async function fetchUserRole(userId: string) {
         setTimeout(() => reject(new Error("DB_TIMEOUT")), 10000)
       )
     ]);
+
+    console.log(`[Auth] Role for user ${userId}:`, record?.role);
 
     return record?.role ?? "client";
   } catch (error) {
@@ -143,12 +142,25 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 import { authConfig } from "./auth.config";
+import GoogleProvider from "next-auth/providers/google";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: authAdapter,
   session: { strategy: "jwt" },
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid email profile https://www.googleapis.com/auth/calendar.events",
+          access_type: "offline",
+          prompt: "consent"
+        }
+      },
+      allowDangerousEmailAccountLinking: true,
+    }),
     CredentialsProvider({
       name: "Email et mot de passe",
       credentials: {
@@ -292,17 +304,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
+      console.log("[Auth] SignIn started for user:", user.id, "Provider:", account?.provider);
+
       if (!user.id) {
+        console.error("[Auth] SignIn failed: No user ID");
         return false;
       }
 
-      await ensureProfile(user.id);
-      return true;
+      try {
+        // Store Google OAuth tokens in database
+        if (account?.provider === "google" && account.access_token) {
+          console.log("[Auth] Storing Google tokens for user:", user.id);
+          const expiresAt = account.expires_at
+            ? new Date(account.expires_at * 1000)
+            : new Date(Date.now() + 3600 * 1000); // Default 1h if not provided
+
+          await db.update(profiles)
+            .set({
+              googleAccessToken: account.access_token,
+              googleRefreshToken: account.refresh_token || undefined,
+              googleTokenExpiry: expiresAt
+            })
+            .where(eq(profiles.id, user.id));
+        }
+
+        console.log("[Auth] SignIn successful for user:", user.id);
+        return true;
+      } catch (error) {
+        console.error("[Auth] SignIn error:", error);
+        return false;
+      }
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user?.id) {
         token.sub = user.id;
+      }
+
+      // Store account info in token for later use
+      if (account) {
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
       }
 
       // Toujours rafraîchir le rôle depuis la DB pour gérer les transitions prospect -> client immédiates
@@ -315,13 +357,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
-        // Toujours récupérer le rôle frais depuis la DB
-        session.user.role = await fetchUserRole(token.sub);
+
+        // Fetch additional profile info (role, google connection)
+        const profile = await db.query.profiles.findFirst({
+          where: eq(profiles.id, token.sub),
+          columns: {
+            role: true,
+            googleAccessToken: true
+          }
+        });
+
+        // Force sales role for specific email (Debug/MVP fix)
+        if (session.user.email === "sales@orylis.fr") {
+          session.user.role = "sales";
+        } else {
+          session.user.role = profile?.role || "client";
+        }
+
+        session.user.isGoogleConnected = !!profile?.googleAccessToken;
       }
 
       return session;
     },
   },
 });
-
-

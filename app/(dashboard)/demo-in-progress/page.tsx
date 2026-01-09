@@ -2,12 +2,11 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { projects } from "@/lib/schema";
+import { projects, profiles, authUsers } from "@/lib/schema";
 import { isProspect } from "@/lib/utils";
 import Script from "next/script";
-import { Card, CardContent } from "@/components/ui/card";
+import { BookingWidget } from "@/components/booking/booking-widget";
 import { ChatWidgetClient } from "@/components/chat/chat-widget-client";
-// import { CheckCircle2 } from "lucide-react"; // Removed as unused
 import { StickyContactBar } from "@/components/dashboard/sticky-contact-bar";
 
 // Cache 30 secondes
@@ -56,25 +55,44 @@ async function loadDemoStatus() {
     redirect("/");
   }
 
-  return { projectName: project.name };
+  // Récupérer les infos du prospect pour pré-remplir le formulaire
+  const [profile, authUser] = await Promise.all([
+    db.query.profiles.findFirst({
+      where: eq(profiles.id, user.id),
+      columns: {
+        fullName: true,
+        phone: true
+      }
+    }),
+    db.query.authUsers.findFirst({
+      where: eq(authUsers.id, user.id),
+      columns: {
+        email: true,
+        name: true
+      }
+    })
+  ]);
+
+  return {
+    projectName: project.name,
+    prefillName: profile?.fullName || authUser?.name || "",
+    prefillEmail: authUser?.email || "",
+    prefillPhone: profile?.phone || ""
+  };
 }
 
 export default async function DemoInProgressPage(): Promise<JSX.Element> {
-  const { projectName } = await loadDemoStatus();
+  const { projectName, prefillName, prefillEmail, prefillPhone } = await loadDemoStatus();
 
   return (
     <>
       <div className="w-full h-full min-h-[85vh] flex flex-col items-center justify-center p-4">
-
-        {/* Clean Calendly Embed (No Card borders) */}
-        <div className="w-full max-w-[1060px] h-[700px] bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-700">
-          <div
-            className="calendly-inline-widget w-full h-full"
-            data-url="https://calendly.com/lucas-orylis/30min?hide_event_type_details=1&hide_gdpr_banner=1"
-          />
-          <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
-        </div>
-
+        <BookingWidget
+          prefillName={prefillName}
+          prefillEmail={prefillEmail}
+          prefillPhone={prefillPhone}
+          variant="full"
+        />
       </div>
 
       <StickyContactBar />

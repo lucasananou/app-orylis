@@ -9,7 +9,8 @@ import { onboardingResponses, projects, profiles } from "@/lib/schema";
 import { notifyProjectParticipants } from "@/lib/notifications";
 import {
   sendOnboardingCompletedEmailToAdmin,
-  sendProspectOnboardingCompletedEmail
+  sendProspectOnboardingCompletedEmail,
+  sendNewProspectNotificationToSales
 } from "@/lib/emails";
 import { assertUserCanAccessProject, isStaff, isProspect } from "@/lib/utils";
 import {
@@ -184,7 +185,12 @@ export async function POST(req: NextRequest) {
   const [userProfile] = await Promise.all([
     db.query.profiles.findFirst({
       where: eq(profiles.id, session.user.id),
-      columns: { role: true }
+      columns: {
+        role: true,
+        fullName: true,
+        company: true,
+        phone: true
+      }
     }),
     // Mettre à jour le projet immédiatement
     db
@@ -265,7 +271,18 @@ export async function POST(req: NextRequest) {
         }),
         sendOnboardingCompletedEmailToAdmin(projectId, project.name),
         isProspectUser
-          ? sendProspectOnboardingCompletedEmail(session.user.id, project.name)
+          ? Promise.all([
+            sendProspectOnboardingCompletedEmail(session.user.id, project.name),
+            sendNewProspectNotificationToSales(
+              {
+                fullName: (parsedPayload?.fullName as string) ?? userProfile?.fullName ?? null,
+                company: ((parsedPayload?.companyName ?? parsedPayload?.company) as string) ?? userProfile?.company ?? null,
+                phone: (parsedPayload?.phone as string) ?? userProfile?.phone ?? null,
+                email: session.user.email ?? null
+              },
+              false // Pas de RDV pris à ce stade (c'est juste l'onboarding)
+            )
+          ])
           : Promise.resolve()
       ]);
       console.log("[Onboarding] Emails sent successfully");

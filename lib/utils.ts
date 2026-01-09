@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type UserRole = "prospect" | "client" | "staff";
+export type UserRole = "prospect" | "client" | "staff" | "sales";
 
 export function isStaff(role: UserRole | undefined | null): role is "staff" {
   return role === "staff";

@@ -75,7 +75,7 @@ async function TicketsPageContent({
   }
 
   const user = session.user!;
-  const staff = isStaff(user.role);
+  const staff = isStaff(user.role) || user.role === "sales";
   const isProspectUser = isProspect(user.role);
   const requestedStatus = searchParams.status;
 

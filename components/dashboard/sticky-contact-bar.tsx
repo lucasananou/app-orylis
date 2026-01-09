@@ -2,6 +2,7 @@
 
 import { Calendar, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function StickyContactBar() {
     return (
@@ -36,10 +37,10 @@ export function StickyContactBar() {
                         variant="outline"
                         className="flex-1 sm:flex-none border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-12"
                     >
-                        <a href="https://calendly.com/lucas-orylis/30min" target="_blank" rel="noopener noreferrer">
+                        <Link href="/book">
                             <Calendar className="mr-2 h-5 w-5" />
                             Rendez-vous
-                        </a>
+                        </Link>
                     </Button>
                 </div>
             </div>

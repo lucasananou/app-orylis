@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const user = session.user!;
-  const isStaffUser = user.role === "staff";
+  const isStaffUser = ["staff", "admin", "sales"].includes(user.role);
 
   if (!isProspect(user.role) && !isStaffUser) {
     return NextResponse.json(

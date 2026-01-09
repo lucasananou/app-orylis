@@ -1,14 +1,18 @@
 import "server-only";
 
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { Pool, types } from "pg";
 import * as schema from "./schema";
+
+// Force PG to parse timestamps as Date objects
+types.setTypeParser(1114, (str) => new Date(str)); // timestamp
+types.setTypeParser(1184, (str) => new Date(str)); // timestamptz
 
 declare global {
   // eslint-disable-next-line no-var, vars-on-top
-  var __dbPool: Pool | undefined;
+  var __dbPool_v6: Pool | undefined;
   // eslint-disable-next-line no-var, vars-on-top
-  var __db: NodePgDatabase<typeof schema> | undefined;
+  var __db_v6: NodePgDatabase<typeof schema> | undefined;
 }
 
 const connectionString = process.env.DATABASE_URL;
@@ -18,7 +22,7 @@ if (!connectionString) {
 }
 
 const pool =
-  globalThis.__dbPool ??
+  globalThis.__dbPool_v6 ??
   new Pool({
     connectionString,
     ssl: {
@@ -41,15 +45,15 @@ pool.on('error', (err) => {
 });
 
 const dbInstance =
-  globalThis.__db ??
+  globalThis.__db_v6 ??
   drizzle(pool, {
     schema,
     logger: process.env.NODE_ENV === "development"
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.__dbPool = pool;
-  globalThis.__db = dbInstance;
+  globalThis.__dbPool_v6 = pool;
+  globalThis.__db_v6 = dbInstance;
 }
 
 export const db = dbInstance;

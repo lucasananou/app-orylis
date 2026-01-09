@@ -23,7 +23,7 @@ type ProjectOption = {
 
 interface ProjectSwitcherProps {
   projects: ProjectOption[];
-  role: "prospect" | "client" | "staff";
+  role: "prospect" | "client" | "staff" | "sales";
 }
 
 export function ProjectSwitcher({ projects, role }: ProjectSwitcherProps) {

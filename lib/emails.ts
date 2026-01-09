@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+﻿import { Resend } from "resend";
 import { db } from "@/lib/db";
 import { profiles, projects, authUsers } from "@/lib/schema";
 import { eq } from "drizzle-orm";
@@ -1237,5 +1237,99 @@ export async function sendBriefRejectedEmailToAdmin(
     to: ADMIN_EMAIL,
     subject: `Retour sur brief : ${projectName}`,
     html: getEmailTemplate(content, "Voir le projet", `${appUrl}/admin/clients`)
+  });
+}
+/**
+ * Email de notification : nouveau prospect pour les commerciaux
+ */
+export async function sendNewProspectNotificationToSales(
+  prospect: {
+    fullName: string | null;
+    company: string | null;
+    phone: string | null;
+    email: string | null;
+  },
+  isMeetingBooked: boolean
+) {
+  // Email du commercial (hardcodé pour le MVP ou à récupérer depuis une config)
+  // Pour l'instant on envoie à l'admin ou une adresse spécifique si définie
+  const salesEmail = process.env.SALES_EMAIL || ADMIN_EMAIL;
+
+  const subject = isMeetingBooked
+    ? `📅 Nouveau RDV : ${prospect.fullName} (${prospect.company})`
+    : `🔔 Nouveau prospect : ${prospect.fullName} (${prospect.company})`;
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">${isMeetingBooked ? "Nouveau RDV planifié" : "Nouveau prospect à qualifier"}</h2>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>Nom :</strong> ${prospect.fullName ?? "—"}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Société :</strong> ${prospect.company ?? "—"}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Email :</strong> ${prospect.email ?? "—"}</p>
+      <p style="margin: 6px 0 0 0;"><strong>Téléphone :</strong> ${prospect.phone ?? "—"}</p>
+      ${isMeetingBooked ? '<p style="margin: 6px 0 0 0; color: green; font-weight: bold;">✅ RDV pris via Calendly</p>' : ''}
+    </div>
+    <p>Connectez-vous au dashboard commercial pour traiter ce prospect.</p>
+  `;
+
+  return sendEmail({
+    to: salesEmail,
+    subject,
+    html: getEmailTemplate(content, "Accéder au dashboard", `${appUrl}/dashboard`)
+  });
+}
+
+/**
+ * Email de confirmation : R�servation de d�mo (envoy� au prospect)
+ */
+export async function sendBookingConfirmationEmail(params: {
+  name: string;
+  email: string;
+  phone: string;
+  date: Date;
+  budget?: string;
+  meetingUrl?: string;
+}) {
+  const userName = params.name.split(" ")[0] || "Bonjour";
+  const dateFormatted = params.date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+  const timeFormatted = params.date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const meetingLink = params.meetingUrl
+    ? `<p style="margin: 16px 0;"><strong>Lien de visioconf�rence :</strong><br>
+       <a href="c:\Users\lpuss\app orylis{params.meetingUrl}" style="color: #2563eb; text-decoration: underline;">c:\Users\lpuss\app orylis{params.meetingUrl}</a></p>`
+    : `<p style="margin: 16px 0; color: #6b7280;">Le lien Google Meet vous sera envoy� par email s�par�.</p>`;
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Rendez-vous confirm� ! </h2>
+    <p>Bonjour c:\Users\lpuss\app orylis{userName},</p>
+    <p>Votre rendez-vous avec l'�quipe Orylis est confirm�.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong> Date :</strong> c:\Users\lpuss\app orylis{dateFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong> Heure :</strong> c:\Users\lpuss\app orylis{timeFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong> Dur�e :</strong> 30 minutes</p>
+      <p style="margin: 6px 0 0 0;"><strong> T�l�phone :</strong> c:\Users\lpuss\app orylis{params.phone}</p>
+    </div>
+    c:\Users\lpuss\app orylis{meetingLink}
+    <p><strong>Au programme :</strong></p>
+    <ul>
+      <li>D�couverte de votre projet et de vos besoins</li>
+      <li>D�monstration de notre plateforme</li>
+      <li>R�ponses � toutes vos questions</li>
+    </ul>
+    <p>Vous recevrez un rappel 24h avant le rendez-vous.</p>
+    <p>À très bientôt !</p>
+  `;
+
+  return sendEmail({
+    to: params.email,
+    subject: `Rendez-vous confirmé - ${dateFormatted} à ${timeFormatted}`,
+    html: getEmailTemplate(content, "Ajouter à mon agenda", params.meetingUrl || `${appUrl}/book`)
   });
 }

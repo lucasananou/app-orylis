@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface DashboardHeaderProps {
     userName?: string | null;
@@ -43,9 +44,9 @@ export function DashboardHeader({
                     className="shrink-0 min-h-[44px] rounded-full"
                     asChild
                 >
-                    <a href="https://calendly.com/lucas-orylis/30min" target="_blank" rel="noopener noreferrer">
+                    <Link href="/book">
                         Prendre rendez-vous
-                    </a>
+                    </Link>
                 </Button>
             </div>
         );

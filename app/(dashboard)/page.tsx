@@ -102,6 +102,10 @@ async function loadDashboardData(selectedProjectId?: string) {
     redirect("/admin" as any);
   }
 
+  if (user.role === "sales") {
+    redirect("/dashboard");
+  }
+
   // Charger les projets et les owners en parallèle
   const [projectRows, rawOwners] = await Promise.all([
     staff

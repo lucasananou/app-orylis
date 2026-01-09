@@ -56,7 +56,7 @@ interface TicketsClientProps {
   priorityFilter: "low" | "medium" | "high" | "urgent" | "all";
   projects: ProjectOption[];
   tickets: TicketItem[];
-  role: "prospect" | "client" | "staff";
+  role: "prospect" | "client" | "staff" | "sales";
 }
 
 export function TicketsClient({
@@ -70,7 +70,7 @@ export function TicketsClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { projectId: storedProjectId, setProjectId, ready } = useProjectSelection();
-  const staff = isStaff(role);
+  const staff = isStaff(role) || role === "sales";
   const hasProjects = projects.length > 0;
 
   // Use URL param as primary source of truth, fallback to stored project ID

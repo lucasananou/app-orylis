@@ -10,7 +10,8 @@ import {
   jsonb,
   boolean,
   integer,
-  index
+  index,
+  primaryKey
 } from "drizzle-orm/pg-core";
 
 const createTable = pgTableCreator((name) => `orylis_${name}`);
@@ -23,15 +24,60 @@ export const authUsers = pgTable("user", {
   image: text("image")
 });
 
+export const accounts = pgTable(
+  "account",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => ({
+    compoundKey: primaryKey({ columns: [account.provider, account.providerAccountId] }),
+  })
+);
+
+export const sessions = pgTable("session", {
+  sessionToken: text("sessionToken").primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => authUsers.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  })
+);
+
 export const prospectStatusEnum = pgEnum("prospect_status", [
   "new",
   "contacted",
-  "demo_sent",
-  "offer_sent",
-  "negotiation",
+  "demo_sent", // Legacy
+  "offer_sent", // Legacy
+  "negotiation", // Legacy
+  "meeting",
+  "proposal",
+  "won",
   "lost"
 ]);
-export const profileRoleEnum = pgEnum("profile_role", ["prospect", "client", "staff"]);
+export const profileRoleEnum = pgEnum("profile_role", ["prospect", "client", "staff", "sales"]);
 export const projectStatusEnum = pgEnum("project_status", [
   "onboarding",
   "demo_in_progress",
@@ -98,6 +144,11 @@ export const profiles = createTable(
     referrerId: text("referrer_id"),
     internalNotes: text("internal_notes"), // Notes internes pour le CRM (Admin uniquement)
     prospectStatus: prospectStatusEnum("prospect_status").notNull().default("new"),
+    meetingBookedAt: timestamp("meeting_booked_at", { withTimezone: true }),
+    // Google Calendar Integration
+    googleAccessToken: text("google_access_token"),
+    googleRefreshToken: text("google_refresh_token"),
+    googleTokenExpiry: timestamp("google_token_expiry", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`)
@@ -525,6 +576,92 @@ export const salesCallsRelations = relations(salesCalls, ({ one }) => ({
   })
 }));
 
+// ... (existing relations)
+
+// ... enum definitions
+export const prospectNoteTypeEnum = pgEnum("prospect_note_type", ["note", "call", "email", "meeting"]);
+
+export const prospectNotes = createTable(
+  "prospect_notes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    prospectId: text("prospect_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    type: prospectNoteTypeEnum("type").notNull().default("note"),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+  },
+  (note) => ({
+    prospectIdx: index("prospect_notes_prospect_id_idx").on(note.prospectId),
+    createdIdx: index("prospect_notes_created_at_idx").on(note.createdAt)
+  })
+);
+
+export const prospectNotesRelations = relations(prospectNotes, ({ one }) => ({
+  prospect: one(profiles, {
+    fields: [prospectNotes.prospectId],
+    references: [profiles.id]
+  }),
+  author: one(profiles, {
+    fields: [prospectNotes.authorId],
+    references: [profiles.id]
+  })
+}));
+
+// ... existing code ...
+
+export const taskPriorityEnum = pgEnum("task_priority", ["low", "medium", "high"]);
+
+export const tasks = createTable(
+  "tasks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    prospectId: text("prospect_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    assignedToId: text("assigned_to_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    completed: boolean("completed").notNull().default(false),
+    priority: taskPriorityEnum("priority").notNull().default("medium"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => new Date())
+  },
+  (task) => ({
+    prospectIdx: index("tasks_prospect_id_idx").on(task.prospectId),
+    assignedToIdx: index("tasks_assigned_to_id_idx").on(task.assignedToId),
+    completedIdx: index("tasks_completed_idx").on(task.completed)
+  })
+);
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  prospect: one(profiles, {
+    fields: [tasks.prospectId],
+    references: [profiles.id],
+    relationName: "prospect_tasks"
+  }),
+  assignee: one(profiles, {
+    fields: [tasks.assignedToId],
+    references: [profiles.id],
+    relationName: "assigned_tasks"
+  })
+}));
+
+// Update profiles relations
 export const profilesRelations = relations(profiles, ({ many, one }) => ({
   projects: many(projects),
   salesCalls: many(salesCalls),
@@ -533,6 +670,12 @@ export const profilesRelations = relations(profiles, ({ many, one }) => ({
   files: many(files),
   notifications: many(notifications),
   invoices: many(invoices),
+  prospectNotes: many(prospectNotes),
+  tasksAsProspect: many(tasks, { relationName: "prospect_tasks" }), // Tasks linked to this prospect
+  tasksAsAssignee: many(tasks, { relationName: "assigned_tasks" }), // Tasks assigned to this user
+  calendarEventsAsProspect: many(calendarEvents, { relationName: "prospect_events" }),
+  calendarEventsAsCreator: many(calendarEvents, { relationName: "created_events" }),
+  // ... existing relations
   notificationPreferences: one(notificationPreferences, {
     fields: [profiles.id],
     references: [notificationPreferences.userId]
@@ -550,6 +693,9 @@ export const profilesRelations = relations(profiles, ({ many, one }) => ({
     references: [authUsers.id]
   })
 }));
+
+
+// ... (remaining relations)
 
 export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "active",
@@ -761,3 +907,59 @@ export const projectBriefsRelations = relations(projectBriefs, ({ one }) => ({
     references: [projects.id]
   })
 }));
+
+// Calendar Events System
+export const eventTypeEnum = pgEnum("event_type", ["demo", "followup", "closing", "support", "other"]);
+export const eventStatusEnum = pgEnum("event_status", ["scheduled", "completed", "cancelled", "no_show"]);
+
+export const calendarEvents = createTable(
+  "calendar_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    prospectId: text("prospect_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    createdById: text("created_by_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    type: eventTypeEnum("type").notNull().default("demo"),
+    status: eventStatusEnum("status").notNull().default("scheduled"),
+    startTime: timestamp("start_time", { withTimezone: true }).notNull(),
+    endTime: timestamp("end_time", { withTimezone: true }).notNull(),
+    meetingUrl: text("meeting_url"), // Zoom, Google Meet, etc.
+    location: text("location"),
+    googleEventId: text("google_event_id"), // For sync with Google Calendar
+    notes: text("notes"),
+    reminderSent: boolean("reminder_sent").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`)
+      .$onUpdate(() => new Date())
+  },
+  (event) => ({
+    prospectIdx: index("calendar_events_prospect_id_idx").on(event.prospectId),
+    createdByIdx: index("calendar_events_created_by_id_idx").on(event.createdById),
+    startTimeIdx: index("calendar_events_start_time_idx").on(event.startTime),
+    statusIdx: index("calendar_events_status_idx").on(event.status)
+  })
+);
+
+export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
+  prospect: one(profiles, {
+    fields: [calendarEvents.prospectId],
+    references: [profiles.id],
+    relationName: "prospect_events"
+  }),
+  createdBy: one(profiles, {
+    fields: [calendarEvents.createdById],
+    references: [profiles.id],
+    relationName: "created_events"
+  })
+}));
+
+// Update profiles relations to include calendar events
