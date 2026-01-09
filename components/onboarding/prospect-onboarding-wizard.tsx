@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BookingWidget } from "@/components/booking/booking-widget";
 import { useFieldArray, useForm, useWatch, type FieldArrayPath } from "react-hook-form";
 import { z } from "zod";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Upload, X, ClipboardList } from "lucide-react";
@@ -564,12 +565,10 @@ export function ProspectOnboardingWizard({ projects, userEmail }: ProspectOnboar
                 </p>
 
                 <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div
-                        className="calendly-inline-widget w-full"
-                        data-url="https://calendly.com/lucas-orylis/30min?hide_event_type_details=1&hide_gdpr_banner=1"
-                        style={{ minWidth: '320px', height: '700px' }}
+                    <BookingWidget
+                        prefillEmail={userEmail || undefined}
+                        variant="compact"
                     />
-                    <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
                 </div>
 
                 <div className="mt-8">

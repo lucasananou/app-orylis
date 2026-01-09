@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -174,14 +175,10 @@ export default async function DemoPage(): Promise<JSX.Element> {
                   </a>
                 </Button>
                 <Button size="lg" variant="outline" className="w-full text-sm sm:text-base" asChild>
-                  <a
-                    href="https://calendly.com/lucas-orylis/30min"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <Link href="/book">
                     <Calendar className="mr-2 h-4 w-4 shrink-0" />
                     Prendre rendez-vous avec Lucas
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </div>

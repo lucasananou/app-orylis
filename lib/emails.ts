@@ -857,7 +857,7 @@ export async function sendQuoteSignedEmailToAdmin(
 }
 
 /**
- * Email : Proposition de rendez-vous (Calendly)
+ * Email : Proposition de rendez-vous (Booking interne)
  */
 export async function sendMeetingRequestEmail(userId: string) {
   const user = await getUserInfo(userId);
@@ -866,7 +866,7 @@ export async function sendMeetingRequestEmail(userId: string) {
   }
 
   const userName = user.name ? user.name.split(" ")[0] : "Bonjour";
-  const calendlyUrl = "https://calendly.com/lucas-orylis/30min";
+  const bookingUrl = `${appUrl}/book`;
 
   const content = `
     <h2 style="color: #1a202c; margin-top: 0;">Discutons de votre projet ☕️</h2>
@@ -875,12 +875,12 @@ export async function sendMeetingRequestEmail(userId: string) {
     <p>Vous pouvez réserver un créneau qui vous arrange directement via mon agenda en ligne :</p>
   `;
 
-  const text = `Bonjour ${userName},\n\nJe vous propose qu'on prenne quelques minutes pour faire le point sur votre projet. Vous pouvez réserver un créneau ici : ${calendlyUrl}\n\nCordialement,\nLucas`;
+  const text = `Bonjour ${userName},\n\nJe vous propose qu'on prenne quelques minutes pour faire le point sur votre projet. Vous pouvez réserver un créneau ici : ${bookingUrl}\n\nCordialement,\nLucas`;
 
   return sendEmail({
     to: user.email,
     subject: "Proposition de rendez-vous",
-    html: getEmailTemplate(content, "Réserver un créneau", calendlyUrl),
+    html: getEmailTemplate(content, "Réserver un créneau", bookingUrl),
     text
   });
 }
@@ -1266,7 +1266,7 @@ export async function sendNewProspectNotificationToSales(
       <p style="margin: 6px 0 0 0;"><strong>Société :</strong> ${prospect.company ?? "—"}</p>
       <p style="margin: 6px 0 0 0;"><strong>Email :</strong> ${prospect.email ?? "—"}</p>
       <p style="margin: 6px 0 0 0;"><strong>Téléphone :</strong> ${prospect.phone ?? "—"}</p>
-      ${isMeetingBooked ? '<p style="margin: 6px 0 0 0; color: green; font-weight: bold;">✅ RDV pris via Calendly</p>' : ''}
+      ${isMeetingBooked ? '<p style="margin: 6px 0 0 0; color: green; font-weight: bold;">✅ RDV pris via le site</p>' : ''}
     </div>
     <p>Connectez-vous au dashboard commercial pour traiter ce prospect.</p>
   `;
@@ -1279,7 +1279,7 @@ export async function sendNewProspectNotificationToSales(
 }
 
 /**
- * Email de confirmation : R�servation de d�mo (envoy� au prospect)
+ * Email de confirmation : Réservation de démo (envoyé au prospect)
  */
 export async function sendBookingConfirmationEmail(params: {
   name: string;
@@ -1302,26 +1302,26 @@ export async function sendBookingConfirmationEmail(params: {
   });
 
   const meetingLink = params.meetingUrl
-    ? `<p style="margin: 16px 0;"><strong>Lien de visioconf�rence :</strong><br>
-       <a href="c:\Users\lpuss\app orylis{params.meetingUrl}" style="color: #2563eb; text-decoration: underline;">c:\Users\lpuss\app orylis{params.meetingUrl}</a></p>`
-    : `<p style="margin: 16px 0; color: #6b7280;">Le lien Google Meet vous sera envoy� par email s�par�.</p>`;
+    ? `<p style="margin: 16px 0;"><strong>Lien de visioconférence :</strong><br>
+       <a href="${params.meetingUrl}" style="color: #2563eb; text-decoration: underline;">${params.meetingUrl}</a></p>`
+    : `<p style="margin: 16px 0; color: #6b7280;">Le lien Google Meet vous sera envoyé par email séparé.</p>`;
 
   const content = `
-    <h2 style="color: #1a202c; margin-top: 0;">Rendez-vous confirm� ! </h2>
-    <p>Bonjour c:\Users\lpuss\app orylis{userName},</p>
-    <p>Votre rendez-vous avec l'�quipe Orylis est confirm�.</p>
+    <h2 style="color: #1a202c; margin-top: 0;">Rendez-vous confirmé ! 🎉</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Votre rendez-vous avec l'équipe Orylis est confirmé.</p>
     <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
-      <p style="margin: 0;"><strong> Date :</strong> c:\Users\lpuss\app orylis{dateFormatted}</p>
-      <p style="margin: 6px 0 0 0;"><strong> Heure :</strong> c:\Users\lpuss\app orylis{timeFormatted}</p>
-      <p style="margin: 6px 0 0 0;"><strong> Dur�e :</strong> 30 minutes</p>
-      <p style="margin: 6px 0 0 0;"><strong> T�l�phone :</strong> c:\Users\lpuss\app orylis{params.phone}</p>
+      <p style="margin: 0;"><strong>📅 Date :</strong> ${dateFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong>🕐 Heure :</strong> ${timeFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong>⏱️ Durée :</strong> 30 minutes</p>
+      <p style="margin: 6px 0 0 0;"><strong>📞 Téléphone :</strong> ${params.phone}</p>
     </div>
-    c:\Users\lpuss\app orylis{meetingLink}
+    ${meetingLink}
     <p><strong>Au programme :</strong></p>
     <ul>
-      <li>D�couverte de votre projet et de vos besoins</li>
-      <li>D�monstration de notre plateforme</li>
-      <li>R�ponses � toutes vos questions</li>
+      <li>Découverte de votre projet et de vos besoins</li>
+      <li>Démonstration de notre plateforme</li>
+      <li>Réponses à toutes vos questions</li>
     </ul>
     <p>Vous recevrez un rappel 24h avant le rendez-vous.</p>
     <p>À très bientôt !</p>
@@ -1331,5 +1331,141 @@ export async function sendBookingConfirmationEmail(params: {
     to: params.email,
     subject: `Rendez-vous confirmé - ${dateFormatted} à ${timeFormatted}`,
     html: getEmailTemplate(content, "Ajouter à mon agenda", params.meetingUrl || `${appUrl}/book`)
+  });
+}
+
+/**
+ * Email de notification : Nouvelle réservation (envoyé à l'admin/sales)
+ */
+export async function sendBookingNotificationToAdmin(params: {
+  name: string;
+  email: string;
+  phone: string;
+  date: Date;
+  budget?: string;
+  notes?: string;
+  eventId: string;
+}) {
+  const dateFormatted = params.date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+  const timeFormatted = params.date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const budgetLabels: Record<string, string> = {
+    "less-1k": "Moins de 1 000 €",
+    "1k-2k": "Entre 1 000 € et 2 000 €",
+    "2k-4k": "Entre 2 000 € et 4 000 €",
+    "more-4k": "Plus de 4 000 €",
+    "discuss": "Je préfère en discuter"
+  };
+  const budgetText = params.budget ? budgetLabels[params.budget] || params.budget : "Non renseigné";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Nouvelle réservation de démo ! 📅</h2>
+    <p>Un prospect vient de réserver un rendez-vous via la page publique.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>👤 Nom :</strong> ${params.name}</p>
+      <p style="margin: 6px 0 0 0;"><strong>📧 Email :</strong> ${params.email}</p>
+      <p style="margin: 6px 0 0 0;"><strong>📞 Téléphone :</strong> ${params.phone}</p>
+      <p style="margin: 6px 0 0 0;"><strong>💰 Budget :</strong> ${budgetText}</p>
+      <p style="margin: 6px 0 0 0;"><strong>📅 Date :</strong> ${dateFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong>🕐 Heure :</strong> ${timeFormatted}</p>
+    </div>
+    ${params.notes ? `<p><strong>📝 Notes :</strong></p><p style="background-color: #f7f9fb; padding: 12px; border-radius: 6px; font-style: italic;">${params.notes}</p>` : ""}
+    <p>Le rendez-vous a été ajouté à l'agenda Google Calendar (si connecté).</p>
+  `;
+
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Nouvelle démo réservée : ${params.name} - ${dateFormatted}`,
+    html: getEmailTemplate(content, "Voir dans l'agenda", `${appUrl}/agenda`)
+  });
+}
+
+/**
+ * Email de rappel : Rendez-vous J-1 (envoyé au prospect)
+ */
+export async function sendBookingReminderD1(params: {
+  name: string;
+  email: string;
+  date: Date;
+  meetingUrl?: string;
+}) {
+  const userName = params.name.split(" ")[0] || "Bonjour";
+  const dateFormatted = params.date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  });
+  const timeFormatted = params.date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const meetingLink = params.meetingUrl
+    ? `<p style="margin: 16px 0;"><strong>Lien de visioconférence :</strong><br>
+       <a href="${params.meetingUrl}" style="color: #2563eb; font-weight: bold; text-decoration: underline;">${params.meetingUrl}</a></p>`
+    : "";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">Rendez-vous demain ! 📅</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Petit rappel : votre rendez-vous avec Orylis est prévu <strong>demain</strong>.</p>
+    <div style="background-color: #f7f9fb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 0;"><strong>📅 Date :</strong> ${dateFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong>🕐 Heure :</strong> ${timeFormatted}</p>
+      <p style="margin: 6px 0 0 0;"><strong>⏱️ Durée :</strong> 30 minutes</p>
+    </div>
+    ${meetingLink}
+    <p>Si vous avez un empêchement, n'hésitez pas à nous prévenir en répondant à cet email.</p>
+    <p>À demain !</p>
+  `;
+
+  return sendEmail({
+    to: params.email,
+    subject: `Rappel : RDV demain à ${timeFormatted}`,
+    html: getEmailTemplate(content, params.meetingUrl ? "Rejoindre la réunion" : undefined, params.meetingUrl)
+  });
+}
+
+/**
+ * Email de rappel : Rendez-vous dans 2h (envoyé au prospect)
+ */
+export async function sendBookingReminder2h(params: {
+  name: string;
+  email: string;
+  date: Date;
+  meetingUrl?: string;
+}) {
+  const userName = params.name.split(" ")[0] || "Bonjour";
+  const timeFormatted = params.date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const meetingLink = params.meetingUrl
+    ? `<p style="margin: 16px 0;"><strong>Lien de visioconférence :</strong><br>
+       <a href="${params.meetingUrl}" style="color: #2563eb; font-weight: bold; font-size: 16px; text-decoration: underline;">${params.meetingUrl}</a></p>`
+    : "";
+
+  const content = `
+    <h2 style="color: #1a202c; margin-top: 0;">C'est dans 2 heures ! ⏰</h2>
+    <p>Bonjour ${userName},</p>
+    <p>Votre rendez-vous avec Orylis commence dans <strong>2 heures</strong> (à ${timeFormatted}).</p>
+    ${meetingLink}
+    <p>Nous sommes impatients d'échanger avec vous !</p>
+    <p>À tout de suite,</p>
+  `;
+
+  return sendEmail({
+    to: params.email,
+    subject: `RDV dans 2h - ${timeFormatted}`,
+    html: getEmailTemplate(content, params.meetingUrl ? "Rejoindre la réunion" : undefined, params.meetingUrl)
   });
 }

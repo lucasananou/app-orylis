@@ -730,10 +730,10 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
               className="min-h-[44px] rounded-full sm:size-lg"
               asChild
             >
-              <a href="https://calendly.com/lucas-orylis/30min" target="_blank" rel="noopener noreferrer">
+              <Link href="/book">
                 <span className="hidden md:inline">Planifier un point</span>
                 <span className="md:hidden">Point</span>
-              </a>
+              </Link>
             </Button>
           </div>
         }

@@ -51,8 +51,8 @@ export function QuickActions({
 
     const handleCalendar = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // Updated to use a real potential link if available or fallback
-        const url = calendlyUrl || "https://calendly.com/";
+        // Updated to use the internal booking page as fallback
+        const url = calendlyUrl || "/book";
         window.open(url, "_blank");
         onAction?.("calendar");
     };
@@ -119,7 +119,7 @@ export function QuickActions({
                             className={baseButtonClass}
                             asChild
                         >
-                            <a href={calendlyUrl || "https://calendly.com/"} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onAction?.("calendar"); }}>
+                            <a href={calendlyUrl || "/book"} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onAction?.("calendar"); }}>
                                 <Calendar className="h-4 w-4" />
                             </a>
                         </Button>
