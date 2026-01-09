@@ -62,7 +62,7 @@ export async function loadUsersData({ role, sortBy = "name" }: LoadUsersOptions 
         company: string | null;
         phone: string | null;
         email: string | null;
-        role: "prospect" | "client" | "staff";
+        role: "prospect" | "client" | "staff" | "sales";
         createdAt: Date | null;
         referrerName: string | null;
         referrerCompany: string | null;
@@ -154,7 +154,7 @@ export async function loadUsersData({ role, sortBy = "name" }: LoadUsersOptions 
 
     // 4. Combine
     const finalUsers: Client[] = usersWithPhone
-        .filter((user) => user.role !== "staff")
+        .filter((user) => user.role !== "staff" && user.role !== "sales")
         .map((user) => {
             const firstProject = projectsByOwner.get(user.id);
             const projectCount = countsByOwner.get(user.id) ?? 0;

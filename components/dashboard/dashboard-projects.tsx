@@ -20,7 +20,7 @@ interface DashboardProjectsProps {
     ownerId: string;
     ownerName: string | null;
   }>;
-  role: "prospect" | "client" | "staff";
+  role: "prospect" | "client" | "staff" | "sales";
   ownerOptions: Array<{ id: string; name: string }>;
 }
 
