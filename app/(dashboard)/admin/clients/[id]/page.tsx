@@ -11,11 +11,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Pencil, Clock, Calendar } from "lucide-react";
 import { ProjectEditorDialog } from "@/components/projects/project-editor-dialog";
-import { SalesCallDialog } from "@/components/admin/sales/sales-call-dialog";
-import { SalesSummary } from "@/components/admin/sales/sales-summary";
 import { ClientNotes } from "@/components/admin/client-notes";
 import { ImpersonateButton } from "@/components/admin/impersonate-button";
-import { getSalesCall } from "@/app/actions/sales";
 import { generateAdminQuote } from "@/actions/admin/quotes";
 import { QuoteButton } from "../../../../../components/admin/quote-button";
 import { format } from "date-fns";
@@ -51,7 +48,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     }
 
     const project = client.projects[0]; // Assume 1 project for MVP
-    const salesCall = await getSalesCall(id);
     const lastTicket = client.tickets[0];
     const clientName = client.fullName || client.authUser?.name || client.authUser?.email?.split('@')[0] || "Client sans nom";
 
@@ -72,11 +68,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                         <QuoteButton projectId={project.id} />
                     )}
                     <ImpersonateButton userId={client.id} userName={clientName} />
-                    <SalesCallDialog prospectId={id} initialData={salesCall} />
                 </div>
             </div>
-
-            {salesCall && <SalesSummary data={salesCall} />}
 
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>

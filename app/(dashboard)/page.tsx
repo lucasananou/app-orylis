@@ -724,17 +724,6 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
                 }
               />
             )}
-            <Button
-              size="sm"
-              variant="outline"
-              className="min-h-[44px] rounded-full sm:size-lg"
-              asChild
-            >
-              <Link href="/book">
-                <span className="hidden md:inline">Planifier un point</span>
-                <span className="md:hidden">Point</span>
-              </Link>
-            </Button>
           </div>
         }
       />
@@ -746,7 +735,7 @@ export default async function DashboardHomePage({ searchParams }: { searchParams
           <AnalyticsDashboard projectId={activeProject?.id} />
 
           {/* Widgets Grid */}
-          {activeProject && (
+          {activeProject && staff && (
             <div className="grid gap-6 md:grid-cols-3">
               <HostingWidget
                 hostingExpiresAt={activeProject.hostingExpiresAt ? new Date(activeProject.hostingExpiresAt) : null}

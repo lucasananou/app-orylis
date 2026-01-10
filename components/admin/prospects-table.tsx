@@ -28,7 +28,7 @@ import { Phone, Mail, MoreHorizontal, ExternalLink, FileText, ArrowRight, Loader
 import { sendMeetingRequest } from "@/actions/admin/users";
 import Link from "next/link";
 import { ImpersonateButton } from "./impersonate-button";
-import { SalesCallDialog } from "./sales/sales-call-dialog";
+
 
 interface ProspectsTableProps {
     data: Client[];

@@ -27,8 +27,8 @@ async function ensureProfile(userId: string) {
 }
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8).optional(),
+  email: z.string().optional(),
+  password: z.string().optional(),
   impersonationToken: z.string().optional()
 });
 
@@ -180,19 +180,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // --- IMPERSONATION LOGIC ---
         if (impersonationToken) {
           const tokenRecord = await db.query.passwordResetTokens.findFirst({
-            where: (t, { eq }) => eq(t.token, impersonationToken),
-            with: { user: true }
+            where: (t, { eq }) => eq(t.token, impersonationToken)
           });
 
           if (!tokenRecord || new Date() > tokenRecord.expiresAt) {
             return null;
           }
 
+          // Get the user from authUsers
+          const user = await db.query.authUsers.findFirst({
+            where: (u, { eq }) => eq(u.id, tokenRecord.userId)
+          });
+
+          if (!user) {
+            return null;
+          }
+
           // Consume token
           await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, impersonationToken));
 
-          // Return user
-          const user = tokenRecord.user;
+          // Ensure profile exists
           await ensureProfile(user.id);
 
           return {
@@ -203,7 +210,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         // --- STANDARD LOGIN ---
-        if (!password) return null; // Password required if no token
+        if (!email || !password) return null; // Email and password required for standard login
 
         if (!adapterGetUserByEmail) {
           return null;

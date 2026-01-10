@@ -44,6 +44,8 @@ export async function GET(
 
         const propertyId = project.googlePropertyId;
 
+        console.log("[Analytics API] Property ID:", propertyId);
+
         // Prepare credentials
         // We expect GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY
         const credentials = {
@@ -51,16 +53,23 @@ export async function GET(
             private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Fix newlines if passed as single string
         };
 
+        console.log("[Analytics API] Credentials check:");
+        console.log("  - Email:", credentials.client_email ? "✓" : "✗");
+        console.log("  - Private key:", credentials.private_key ? `✓ (${credentials.private_key.length} chars)` : "✗");
+
         if (!credentials.client_email || !credentials.private_key) {
             console.error("Missing Google Analytics credentials");
             return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
         }
 
+        console.log("[Analytics API] Creating BetaAnalyticsDataClient...");
         const analyticsDataClient = new BetaAnalyticsDataClient({
             credentials
         });
+        console.log("[Analytics API] Client created successfully");
 
         // 1. Overview & Traffic (Last 7 days)
+        console.log("[Analytics API] Running report for property:", `properties/${propertyId}`);
         const [response] = await analyticsDataClient.runReport({
             property: `properties/${propertyId}`,
             dateRanges: [
@@ -140,6 +149,41 @@ export async function GET(
             limit: 5
         });
 
+        // 5. Traffic Sources
+        const [sourcesResponse] = await analyticsDataClient.runReport({
+            property: `properties/${propertyId}`,
+            dateRanges: [
+                {
+                    startDate: '7daysAgo',
+                    endDate: 'yesterday',
+                },
+            ],
+            dimensions: [
+                { name: 'sessionDefaultChannelGroup' },
+            ],
+            metrics: [
+                { name: 'activeUsers' },
+                { name: 'sessions' }
+            ]
+        });
+
+        // 6. New vs Returning Users
+        const [userTypeResponse] = await analyticsDataClient.runReport({
+            property: `properties/${propertyId}`,
+            dateRanges: [
+                {
+                    startDate: '7daysAgo',
+                    endDate: 'yesterday',
+                },
+            ],
+            dimensions: [
+                { name: 'newVsReturning' },
+            ],
+            metrics: [
+                { name: 'activeUsers' }
+            ]
+        });
+
         // Format Data
 
         // Traffic Data
@@ -217,18 +261,61 @@ export async function GET(
             users: parseInt(row.metricValues?.[0]?.value || '0')
         })) || [];
 
+        // Traffic Sources Data
+        const channelLabels: Record<string, string> = {
+            "Organic Search": "Recherche Google",
+            "Direct": "Accès Direct",
+            "Organic Social": "Réseaux Sociaux",
+            "Social": "Réseaux Sociaux",
+            "Referral": "Sites Référents",
+            "Paid Search": "Publicité Payante",
+            "Email": "Email",
+            "Display": "Display",
+            "(not set)": "Autre"
+        };
+
+        const sourcesData = sourcesResponse.rows?.map(row => {
+            const channel = row.dimensionValues?.[0]?.value || 'Unknown';
+            return {
+                channel: channelLabels[channel] || channel,
+                users: parseInt(row.metricValues?.[0]?.value || '0'),
+                sessions: parseInt(row.metricValues?.[1]?.value || '0')
+            };
+        }).sort((a, b) => b.users - a.users) || [];
+
+        // New vs Returning Data
+        const userTypeData = userTypeResponse.rows?.map(row => ({
+            type: row.dimensionValues?.[0]?.value === 'new' ? 'Nouveaux' : 'Récurrents',
+            users: parseInt(row.metricValues?.[0]?.value || '0')
+        })) || [];
+
+        const totalUsersByType = userTypeData.reduce((sum, item) => sum + item.users, 0);
+        const newUsers = userTypeData.find(item => item.type === 'Nouveaux')?.users || 0;
+        const returningUsers = userTypeData.find(item => item.type === 'Récurrents')?.users || 0;
+        const newUsersPercent = totalUsersByType > 0 ? ((newUsers / totalUsersByType) * 100).toFixed(0) : '0';
+        const returningUsersPercent = totalUsersByType > 0 ? ((returningUsers / totalUsersByType) * 100).toFixed(0) : '0';
+
 
         return NextResponse.json({
             kpis: {
                 visitors: totalVisitors,
                 views: totalViews,
                 bounceRate: (totalBounceRate * 100).toFixed(1) + '%', // GA4 returns decimal 0.42
-                avgTime: `${Math.floor(totalDuration / 60)}m ${Math.floor(totalDuration % 60)}s`
+                avgTime: `${Math.floor(totalDuration / 60)}m ${Math.floor(totalDuration % 60)}s`,
+                newUsers: newUsersPercent + '%',
+                returningUsers: returningUsersPercent + '%'
             },
             traffic: trafficData,
             devices: deviceData,
             pages: pagesData,
-            geo: geoData
+            geo: geoData,
+            sources: sourcesData,
+            userType: {
+                new: newUsers,
+                returning: returningUsers,
+                newPercent: parseInt(newUsersPercent),
+                returningPercent: parseInt(returningUsersPercent)
+            }
         });
 
     } catch (error) {
