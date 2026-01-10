@@ -14,11 +14,15 @@ async function main() {
     const user = await db.query.authUsers.findFirst({
         where: (u, { eq }) => eq(u.email, "yoobi.coorporation@gmail.com"),
         with: {
-            projects: {
-                columns: {
-                    id: true,
-                    name: true,
-                    googlePropertyId: true
+            profile: {
+                with: {
+                    projects: {
+                        columns: {
+                            id: true,
+                            name: true,
+                            googlePropertyId: true
+                        }
+                    }
                 }
             }
         }
@@ -32,13 +36,13 @@ async function main() {
     console.log(`✅ Utilisateur trouvé: ${user.email}`);
     console.log(`   ID: ${user.id}\n`);
 
-    if (user.projects.length === 0) {
+    if (!user.profile?.projects || user.profile.projects.length === 0) {
         console.log("❌ Aucun projet trouvé pour cet utilisateur");
         process.exit(1);
     }
 
-    console.log(`Projets (${user.projects.length}):`);
-    user.projects.forEach(p => {
+    console.log(`Projets (${user.profile.projects.length}):`);
+    user.profile.projects.forEach(p => {
         console.log(`\n  • ${p.name}`);
         console.log(`    ID: ${p.id}`);
         console.log(`    Google Property ID: ${p.googlePropertyId || "❌ NON CONFIGURÉ"}`);
